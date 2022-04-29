@@ -27,7 +27,7 @@ INSTALLS += target
 
 HEADERS += \
     backend/audio.h \
-    backend/captions.h \
+    backend/caption.h \
     backend/mySql.h \
     backend/playerThread.h \
     backend/records.h \

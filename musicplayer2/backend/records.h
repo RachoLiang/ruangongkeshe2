@@ -6,18 +6,14 @@
 #include <QString>
 #include <QList>
 
-class records   //音视频字幕类
+//播放历史记录类
+class records
 {
 public:
     records() {}
-    records(QString recordsPath);   //初始化字幕文件路径
-    bool readRecords();     //读取字幕文件
-    bool analyzeRecords();  //解析字幕文本
-    void setRecordsPath();  //设置字幕文件路径
-    void getRecordsText();  //获取字幕文本
-    void getRecordsTime();  //获取字幕时间
 private:
-    QString recordsPath;    //字幕文件路径
-    QList<QString> recordsText; //字幕文本
-    QList<int> recordsTime;     //字幕对应的播放时间
+    QString vedioPath;  //播放文件路径
+    QString vedioTextl; //音视频标题
+    double progress;   //播放进度百分比
+    long playTime;    //播放日期的时间戳
 };
