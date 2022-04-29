@@ -1,0 +1,16 @@
+#ifndef PLAYERTHREAD_H
+#define PLAYERTHREAD_H
+
+#endif // PLAYERTHREAD_H
+
+#include "audio.h"
+#include "vedio.h"
+#include <QString>
+#include <QList>
+
+class playerThread:
+{
+    Q_OBJECT
+public:
+    playerThread() {}
+};
