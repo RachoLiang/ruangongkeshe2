@@ -3,6 +3,7 @@ TARGET = musicplayer
 QT += quick quickcontrols2
 QT += core gui multimedia network
 QT += multimediawidgets
+QT += sql
 
 SOURCES += \
     back/audio.cpp \
