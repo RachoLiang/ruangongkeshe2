@@ -1,0 +1,4 @@
+#ifndef PLAYERTHREAD_H
+#define PLAYERTHREAD_H
+
+#endif // PLAYERTHREAD_H

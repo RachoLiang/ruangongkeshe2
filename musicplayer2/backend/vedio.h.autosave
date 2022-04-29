@@ -1,0 +1,12 @@
+#ifndef VEDIO_H
+#define VEDIO_H
+
+#endif // VEDIO_H
+
+#include <QMediaPlayer>
+
+class vedio:{
+private:
+    QMediaPlayer player;
+    
+};

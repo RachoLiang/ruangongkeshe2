@@ -1,0 +1,4 @@
+#ifndef VEDIOMANAGE_H
+#define VEDIOMANAGE_H
+
+#endif // VEDIOMANAGE_H
