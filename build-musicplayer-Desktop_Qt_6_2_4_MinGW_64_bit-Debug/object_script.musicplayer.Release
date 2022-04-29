@@ -1,0 +1,12 @@
+release/audio.o
+release/captions.o
+release/mySql.o
+release/playerThread.o
+release/records.o
+release/vedio.o
+release/vedioManage.o
+release/musicplayer.o
+release/qrc_icons.o
+release/qrc_imagine-assets.o
+release/qrc_qmake_qmake_immediate.o
+release/moc_playerThread.o

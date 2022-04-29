@@ -13,7 +13,7 @@ class audio:public caption
 {
 public:
     audio() {}
-    void setAudioOutput();
+    void setAudioOutput(QAudioOutput ouput);
     audio(QString audioPath);
 
 private:
