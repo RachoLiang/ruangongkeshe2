@@ -6,10 +6,9 @@
 #include "audio.h"
 #include "vedio.h"
 #include <QString>
-#include <QList>
 #include <QThread>
 #include <vector>
-#include <stack>
+#include <deque>
 
 struct PlayListNode
 {
@@ -27,8 +26,20 @@ struct PlayListNode
 class PlayList:public Video
 {
 private:
-    vector<PlayListNode>fileList;      //音视频列表
-    //stack<PlayListNode>historyList;   //播放历史记录（需要自行实现stack类）
+    /* 基于vector的fileList
+     * 保存整个音视频列表（歌单）
+     * 在程序启动时，从数据库中读取数据恢复此vector
+     * 其余时候，仅在用户导入/剔除一个媒体时，这个vector才会修改
+    */
+    std::vector<PlayListNode>fileList;
+
+    /* 基于deque的historyList
+     * 仅用于随机播放模式下，“上一首/下一首”就是在此deque中左右移动的过程
+     * 变更播放模式，将清空此deque
+    */
+    std::deque<PlayListNode>historyList;
+    int dequePos=0;
+    int dequeSize=0;
     int playMode;     //播放模式
     int nowIndex;     //当前播放的视频序号
 public:
