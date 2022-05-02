@@ -35,3 +35,6 @@ HEADERS += \
     backend/vedio.h \
     backend/vedioManage.h \
 
+DISTFILES += \
+    CMakeLists.txt
+

@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
@@ -52,6 +52,7 @@
 #include <QQmlApplicationEngine>
 #include <QSettings>
 #include <QIcon>
+#include "backend/mySql.h"
 
 int main(int argc, char *argv[])
 {
@@ -66,6 +67,29 @@ int main(int argc, char *argv[])
     engine.load(QUrl("qrc:/musicplayer.qml"));
     if (engine.rootObjects().isEmpty())
         return -1;
+
+//    mySql sql;
+//    if(sql.openDb()){
+//        if(sql.isTableExist("records")){
+//            //nothing
+//        }else{
+//            sql.createTable();
+//        }
+//        //插入
+////        Record record = {1,"/100.mp3","test",100,"mp3",QDateTime::currentDateTime(),0};
+////        sql.insertData(record);
+//        //查询
+//        Record rd = sql.selectData(1);
+//        qDebug()<<rd.id<<rd.path<<rd.playTime<<rd.progress<<rd.time<<rd.title<<rd.type;
+//        //查询所有数据
+//        QList<Record> qlist = sql.selectall();
+//        for(int i=0;i<qlist.size();i++){
+//            Record rd = qlist[i];
+//            qDebug()<<rd.id<<rd.path<<rd.playTime<<rd.progress<<rd.time<<rd.title<<rd.type;
+//        }
+//        //sql.deleteAll();
+//        sql.closeDb();
+//    }
 
     return app.exec();
 }
