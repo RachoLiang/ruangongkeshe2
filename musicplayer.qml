@@ -52,7 +52,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Window
-
+import Qt.labs.platform 1.1
 ApplicationWindow {
     id: window
     width: 1280
@@ -160,8 +160,24 @@ ApplicationWindow {
                 TextField {
                     Layout.fillWidth: true
                 }
+                FileDialog {
+                    id: fileDialog
+                    title: "导入音频或者视频文件"
+                    nameFilters: [ "视频文件 (*.ts *.mp4 *.avi *.flv *.mkv *.3gp)",
+                        "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra)"]
+                    acceptLabel: "确定"
+                    rejectLabel: "取消"
+                    fileMode: FileDialog.OpenFile
+                    onAccepted: {
+                        console.log("选中的文件有:")
+                        for (var i in files) {
+                            console.log(files[i])
+                        }
+                    }
+                }
                 Button {
                     icon.name: "folder"
+                    onClicked: fileDialog.open()
                 }
             }
 
