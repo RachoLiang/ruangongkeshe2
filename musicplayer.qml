@@ -53,6 +53,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Window
 import Qt.labs.platform 1.1
+import playlistclass 1.0      //这个类已经在musicplayer.cpp中注册
 ApplicationWindow {
     id: window
     width: 1280
@@ -69,6 +70,14 @@ ApplicationWindow {
         sequence: "Ctrl+Q"
         onActivated: Qt.quit()
     }
+    PlayList{
+        id:playlist;  //在全局构造一个播放列表对象
+        onAddFileInGUI:function(filePath) //在PlayList.h中定义的信号void addFileInGUI(QString filePath);
+        {
+            listviewmodel.append({Path:filePath})  //给ListViewModel起了个id，以便在此处对其操作
+        }
+    }
+
 
     header: ToolBar {
         RowLayout {
@@ -149,6 +158,7 @@ ApplicationWindow {
                 Button {
                     text: "播放列表"
                     checkable: true
+                    onClicked: playlist.showFileList() //用于测试，点击界面的“播放列表”按钮将在控制台展示整个列表
                 }
                 Button {
                     text: "我的收藏"
@@ -169,9 +179,9 @@ ApplicationWindow {
                     rejectLabel: "取消"
                     fileMode: FileDialog.OpenFile
                     onAccepted: {
-                        console.log("选中的文件有:")
+                        console.log("对话框：选中的文件有")
                         for (var i in files) {
-                            console.log(files[i])
+                            playlist.addFile(files[i]) //调用播放列表对象的函数，将用户选中的路径加入播放列表中
                         }
                     }
                 }
@@ -193,19 +203,25 @@ ApplicationWindow {
                     id: filesListView
                     clip: true
                     anchors.fill: parent
+
+
                     model: ListModel {
+                            id: listviewmodel  //在这里给组件起了个id，这样在外面也可以操作它，用于向列表视图中添加条目
+
                         Component.onCompleted: {
-                            for (var i = 0; i < 100; ++i) {
-                                append({
-                                   author: "作者",
-                                   album: "梁立名",
-                                   track: "第 0" + (i % 9 + 1)+"集",
-                                });
-                            }
+//                            for (var i = 0; i < 100; ++i) {
+//                                append({
+//                                   author: "作者",
+//                                   album: "梁立名",
+//                                   track: "第 0" + (i % 9 + 1)+"集",
+//                                });
+//                            }
                         }
+
                     }
+
                     delegate: ItemDelegate {
-                        text: model.author + " - " + model.album + " - " + model.track
+                        text: model.Path
                         width: filesListView.width
                     }
 

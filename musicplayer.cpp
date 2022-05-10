@@ -53,17 +53,20 @@
 #include <QSettings>
 #include <QIcon>
 #include "backend/mySql.h"
-
+#include "backend/PlayList.h"
+#include <QQmlContext>
 int main(int argc, char *argv[])
 {
     QGuiApplication::setApplicationName("Music Player");
     QGuiApplication::setOrganizationName("QtProject");
 
     QGuiApplication app(argc, argv);
-
+    qmlRegisterType<PlayList>("playlistclass",1,0,"PlayList");//注册播放列表类，注意，第四个参数必须是大写开头！
     QIcon::setThemeName("musicplayer");
 
     QQmlApplicationEngine engine;
+
+
     engine.load(QUrl("qrc:/musicplayer.qml"));
     if (engine.rootObjects().isEmpty())
         return -1;

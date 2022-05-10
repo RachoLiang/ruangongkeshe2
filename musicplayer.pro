@@ -6,13 +6,14 @@ QT += multimediawidgets
 QT += sql
 
 SOURCES += \
+    back/PlayList.cpp \
     back/audio.cpp \
     back/captions.cpp \
     back/mySql.cpp \
     back/playerThread.cpp \
     back/records.cpp \
     back/vedio.cpp \
-    back/vedioManage.cpp \
+    back/myStack.cpp \
     musicplayer.cpp
 
 RESOURCES += \
@@ -27,13 +28,14 @@ target.path = $$[QT_INSTALL_EXAMPLES]/quickcontrols2/imagine/musicplayer
 INSTALLS += target
 
 HEADERS += \
+    backend/PlayList.h \
     backend/audio.h \
     backend/caption.h \
     backend/mySql.h \
+    backend/myStack.h \
     backend/playerThread.h \
     backend/records.h \
     backend/vedio.h \
-    backend/vedioManage.h \
 
 DISTFILES += \
     CMakeLists.txt
