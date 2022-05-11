@@ -29,6 +29,7 @@ INSTALLS += target
 
 HEADERS += \
     backend/PlayList.h \
+    backend/PlayListNode.h \
     backend/audio.h \
     backend/caption.h \
     backend/mySql.h \

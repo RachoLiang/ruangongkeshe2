@@ -63,7 +63,7 @@ void mySql::insertData(Record &data){
     if(!sqlQuery.exec()){
         qDebug()<<"fail to insert data."<<sqlQuery.lastError();
     }else{
-        qDebug()<<"insert data successfully";
+        //qDebug()<<"insert data successfully";
     }
 }
 
@@ -116,7 +116,24 @@ QList<Record> mySql::selectall(){
         return qlist;
     }
 }
-
+void mySql::selectAllTofileList(std::vector<PlayListNode> &fileList)
+{
+    QSqlQuery sqlQuery(this->qdb);
+    sqlQuery.prepare("select path from records"); //只查询部分列
+    if(!sqlQuery.exec())
+    {
+        qDebug()<<"fail to regenerate fileList."<<sqlQuery.lastError();
+    }
+    else
+    {
+        while(sqlQuery.next())  //按顺序加入fileList中
+        {
+            PlayListNode u;
+            u.filePath=sqlQuery.value(0).toString();
+            fileList.push_back(u);
+        }
+    }
+}
 void mySql::modifyData(int id,QString path,QString title,int time,QString type,QDateTime playTime,double progress){
     QSqlQuery sqlQuery(this->qdb);
     sqlQuery.prepare("update records set path=:path,title=:title,time=:time,type=:type,playTime=:playTime,progress=:progress where id=:id");

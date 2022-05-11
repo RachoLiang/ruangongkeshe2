@@ -68,7 +68,11 @@ ApplicationWindow {
 
     Shortcut {
         sequence: "Ctrl+Q"
-        onActivated: Qt.quit()
+        onActivated:
+        {
+            playlist.saveToDataBase()
+            Qt.quit()
+        }
     }
     PlayList{
         id:playlist;  //在全局构造一个播放列表对象
@@ -119,7 +123,11 @@ ApplicationWindow {
 
             ToolButton {
                 icon.name: "power"
-                onClicked: Qt.quit()
+                onClicked:
+                {
+                    playlist.saveToDataBase()
+                    Qt.quit()
+                }
             }
         }
     }
@@ -209,6 +217,7 @@ ApplicationWindow {
                             id: listviewmodel  //在这里给组件起了个id，这样在外面也可以操作它，用于向列表视图中添加条目
 
                         Component.onCompleted: {
+                            playlist.init()  //ListViewModel已经准备好，调用init在后台恢复出playlist，并发射信号，在界面同步恢复列表
 //                            for (var i = 0; i < 100; ++i) {
 //                                append({
 //                                   author: "作者",
