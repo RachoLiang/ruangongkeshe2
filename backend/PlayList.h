@@ -1,8 +1,6 @@
 #ifndef PLAYLIST_H
 #define PLAYLIST_H
 
-#endif // PLAYLIST_H
-
 #include "audio.h"
 #include "vedio.h"
 #include <QString>
@@ -11,20 +9,8 @@
 #include <deque>
 #include<QDebug>
 #include<QObject>
-
-struct PlayListNode
-{
-    int mediaType;
-    QString filePath;
-    //    Audio *audioPtr;
-    //    Video *videoPtr;
-    //    PlayListNode(int MediaType=1,Audio *AudioPtr=nullptr,Video *VideoPtr=nullptr)
-    //    {
-    //        mediaType=MediaType;
-    //        audioPtr=AudioPtr;
-    //        videoPtr=VideoPtr;
-    //    }
-};
+#include "mySql.h"
+#include "PlayListNode.h"
 enum PlayBackMode
 {
     SinglePlay=0,    //只播放当前
@@ -63,18 +49,11 @@ public:
     //QString nowPlayingFilePath();
     Q_INVOKABLE void addFile(QString);
     //void deleteFile(QString);
-    //void saveToDataBase();
-    Q_INVOKABLE void init();
-    Q_INVOKABLE void showFileList()
-    {
-        qDebug()<<"展示整个playlist的vector：(实际filePath没有引号)";
-        int len=fileList.size();
-        for(int i=0;i<len;++i)
-        {
-            PlayListNode u=fileList[i];
-            qDebug()<<i+1<<", "<<u.filePath ;
-        }
-    }
+    Q_INVOKABLE void saveToDataBase();  //保存当前现场，包括整个fileList和当前播放的媒体和时刻位置
+    Q_INVOKABLE void init();   //需要在qml的ListView组件准备好之后，才能init，不然发射了信号也没人接收
+    Q_INVOKABLE void showFileList();
+
 signals:
     void addFileInGUI(QString filePath); //信号只需要定义，不需要实现
 };
+#endif // PLAYLIST_H

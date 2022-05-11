@@ -52,7 +52,7 @@
 #include <QQmlApplicationEngine>
 #include <QSettings>
 #include <QIcon>
-#include "backend/mySql.h"
+//#include "backend/mySql.h"
 #include "backend/PlayList.h"
 #include <QQmlContext>
 int main(int argc, char *argv[])

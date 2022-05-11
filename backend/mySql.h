@@ -1,13 +1,12 @@
 ﻿#ifndef MYSQL_H
 #define MYSQL_H
 
-#endif // MYSQL_H
-
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDateTime>
-
+#include <vector>
+#include "PlayListNode.h"
 typedef struct
 {
     int id; //key
@@ -37,6 +36,7 @@ public:
     Record selectData(int id);
     //查询所有数据
     QList<Record> selectall();
+    void selectAllTofileList(std::vector<PlayListNode>&fileList);
     //删除数据
     void deleteData(int);
     //删除所有数据
@@ -51,3 +51,4 @@ public:
 private:
     QSqlDatabase qdb;
 };
+#endif // MYSQL_H
