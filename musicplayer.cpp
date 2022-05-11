@@ -94,5 +94,10 @@ int main(int argc, char *argv[])
 //        sql.closeDb();
 //    }
 
+    /**
+     * 测试视频播放
+    */
+
+
     return app.exec();
 }
