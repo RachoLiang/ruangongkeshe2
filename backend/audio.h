@@ -7,6 +7,7 @@
 #include <QString>
 #include <QList>
 #include <QAudioOutput>
+#include <QDateTime>
 
 //音频类
 class Audio  //暂时不做字幕功能，后期可能会继承/包含caption类
@@ -14,9 +15,10 @@ class Audio  //暂时不做字幕功能，后期可能会继承/包含caption类
 public:
     Audio() {}
     Audio(QString audioPath);   //通过文件路径导入资源
-    Audio(QString audioPath,QString fileName,QString duration,int position,QDateTime modificationTime,bool isvalid);  //通过数据库信息导入资源
+    Audio(QString audioPath,QString fileName,int duration,int position,QDateTime modificationTime,bool isvalid);  //通过数据库信息导入资源
     void setAudioOutput(QAudioOutput* ouput);
     bool onPlay();               //切换视频的播放状态:播放-》暂停|暂停-》播放
+    bool onStop();  //停止播放
     void adjustVolume(int);     //调节音量
     void adjustProgress(int);   //调节播放进度
     void adjustRate(int);   //调节播放速率
@@ -25,7 +27,7 @@ public:
     bool isValid();     //当前资源是否有效：资源文件获取不到|被用户手动删除；在关闭播放器后会对应修改数据库中资源有效性
     //albumCoverExtraction      //提取专辑封面
     void setIsPlayingNow(bool);
-    void setAudioBitRate(int);
+    void adjustRate(qreal value);   //调节播放速度
     void setPosition(int value);    //设置播放进度
     void setVaild(bool value);  //设置资源有效性：删除时value = false
     QMediaPlayer* getPlayer();  //获取播放player对象
@@ -33,8 +35,10 @@ public:
     * setXXX()
     */
 
-private:
+protected:
     QMediaPlayer* player;
+
+private:
     bool isvalid;   //是否有效
     //资源信息
     QString filePath;  //文件路径

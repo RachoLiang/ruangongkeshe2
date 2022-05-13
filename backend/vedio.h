@@ -4,7 +4,6 @@
 #endif // VEDIO_H
 
 #include <QMediaPlayer>
-#include "caption.h"
 #include <QVideoWidget>
 #include <QVideoSink>
 #include "audio.h"
@@ -14,7 +13,7 @@ class Video:public Audio,QVideoSink
 public:
     Video(){}
     Video(QString vedioPath);
-    bool setVideoOutput(QVideoWidget* output);
+    void setVideoOutput(QVideoWidget* output);
     void play();
     void pause();
     void adjustProgress(int);

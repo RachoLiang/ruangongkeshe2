@@ -4,7 +4,7 @@
 Audio::Audio(QString audioPath){
     this->filePath = audioPath;
     this->player = new QMediaPlayer;
-    this->player->setSource(this->filePath);
+    this->player->setSource(QUrl::fromLocalFile(this->filePath));
     //判断资源是否可获取
     isValid();
     //加载文件
@@ -13,10 +13,12 @@ Audio::Audio(QString audioPath){
 }
 
 //通过数据库信息初始化
-Audio::Audio(QString audioPath,QString fileName,QString duration,int position,QDateTime modificationTime,bool isvalid){
+Audio::Audio(QString audioPath,QString fileName,int duration,int position,QDateTime modificationTime,bool isvalid){
     this->filePath = audioPath;
     this->player = new QMediaPlayer;
-    this->player->setSource(this->filePath);
+    //设置资源路径
+    this->player->setSource(QUrl::fromLocalFile(this->filePath));
+
     this->fileName = fileName;
     this->duration = duration;
     this->position = position;
@@ -55,7 +57,7 @@ bool Audio::isPlaying(){
     if(this->player == nullptr){
         return false;
     }
-    if(this->player->state() == QMediaPlayer::PlayingState){
+    if(this->player->PlayingState == QMediaPlayer::PlayingState){
         return true;
     }else{
         return false;
@@ -68,7 +70,7 @@ bool Audio::isPausing(){
     if(this->player == nullptr){
         return false;
     }
-    if(this->player->state() == QMediaPlayer::PausedState){
+    if(this->player->PausedState == QMediaPlayer::PausedState){
         return true;
     }else{
         return false;
@@ -111,11 +113,25 @@ void Audio::adjustProgress(int value){
 
 
 //调节播放速率
-void Audio::adjustRate(int value){
+void Audio::adjustRate(qreal value){
     if(this->player == nullptr){
         return;
     }
-    this->player->playbackRate() = value;
+    this->player->setPlaybackRate(value);
+}
+
+//停止播放
+bool Audio::onStop(){
+    if(this->player == nullptr){
+        return false;
+    }
+    this->player->stop();
+    return true;
+}
+
+//获取player对象
+QMediaPlayer* Audio::getPlayer(){
+    return this->player;
 }
 
 
