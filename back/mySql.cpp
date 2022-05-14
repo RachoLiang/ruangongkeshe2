@@ -119,7 +119,7 @@ QList<Record> mySql::selectall(){
 void mySql::selectAllTofileList(std::vector<PlayListNode> &fileList)
 {
     QSqlQuery sqlQuery(this->qdb);
-    sqlQuery.prepare("select path from records"); //只查询部分列
+    sqlQuery.prepare("select path from records order by id"); //只查询部分列
     if(!sqlQuery.exec())
     {
         qDebug()<<"fail to regenerate fileList."<<sqlQuery.lastError();
