@@ -17,6 +17,9 @@
         <file>musicplayer/32x32/settings.png</file>
         <file>musicplayer/32x32/shuffle.png</file>
         <file>musicplayer/32x32/stop.png</file>
+        <file>musicplayer/32x32/singlePlay.png</file>
+        <file>musicplayer/32x32/singleLoop.png</file>
+        <file>musicplayer/32x32/sequentialPlay.png</file>
         <file>musicplayer/32x32@2/bluetooth.png</file>
         <file>musicplayer/32x32@2/cart.png</file>
         <file>musicplayer/32x32@2/cloud.png</file>
@@ -36,5 +39,8 @@
         <file>musicplayer/32x32@2/stop.png</file>
         <file>musicplayer/32x32/favorite.png</file>
         <file>musicplayer/32x32@2/favorite.png</file>
+        <file>musicplayer/32x32@2/singlePlay.png</file>
+        <file>musicplayer/32x32@2/singleLoop.png</file>
+        <file>musicplayer/32x32@2/sequentialPlay.png</file>
     </qresource>
 </RCC>

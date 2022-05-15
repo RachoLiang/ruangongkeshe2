@@ -48,9 +48,9 @@
 **
 ****************************************************************************/
 
-import QtQuick
-import QtQuick.Layouts
+import QtQuick 2.0
 import QtQuick.Controls
+import QtQuick.Layouts 1.1
 import QtQuick.Window
 import Qt.labs.platform 1.1
 import playlistclass 1.0      //这个类已经在musicplayer.cpp中注册
@@ -79,6 +79,14 @@ ApplicationWindow {
         onAddFileInGUI:function(filePath) //在PlayList.h中定义的信号void addFileInGUI(QString filePath);
         {
             listviewmodel.append({Path:filePath})  //给ListViewModel起了个id，以便在此处对其操作
+        }
+        onChangeCurrentPlayingIndex: function(index)  //改变列表中的高亮条目
+        {
+            filesListView.currentIndex=index
+        }
+        onChangePlayModeButtonIcon: function(iconName)
+        {
+            playModeButton.icon.name=iconName
         }
     }
 
@@ -166,7 +174,11 @@ ApplicationWindow {
                 Button {
                     text: "播放列表"
                     checkable: true
-                    onClicked: playlist.showFileList() //用于测试，点击界面的“播放列表”按钮将在控制台展示整个列表
+                    onClicked:
+                    {
+                        playlist.showFileList() //用于测试，点击界面的“播放列表”按钮将在控制台展示整个列表
+                        console.log(filesListView.currentIndex)
+                    }
                 }
                 Button {
                     text: "我的收藏"
@@ -206,18 +218,17 @@ ApplicationWindow {
 
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-
                 ListView {
                     id: filesListView
                     clip: true
                     anchors.fill: parent
-
-
                     model: ListModel {
                             id: listviewmodel  //在这里给组件起了个id，这样在外面也可以操作它，用于向列表视图中添加条目
 
                         Component.onCompleted: {
+
                             playlist.init()  //ListViewModel已经准备好，调用init在后台恢复出playlist，并发射信号，在界面同步恢复列表
+
 //                            for (var i = 0; i < 100; ++i) {
 //                                append({
 //                                   author: "作者",
@@ -230,8 +241,23 @@ ApplicationWindow {
                     }
 
                     delegate: ItemDelegate {
+                        id:delegateID
                         text: model.Path
                         width: filesListView.width
+                        font: filesListView.currentIndex==index?"黑体":"宋体"
+                        height: filesListView.currentIndex==index?60:40
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked:
+                            {
+                                //console.log(index)
+                                filesListView.currentIndex=index
+                                playlist.setNowIndex(index)
+
+                            }
+                        }
+
                     }
 
                     ScrollBar.vertical: ScrollBar {
@@ -390,6 +416,7 @@ ApplicationWindow {
                     icon.name: "previous"
                     icon.width: 32
                     icon.height: 32
+                    onClicked: playlist.playLastMedia()
                 }
                 RoundButton {
                     icon.name: "pause"
@@ -400,17 +427,20 @@ ApplicationWindow {
                     icon.name: "next"
                     icon.width: 32
                     icon.height: 32
+                    onClicked: playlist.playNextMedia()
                 }
                 RoundButton {
-                    icon.name: "repeat"
+                    id:playModeButton
+                    icon.name: "singlePlay"
                     icon.width: 32
                     icon.height: 32
+                    onClicked: playlist.changePlayMode()
                 }
-                RoundButton {
-                    icon.name: "shuffle"
-                    icon.width: 32
-                    icon.height: 32
-                }
+//                RoundButton {
+//                    icon.name: "shuffle"
+//                    icon.width: 32
+//                    icon.height: 32
+//                }
             }
 
             Slider {

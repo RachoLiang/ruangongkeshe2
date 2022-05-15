@@ -58,6 +58,7 @@
 
 int main(int argc, char *argv[])
 {
+    srand(time(0));   //随机数种子
     QGuiApplication::setApplicationName("Music Player");
     QGuiApplication::setOrganizationName("QtProject");
 
@@ -98,13 +99,13 @@ int main(int argc, char *argv[])
     /**
      * 测试视频播放
     */
-    QObject *pRoot = engine.rootObjects().first();
-    Video* player = new Video("D:/chat/wechat/WeChat Files/wxid_mnkxh12c0w5n22/FileStorage/Video/2022-04/0b6d50c476ea6be54ec82e2790ad3f90.mp4");
-    QAudioOutput* audioOutput = new QAudioOutput;
-    QVideoWidget* videoOutput = new QVideoWidget;
-    player->setAudioOutput(audioOutput);
-    player->setVideoOutput(videoOutput);
-    QObject::connect(player->getPlayer(), SIGNAL(positionChanged(qint64)), pRoot, SLOT(positionChanged(qint64)));
-    player->onPlay();
+//    QObject *pRoot = engine.rootObjects().first();
+//    Video* player = new Video("D:/chat/wechat/WeChat Files/wxid_mnkxh12c0w5n22/FileStorage/Video/2022-04/0b6d50c476ea6be54ec82e2790ad3f90.mp4");
+//    QAudioOutput* audioOutput = new QAudioOutput;
+//    QVideoWidget* videoOutput = new QVideoWidget;
+//    player->setAudioOutput(audioOutput);
+//    player->setVideoOutput(videoOutput);
+//    QObject::connect(player->getPlayer(), SIGNAL(positionChanged(qint64)), pRoot, SLOT(positionChanged(qint64)));
+//    player->onPlay();
     return app.exec();
 }
