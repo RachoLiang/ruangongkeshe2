@@ -6,6 +6,7 @@
 #include <QSqlError>
 #include <QDateTime>
 #include <vector>
+#include <QDebug>
 #include "PlayListNode.h"
 typedef struct
 {

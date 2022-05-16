@@ -54,7 +54,28 @@
 #include <QIcon>
 //#include "backend/mySql.h"
 #include "backend/PlayList.h"
+#include "backend/mainDecoder.h"
 #include <QQmlContext>
+
+void initFFmpeg()
+{
+//    av_log_set_level(AV_LOG_INFO);
+
+    //avfilter_register_all();
+
+    /* ffmpeg init */
+    //av_register_all();
+
+    /* ffmpeg network init for rtsp */
+    if (avformat_network_init()) {
+        qDebug() << "avformat network init failed";
+    }
+
+    /* init sdl audio */
+    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER)) {
+        qDebug() << "SDL init failed";
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -94,6 +115,11 @@ int main(int argc, char *argv[])
 //        //sql.deleteAll();
 //        sql.closeDb();
 //    }
+    initFFmpeg();
+    MainDecoder mainDecoder;
+    QString path = "C:/Users/xgy/Desktop/mp3_test/test.mp4";
+    QString type = "video";
+    mainDecoder.decodeFile(path,type);
 
     /**
      * 测试视频播放
