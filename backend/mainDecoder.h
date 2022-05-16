@@ -22,9 +22,11 @@ extern "C"
 
 
 class MainDecoder : public QThread{
+    Q_OBJECT
 public:
     explicit MainDecoder();
     ~MainDecoder();
+    void setCurrentFile(QString);
 
 private:
     QString currentFile;  //文件路径
@@ -65,6 +67,9 @@ private:
 
 public slots:
      void decodeFile(QString,QString);  //读入一个音频文件，开始处理
+
+signals:
+     void sign_SendOneFrame(QImage *image);
 };
 
 

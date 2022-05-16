@@ -1,6 +1,0 @@
-#include "backend/videoShow.h"
-
-//框
-void videoShow::getHeight(){
-    return height();
-}

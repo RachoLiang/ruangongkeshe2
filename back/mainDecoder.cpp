@@ -12,6 +12,10 @@ MainDecoder::~MainDecoder(){
 
 }
 
+void MainDecoder::setCurrentFile(QString path){
+    this->currentFile = path;
+}
+
 void MainDecoder::run(){
     AVCodec *pCodec;
     AVPacket pkt, *packet=&pkt;

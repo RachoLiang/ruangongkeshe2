@@ -60,5 +60,6 @@ HEADERS += \
     backend/videoShow.h
 
 DISTFILES += \
-    CMakeLists.txt
+    CMakeLists.txt \
+    qmlVideo.qml
 
