@@ -46,6 +46,7 @@ void MainDecoder::run(){
 //        }
     }
 
+    //相当于检查音视频的格式，格式错误直接返回
     if(currentType == "video"){
         if(videoIndex<0){
             qDebug()<<"Not support this video file";
@@ -72,6 +73,7 @@ void MainDecoder::run(){
         pCodecCtx = avcodec_alloc_context3(NULL);
         avcodec_parameters_to_context(pCodecCtx, pFormatCtx->streams[videoIndex]->codecpar);
 
+        //寻找解码器
         if((pCodec = (AVCodec*)avcodec_find_decoder(pCodecCtx->codec_id)) == NULL){
             qDebug()<<"Video decoder not found";
             goto fail;
@@ -83,6 +85,7 @@ void MainDecoder::run(){
             goto fail;
         }
 
+        //获取视频流
         videoStream = pFormatCtx->streams[videoIndex];
 
         //初始化过滤器,用于videoThread中的frame过滤
@@ -93,12 +96,13 @@ void MainDecoder::run(){
         SDL_CreateThread(&MainDecoder::vedioThread,"vedioThread",this); //开启另一个线程去解析vedio并更新到前端
     }
 
+    //下面的操作是read frame到packet,然后将packet加入videoQueue中，队列将作为vedioThread的处理对象
     while(true){
-        if(isStop){
+        if(isStop){   //停止，直接break
             break;
         }
 
-        if(isPause){
+        if(isPause){  //
             SDL_Delay(10);
             continue;
         }
@@ -115,14 +119,17 @@ seek:
             }
         }
 
-        if(av_read_frame(pFormatCtx, packet) < 0){  //读取frame,直到结束
+        if(av_read_frame(pFormatCtx, packet) < 0){  //读取到packet,直到结束
             qDebug()<<"read file completed.";
             isReadFinished = true;
             //todo
+
+            SDL_Delay(10);
+            break;
         }
 
         if(packet->stream_index == videoIndex && currentType == "video"){
-            videoQueue.enqueue(packet);  //video stream
+            videoQueue.enqueue(packet);  //video stream，进队列
         }else if(packet->stream_index == audioIndex){
             //todo
             //audio stream
@@ -239,7 +246,7 @@ int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一�
             /* deep copy, otherwise when tmpImage data change, this image cannot display */
             QImage image = tmpImage.copy();
             QString path = QString("C:\\Users\\xgy\\Desktop\\mp3_test\\frame\\%1.png").arg(temp);
-            image.save(path);
+            //image.save(path);
             temp++;
             //decoder->displayVideo(image);
         }

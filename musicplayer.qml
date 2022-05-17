@@ -261,7 +261,7 @@ ApplicationWindow {
                 Image {
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectCrop
-                    source: "images/album-cover.jpg"
+                    sourc : "images/album-cover.jpg"
                 }
             }
 

@@ -22,6 +22,8 @@ extern "C"
 
 
 class MainDecoder : public QThread{
+    Q_OBJECT
+
 public:
     explicit MainDecoder();
     ~MainDecoder();
