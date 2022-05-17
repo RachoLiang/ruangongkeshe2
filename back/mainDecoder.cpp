@@ -122,6 +122,7 @@ seek:
         if(av_read_frame(pFormatCtx, packet) < 0){  //读取frame,直到结束
             qDebug()<<"read file completed.";
             isReadFinished = true;
+            break;
             //todo
         }
 
@@ -242,9 +243,16 @@ int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一�
             QImage tmpImage(pFrame->data[0], decoder->pCodecCtx->width, decoder->pCodecCtx->height, QImage::Format_RGB32);
             /* deep copy, otherwise when tmpImage data change, this image cannot display */
             QImage image = tmpImage.copy();
-            QString path = QString("C:\\Users\\xgy\\Desktop\\mp3_test\\frame\\%1.png").arg(temp);
-            image.save(path);
+            QString path = QString("D:\\mediaPicture\\%1.png").arg(temp);
+//            image.save(path);
             temp++;
+//            sleep(10);
+            qDebug()<<"发送一张图片----------------";
+            sleep(1);
+            emit decoder->sign_sendOneFrame(&image);
+//            if(temp >= 2){
+//            break;
+//            }
             //decoder->displayVideo(image);
         }
     }

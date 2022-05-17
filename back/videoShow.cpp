@@ -34,6 +34,10 @@ void VideoShow::setSourPath(QString path){
 
 }
 
+QString VideoShow::getSourPath(){
+    return sourPath;
+}
+
 //构造函数
 VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     sourPath = path;
@@ -41,8 +45,20 @@ VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     maindecoder = new MainDecoder();
     maindecoder->setCurrentFile(path);
     //开始解析视频
-    connect(maindecoder,&MainDecoder::sign_SendOneFrame,this,&VideoShow::slot_getOneFrame);
+    connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage*)),this,SLOT(slot_getOneFrame(QImage*)));
     //发信号给解析器解析视频
+    maindecoder->decodeFile(path,"video");
+}
+
+VideoShow::VideoShow():nWidth(200),nHeight(400){
+    maindecoder = new MainDecoder();
+    sourPath = "C:\\Users\\YYg\\Desktop\\test1.mp4";
+    maindecoder->setCurrentFile(sourPath);
+    //开始解析视频
+    connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage*)),this,SLOT(slot_getOneFrame(QImage*)));
+    //发信号给解析器解析视频
+    maindecoder->decodeFile(sourPath,"video");
+//    image.load("D:\\mediaPicture\\0.png");
 }
 
 //析构函数
@@ -53,11 +69,11 @@ VideoShow::~VideoShow(){
 
 //信号槽函数
 void VideoShow::slot_getOneFrame(QImage *image){
+    qDebug()<<"信号槽调用！";
     if(image){
         //复制图片
-        this->image = image->copy();
-        qDebug()<<"获取一张图片";
-        delete image;
+        this->image = *image;
+        qDebug()<<"获取一张图片-----";
         update();
     }
 }

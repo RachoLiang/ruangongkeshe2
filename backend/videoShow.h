@@ -2,7 +2,7 @@
 #define VIDEOSHOW_H
 #include <QQuickPaintedItem>
 #include <QImage>
-#include "backend/mainDecoder.h".h"
+#include "backend/mainDecoder.h"
 //怎么把视频解析的decoder和video类结合起来
 
 
@@ -12,7 +12,7 @@ public:
     Q_INVOKABLE void setSize(int width,int height);
     Q_PROPERTY(int nWidth READ getWidth WRITE setWidth NOTIFY widthChanged)
     Q_PROPERTY(int nHeight  READ getHeight WRITE setHeight NOTIFY heightChanged)
-    Q_PROPERTY(QString sourPath READ setSourPath WRITE setSourPath NOTIFY sourPathChanged)
+    Q_PROPERTY(QString sourPath READ getSourPath WRITE setSourPath NOTIFY sourPathChanged)
     
     VideoShow();
     explicit VideoShow(QString path);
