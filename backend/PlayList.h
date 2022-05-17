@@ -1,7 +1,6 @@
 #ifndef PLAYLIST_H
 #define PLAYLIST_H
 
-#include "audio.h"
 #include "vedio.h"
 #include <QString>
 #include <QThread>

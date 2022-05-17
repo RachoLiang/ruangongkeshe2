@@ -17,6 +17,7 @@ SOURCES += \
     back/records.cpp \
     back/vedio.cpp \
     back/myStack.cpp \
+    back/videoShow.cpp \
     musicplayer.cpp
 
 INCLUDEPATH += $$PWD/ffmpeg/include \
@@ -56,7 +57,9 @@ HEADERS += \
     backend/playerThread.h \
     backend/records.h \
     backend/vedio.h \
+    backend/videoShow.h
 
 DISTFILES += \
-    CMakeLists.txt
+    CMakeLists.txt \
+    qmlVideo.qml
 

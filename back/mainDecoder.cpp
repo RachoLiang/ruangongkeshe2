@@ -12,6 +12,10 @@ MainDecoder::~MainDecoder(){
 
 }
 
+void MainDecoder::setCurrentFile(QString path){
+    this->currentFile = path;
+}
+
 void MainDecoder::run(){
     AVCodec *pCodec;
     AVPacket pkt, *packet=&pkt;
@@ -122,6 +126,7 @@ seek:
         if(av_read_frame(pFormatCtx, packet) < 0){  //读取到packet,直到结束
             qDebug()<<"read file completed.";
             isReadFinished = true;
+            break;
             //todo
 
             SDL_Delay(10);
@@ -174,13 +179,14 @@ fail:
 
 int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一帧一帧的图片
     int ret;
-    double pts;
+    double pts;  //这个时间戳告诉播放器应该在什么时候播放这个帧
     AVPacket packet;
     MainDecoder *decoder = (MainDecoder *)arg;
     AVFrame *pFrame = av_frame_alloc();
 
     int temp = 0;
 
+    int64_t start_time = av_gettime();
     while(true){
         if(decoder->isStop){   //停止播放
             break;
@@ -222,12 +228,22 @@ int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一�
             continue;
         }
 
+        //获取此帧的pts
         if((pts=pFrame->pts)==AV_NOPTS_VALUE){
             pts = 0;
         }
 
+        int64_t realTime = av_gettime()-start_time;
+        while(pts > realTime){
+            msleep(10);
+            realTime = av_gettime()-start_time;
+        }
+
         //音视频同步
-        //todo
+        pts *= av_q2d(decoder->videoStream->time_base);
+        pts = decoder->sync(pFrame,pts);
+
+
 
 
         //过滤
@@ -245,9 +261,17 @@ int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一�
             QImage tmpImage(pFrame->data[0], decoder->pCodecCtx->width, decoder->pCodecCtx->height, QImage::Format_RGB32);
             /* deep copy, otherwise when tmpImage data change, this image cannot display */
             QImage image = tmpImage.copy();
-            QString path = QString("C:\\Users\\xgy\\Desktop\\mp3_test\\frame\\%1.png").arg(temp);
-            //image.save(path);
+
+//            QString path = QString("D:\\mediaPicture\\%1.png").arg(temp);
+//            image.save(path);
             temp++;
+//            sleep(10);
+            qDebug()<<"发送一张图片----------------";
+            //SDL_Delay(1000);
+            emit decoder->sign_sendOneFrame(image);
+//            if(temp >= 2){
+//            break;
+//            }
             //decoder->displayVideo(image);
         }
     }
@@ -363,6 +387,39 @@ void MainDecoder::displayVideo(QImage image){
 
 void MainDecoder::clearData(){
     qDebug()<<"clearData";
+    videoIndex = -1;
+    audioIndex = -1;
+    subtitleIndex = -1;
+
+    timeTotal = 0;
+
+    isStop = false;
+    isPause = false;
+    isSeek = false;
+    isReadFinished = false;
+
+    videoQueue.empty();
+
+    //清空audio数据
+    //todo
+
+    videoClk = 0; //时钟清零
+}
+
+double MainDecoder::sync(AVFrame *frame, double pts){
+    double delay;
+
+    if(pts != 0){
+        videoClk = pts;
+    }else{
+        pts = videoClk;
+    }
+
+    delay = av_q2d(pCodecCtx->time_base);
+    delay += frame->repeat_pict * (delay * 0.5);
+
+    videoClk += delay;
+    return pts;
 }
 
 

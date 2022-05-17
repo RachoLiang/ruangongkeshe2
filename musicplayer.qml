@@ -54,12 +54,27 @@ import QtQuick.Controls
 import QtQuick.Window
 import Qt.labs.platform 1.1
 import playlistclass 1.0      //这个类已经在musicplayer.cpp中注册
+import VideoShow 1.0
 ApplicationWindow {
     id: window
     width: 1280
     height: 720
     visible: true
     title: "朝阳创客队 音视频播放器"
+
+    //用来适配手机屏幕的一些转换函数
+    property real multiplierH: (window.height/640)*1000;
+    property real multiplierW: (window.width/360)*1000;
+
+    function dpH(numbers) {
+       return numbers*multiplierH/10000;
+    }
+    function dpW(numbers) {
+       return numbers*multiplierW/10000;
+    }
+    function dpX(numbers){
+        return (dpW(numbers)+dpH(numbers))/2;
+    }
 
     Component.onCompleted: {
         x = Screen.width / 2 - width / 2
@@ -258,11 +273,27 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                Image {
-                    anchors.fill: parent
-                    fillMode: Image.PreserveAspectCrop
-                    sourc : "images/album-cover.jpg"
+//                Image {
+//                    anchors.fill: parent
+//                    fillMode: Image.PreserveAspectCrop
+//                    source: "images/album-cover.jpg"
+//                }
+                Rectangle{
+                    width: dpW(2000)
+                    height: dpH(3200)
+                    border.width: 5
+                    border.color: "black"
+                    radius: 10
+                    VideoShow{
+                        anchors.centerIn: parent;
+                        nWidth: dpW(2000);
+                        nHeight: dpH(3200);
+                        width: dpW(2000);
+                        height: dpH(3200);
+                        sourPath: "C:\\Users\\xgy\\Desktop\\mp3_test\\test.mp4"
+                    }
                 }
+
             }
 
             Item {
