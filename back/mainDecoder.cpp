@@ -1,11 +1,17 @@
 ﻿#include "backend/mainDecoder.h"
 
-MainDecoder::MainDecoder(){
+MainDecoder::MainDecoder():audioDecoder(new AudioDecoder){
     this->isStop = false;
     this->isPause = false;
     this->isSeek = false;
     this->isReadFinished = false;
     this->filterGraph = NULL;
+
+    //音频播放器信号槽
+    connect(audioDecoder,SIGNAL(sign_playFinished()),this,SLOT(audioFinished()));
+    connect(this,SIGNAL(sign_readFinished()),audioDecoder,SLOT(slot_readFileFinished()));
+    //确实播放状态改变槽
+
 }
 
 MainDecoder::~MainDecoder(){
@@ -69,8 +75,12 @@ void MainDecoder::run(){
     timeTotal = pFormatCtx->duration;
 
     //打开音频处理，初始化音频回调函数
-    if(audioIndex>0){
-        //todo
+    if(audioIndex >= 0){
+        //打开失败
+        if(audioDecoder->open(pFormatCtx,audioIndex) < 0){
+            avformat_free_context(pFormatCtx);
+            return ;
+        }
     }
 
     if(currentType == "video"){  //对于视频流，做额外处理（
@@ -128,6 +138,7 @@ seek:
             isReadFinished = true;
             break;
             //todo
+            emit sign_readFinished();
 
             SDL_Delay(10);
             break;
@@ -137,6 +148,7 @@ seek:
             videoQueue.enqueue(packet);  //video stream，进队列
         }else if(packet->stream_index == audioIndex){
             //todo
+            audioDecoder->avpacketEnqueue(packet);
             //audio stream
         }else if(packet->stream_index == subtitleIndex){
             //todo
@@ -157,6 +169,7 @@ seek:
 fail:
     /* close audio device */
     if (audioIndex >= 0) {
+        audioDecoder->close();
         //todo
     }
 
@@ -243,7 +256,27 @@ int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一�
         pts *= av_q2d(decoder->videoStream->time_base);
         pts = decoder->sync(pFrame,pts);
 
+        if(decoder->audioIndex >= 0){
+            while(1){
+                //控制信息
+                if(decoder->isStop){
+                    break;
+                }
 
+                double audioClock = decoder->audioDecoder->getAudioClock();
+                pts = decoder->videoClk;
+
+                if(pts <= audioClock){
+                    break;
+                }
+                //延迟时间
+                int delayTime = (pts - audioClock) * 1000;
+
+                delayTime = delayTime > 5 ? 5 : delayTime;
+
+                SDL_Delay(delayTime);
+            }
+        }
 
 
         //过滤
@@ -401,7 +434,7 @@ void MainDecoder::clearData(){
     videoQueue.empty();
 
     //清空audio数据
-    //todo
+    audioDecoder->clearDate();
 
     videoClk = 0; //时钟清零
 }
@@ -420,6 +453,65 @@ double MainDecoder::sync(AVFrame *frame, double pts){
 
     videoClk += delay;
     return pts;
+}
+
+//设置播放状态
+void MainDecoder::setPlayState(MainDecoder::PlayState state){
+    emit sign_playStateChanged(state);
+    qDebug()<<"播放状态改变";
+}
+
+//播放状态改变
+void MainDecoder::pauseVideo(){
+    qDebug()<<"暂停播放:pauseVideo";
+    if(playState == STOP){
+        qDebug()<<"视频处于Stop状态:pauseVideo";
+        return;
+    }
+
+    isPause = !isPause;
+    //控制音频
+    audioDecoder->pause(isPause);
+    if(isPause){
+        av_read_pause(pFormatCtx);
+        setPlayState(PAUSE);
+    }else{
+        av_read_play(pFormatCtx);
+        setPlayState(PLAYING);
+    }
+}
+
+void MainDecoder::audioFinished(){
+    //完成读取
+    isStop = true;
+    //toConfirm
+    if(currentType == "audio"){
+        SDL_Delay(100);
+        emit sign_playStateChanged(MainDecoder::FINISH);
+    }
+}
+
+void MainDecoder::stopVideo(){
+    if(playState == STOP){
+        setPlayState(MainDecoder::STOP);
+        return;
+    }
+
+    //gotStop
+    //toConfirm
+    isStop = true;
+    audioDecoder->stop();
+
+    if(currentType == "video"){
+        //todo
+        while(!isReadFinished){
+            SDL_Delay(10);
+        }
+    } else{
+        while(!isReadFinished){
+            SDL_Delay(10);
+        }
+    }
 }
 
 

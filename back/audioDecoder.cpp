@@ -7,11 +7,18 @@ extern "C"
 }
 
 //最小的SDL音频缓冲大小
-#define SDL_AUDIO)MIN_BUFFER_SIZE 512
+#define SDL_AUDIO_MIN_BUFFER_SIZE 512
 
 #define SDL_AUDIO_MAX_CALLBACKS_PER_SEC 30
 
 
+//设置audio对象
+void AudioDecoder::setAudio(Audio * audio){
+    this->audio = audio;
+    //初始化AudioDecoder对象的部分信息
+}
+
+//构造初始化函数
 AudioDecoder::AudioDecoder(QObject* parent):
     QObject(parent),
     isStop(false),
@@ -42,7 +49,7 @@ int AudioDecoder::open(AVFormatContext *formatCtx, int index){
     //控制参数初始化
     isStop = false;
     isPause = false;
-    isreadFinished = false;
+    isReadFinished = false;
 
     audioSrcFmt = AV_SAMPLE_FMT_NONE;
     audioSrcChannelLayout = 0;
@@ -58,15 +65,15 @@ int AudioDecoder::open(AVFormatContext *formatCtx, int index){
     avcodec_parameters_to_context(codeCtx,formatCtx->streams[index]->codecpar);
 
     //找到音频解析器
-    if ((codec = (AVCodec*)avcodec_find_decoder(codecCtx->codec_id)) == NULL) {
-        avcodec_free_context(&codecCtx);
+    if ((codec = (AVCodec*)avcodec_find_decoder(codeCtx->codec_id)) == NULL) {
+        avcodec_free_context(&codeCtx);
         qDebug() << "Audio decoder not found.";
         return -1;
     }
 
     //打开音频解析器
-    if (avcodec_open2(codecCtx, codec, NULL) < 0) {
-        avcodec_free_context(&codecCtx);
+    if (avcodec_open2(codeCtx, codec, NULL) < 0) {
+        avcodec_free_context(&codeCtx);
         qDebug() << "Could not open audio decoder.";
         return -1;
     }
@@ -110,7 +117,7 @@ int AudioDecoder::open(AVFormatContext *formatCtx, int index){
     //初始化音频输出参数
     suitSpec.format = audioDeviceFormat;
     suitSpec.silence = 0;
-    suitSpec.samples = FFMAX(SDL_AUDIO_MIN_BUFFER_SIZE, 2 << av_log2(wantedSpec.freq / SDL_AUDIO_MAX_CALLBACKS_PER_SEC));
+    suitSpec.samples = FFMAX(SDL_AUDIO_MIN_BUFFER_SIZE, 2 << av_log2(suitSpec.freq / SDL_AUDIO_MAX_CALLBACKS_PER_SEC));
     //音频条函数
     suitSpec.callback = &AudioDecoder::audioCallBack;
     suitSpec.userdata = this;
@@ -136,7 +143,7 @@ int AudioDecoder::open(AVFormatContext *formatCtx, int index){
 
     //formt不一致
     if(spec.format != audioDeviceFormat){
-        qDebug() << "SDL audio format: " << wantedSpec.format << " is not supported"
+        qDebug() << "SDL audio format: " << suitSpec.format << " is not supported"
                  << ", set to advised audio format: " <<  spec.format;
         suitSpec.format = spec.format;
         audioDeviceFormat = spec.format;
@@ -208,13 +215,13 @@ void AudioDecoder::close(){
 }
 
 //读取文件完毕-信号槽
-voud AudioDecoder::slot_readFileFinished(){
+void AudioDecoder::slot_readFileFinished(){
     isReadFinished = true;
 }
 
 //暂停
 void AudioDecoder::pause(bool pause){
-    isPause = true;
+    isPause = pause;
 }
 
 //停止
@@ -224,7 +231,7 @@ void AudioDecoder::stop(){
 
 //包入队列
 void AudioDecoder::avpacketEnqueue(AVPacket *packet){
-
+    packetQueue.enqueue(packet);
 }
 
 //清空数据
@@ -262,6 +269,7 @@ double AudioDecoder::getAudioClock(){
         int bytePerSec = codeCtx->sample_rate * codeCtx->channels * audioDepth;
         clock = clock - static_cast<double>(resBufSize) / bytePerSec;
     }
+    return clock;
 }
 
 //音频解析回调函数,负责将audioBuf中解码后的音频输出
@@ -351,7 +359,7 @@ int AudioDecoder::decodeAudio(){
         av_packet_unref(&packet);
         av_frame_free(&frame);
         sendReturn = 0;
-        qDebug()>>"跳过该帧音频";
+        qDebug()<<"跳过该帧音频";
         return -1;
     }
 
@@ -375,7 +383,7 @@ int AudioDecoder::decodeAudio(){
     //pts无效，该如何处理？
     if(frame->pts != AV_NOPTS_VALUE){
         //计算该帧在整个音视频中的播放时间
-        clock = av_p2d(stream->time_base) * frame->pts;
+        clock = av_q2d(stream->time_base) * frame->pts;
 
     }
 
@@ -397,7 +405,7 @@ int AudioDecoder::decodeAudio(){
                                         inChannelLayout,(AVSampleFormat)frame->format,frame->sample_rate,0,NULL);
         //初始化aCoverCtx失败
         if(!aCovertCtx || (swr_init(aCovertCtx) < 0)) {
-            av_packet_free(&packet);
+            av_packet_unref(&packet);
             av_frame_free(&frame);
             return -1;
         }
@@ -414,7 +422,7 @@ int AudioDecoder::decodeAudio(){
             int outCount = sizeof(audioBuf1) / (spec.channels * av_get_bytes_per_sample(audioDstFmt));
 
             //输出格式转换
-            int sampleSize = swr_convert(aCovertCtx,out,outCount,in,out);
+            int sampleSize = swr_convert(aCovertCtx,out,outCount,in,frame->nb_samples);
             if(sampleSize < 0) {
                 av_packet_unref(&packet);
                 av_frame_free(&frame);
@@ -437,7 +445,7 @@ int AudioDecoder::decodeAudio(){
         }
 
         //更新时钟
-        clock += static_cast<double>hasResampltSize/(audioDepth * codeCtx->channels * codeCtx->sample_rate);
+        clock += static_cast<double>(hasResampltSize)/(audioDepth * codeCtx->channels * codeCtx->sample_rate);
 
         if(sendReturn != AVERROR(EAGAIN)){
             //引用次数减一

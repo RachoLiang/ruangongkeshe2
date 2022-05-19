@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QImage>
 #include <QDebug>
+#include "audioDecoder.h"
 
 extern "C"
 {
@@ -26,6 +27,14 @@ class MainDecoder : public QThread{
     Q_OBJECT
 
 public:
+    //播放状态
+    enum PlayState {
+        STOP,
+        PAUSE,
+        PLAYING,
+        FINISH
+    };
+
     explicit MainDecoder();
     ~MainDecoder();
     void setCurrentFile(QString);
@@ -60,10 +69,16 @@ private:
     bool isPause;
     bool isSeek;
     bool isReadFinished;
+    PlayState playState;
 
     //同步
     double videoClk; //frame pts
 
+    //audioDecoder对象
+    AudioDecoder* audioDecoder;
+
+
+    void setPlayState(MainDecoder::PlayState state);    //设置播放状态
     void run();  //线程执行体
     void clearData(); //清空数据
     void displayVideo(QImage image); //
@@ -73,9 +88,15 @@ private:
 
 public slots:
      void decodeFile(QString,QString);  //读入一个音频文件，开始处理
+     void stopVideo();  //停止播放
+     void pauseVideo(); //暂停播放
+     void audioFinished();  //音频完成解析
 
 signals:
      void sign_sendOneFrame(QImage image);
+     void sign_readFinished();  //读取完毕
+     void sign_sendVideoTime(qint64 time);  //发送视频播放时间
+     void sign_playStateChanged(MainDecoder::PlayState state);
 };
 
 
