@@ -248,7 +248,6 @@ int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一�
             temp++;
 //            sleep(10);
             qDebug()<<"发送一张图片----------------";
-            sleep(1);
             emit decoder->sign_sendOneFrame(&image);
 //            if(temp >= 2){
 //            break;

@@ -1,8 +1,6 @@
 #ifndef VEDIO_H
 #define VEDIO_H
 
-#endif // VEDIO_H
-
 #include <QMediaPlayer>
 #include <QVideoWidget>
 #include <QVideoSink>
@@ -26,3 +24,6 @@ private:
     int resolvingPower;   //分辨率
 
 };
+
+#endif // VEDIO_H
+

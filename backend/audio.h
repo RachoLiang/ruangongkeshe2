@@ -1,7 +1,6 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 
-#endif // AUDIO_H
 #include <QMediaPlayer>
 #include "caption.h"
 #include <QString>
@@ -55,3 +54,6 @@ private:
     QDateTime modificationTime;  //上次修改时间
 
 };
+
+#endif // AUDIO_H
+
