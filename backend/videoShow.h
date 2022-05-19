@@ -1,4 +1,4 @@
-#ifndef VIDEOSHOW_H
+﻿#ifndef VIDEOSHOW_H
 #define VIDEOSHOW_H
 #include <QQuickPaintedItem>
 #include <QImage>
@@ -43,7 +43,7 @@ private:
     
 public slots:
     //获取图片的信号槽
-    void slot_getOneFrame(QImage* image);
+    void slot_getOneFrame(QImage image);
 signals:
     void widthChanged(int);
     void heightChanged(int);

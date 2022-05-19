@@ -50,6 +50,7 @@ void MainDecoder::run(){
 //        }
     }
 
+    //相当于检查音视频的格式，格式错误直接返回
     if(currentType == "video"){
         if(videoIndex<0){
             qDebug()<<"Not support this video file";
@@ -76,6 +77,7 @@ void MainDecoder::run(){
         pCodecCtx = avcodec_alloc_context3(NULL);
         avcodec_parameters_to_context(pCodecCtx, pFormatCtx->streams[videoIndex]->codecpar);
 
+        //寻找解码器
         if((pCodec = (AVCodec*)avcodec_find_decoder(pCodecCtx->codec_id)) == NULL){
             qDebug()<<"Video decoder not found";
             goto fail;
@@ -87,6 +89,7 @@ void MainDecoder::run(){
             goto fail;
         }
 
+        //获取视频流
         videoStream = pFormatCtx->streams[videoIndex];
 
         //初始化过滤器,用于videoThread中的frame过滤
@@ -97,12 +100,13 @@ void MainDecoder::run(){
         SDL_CreateThread(&MainDecoder::vedioThread,"vedioThread",this); //开启另一个线程去解析vedio并更新到前端
     }
 
+    //下面的操作是read frame到packet,然后将packet加入videoQueue中，队列将作为vedioThread的处理对象
     while(true){
-        if(isStop){
+        if(isStop){   //停止，直接break
             break;
         }
 
-        if(isPause){
+        if(isPause){  //
             SDL_Delay(10);
             continue;
         }
@@ -119,15 +123,18 @@ seek:
             }
         }
 
-        if(av_read_frame(pFormatCtx, packet) < 0){  //读取frame,直到结束
+        if(av_read_frame(pFormatCtx, packet) < 0){  //读取到packet,直到结束
             qDebug()<<"read file completed.";
             isReadFinished = true;
             break;
             //todo
+
+            SDL_Delay(10);
+            break;
         }
 
         if(packet->stream_index == videoIndex && currentType == "video"){
-            videoQueue.enqueue(packet);  //video stream
+            videoQueue.enqueue(packet);  //video stream，进队列
         }else if(packet->stream_index == audioIndex){
             //todo
             //audio stream
@@ -172,13 +179,14 @@ fail:
 
 int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一帧一帧的图片
     int ret;
-    double pts;
+    double pts;  //这个时间戳告诉播放器应该在什么时候播放这个帧
     AVPacket packet;
     MainDecoder *decoder = (MainDecoder *)arg;
     AVFrame *pFrame = av_frame_alloc();
 
     int temp = 0;
 
+    int64_t start_time = av_gettime();
     while(true){
         if(decoder->isStop){   //停止播放
             break;
@@ -220,12 +228,22 @@ int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一�
             continue;
         }
 
+        //获取此帧的pts
         if((pts=pFrame->pts)==AV_NOPTS_VALUE){
             pts = 0;
         }
 
+        int64_t realTime = av_gettime()-start_time;
+        while(pts > realTime){
+            msleep(10);
+            realTime = av_gettime()-start_time;
+        }
+
         //音视频同步
-        //todo
+        pts *= av_q2d(decoder->videoStream->time_base);
+        pts = decoder->sync(pFrame,pts);
+
+
 
 
         //过滤
@@ -243,12 +261,14 @@ int MainDecoder::vedioThread(void *arg){  //完成vedio的解析，结果为一�
             QImage tmpImage(pFrame->data[0], decoder->pCodecCtx->width, decoder->pCodecCtx->height, QImage::Format_RGB32);
             /* deep copy, otherwise when tmpImage data change, this image cannot display */
             QImage image = tmpImage.copy();
-            QString path = QString("D:\\mediaPicture\\%1.png").arg(temp);
+
+//            QString path = QString("D:\\mediaPicture\\%1.png").arg(temp);
 //            image.save(path);
             temp++;
 //            sleep(10);
             qDebug()<<"发送一张图片----------------";
-            emit decoder->sign_sendOneFrame(&image);
+            //SDL_Delay(1000);
+            emit decoder->sign_sendOneFrame(image);
 //            if(temp >= 2){
 //            break;
 //            }
@@ -367,6 +387,39 @@ void MainDecoder::displayVideo(QImage image){
 
 void MainDecoder::clearData(){
     qDebug()<<"clearData";
+    videoIndex = -1;
+    audioIndex = -1;
+    subtitleIndex = -1;
+
+    timeTotal = 0;
+
+    isStop = false;
+    isPause = false;
+    isSeek = false;
+    isReadFinished = false;
+
+    videoQueue.empty();
+
+    //清空audio数据
+    //todo
+
+    videoClk = 0; //时钟清零
+}
+
+double MainDecoder::sync(AVFrame *frame, double pts){
+    double delay;
+
+    if(pts != 0){
+        videoClk = pts;
+    }else{
+        pts = videoClk;
+    }
+
+    delay = av_q2d(pCodecCtx->time_base);
+    delay += frame->repeat_pict * (delay * 0.5);
+
+    videoClk += delay;
+    return pts;
 }
 
 

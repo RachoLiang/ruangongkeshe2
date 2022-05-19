@@ -279,18 +279,18 @@ ApplicationWindow {
 //                    source: "images/album-cover.jpg"
 //                }
                 Rectangle{
-                    width: dpW(500)
-                    height: dpH(800)
+                    width: dpW(2000)
+                    height: dpH(3200)
                     border.width: 5
                     border.color: "black"
                     radius: 10
                     VideoShow{
                         anchors.centerIn: parent;
-                        nWidth: dpW(500);
-                        nHeight: dpH(800);
-                        width: dpW(500);
-                        height: dpH(800);
-                        sourPath: "C:\\Users\\YYg\\Desktop\\test1.mp4"
+                        nWidth: dpW(2000);
+                        nHeight: dpH(3200);
+                        width: dpW(2000);
+                        height: dpH(3200);
+                        sourPath: "C:\\Users\\xgy\\Desktop\\mp3_test\\test.mp4"
                     }
                 }
 

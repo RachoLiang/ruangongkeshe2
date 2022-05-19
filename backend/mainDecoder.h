@@ -16,6 +16,7 @@ extern "C"
 #include <libavutil/opt.h>
 #include <libavcodec/avfft.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/time.h>
 }
 
 #include "backend/audioDecoder.h"
@@ -23,6 +24,7 @@ extern "C"
 
 class MainDecoder : public QThread{
     Q_OBJECT
+
 public:
     explicit MainDecoder();
     ~MainDecoder();
@@ -59,17 +61,21 @@ private:
     bool isSeek;
     bool isReadFinished;
 
+    //同步
+    double videoClk; //frame pts
+
     void run();  //线程执行体
     void clearData(); //清空数据
     void displayVideo(QImage image); //
     int initFilter(); //初始化过滤器
     static int vedioThread(void *arg); //解析vedio的线程函数
+    double sync(AVFrame *frame, double pts); //同步函数
 
 public slots:
      void decodeFile(QString,QString);  //读入一个音频文件，开始处理
 
 signals:
-     void sign_sendOneFrame(QImage *image);
+     void sign_sendOneFrame(QImage image);
 };
 
 
