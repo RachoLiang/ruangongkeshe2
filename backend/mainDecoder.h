@@ -21,13 +21,14 @@ extern "C"
 }
 
 #include "backend/audioDecoder.h"
+#include "audio.h"
 
 
-class MainDecoder : public QThread{
+class MainDecoder : public QThread
+{
     Q_OBJECT
 
 public:
-    //播放状态
     enum PlayState {
         STOP,
         PAUSE,
@@ -37,66 +38,81 @@ public:
 
     explicit MainDecoder();
     ~MainDecoder();
+
+    double getCurrentTime();
+    void seekProgress(qint64 pos);
+    int getVolume();
+    void setVolume(int volume);
     void setCurrentFile(QString);
+    void pauseVideo();
+    bool pauseState();
 
 private:
-    QString currentFile;  //文件路径
-    QString currentType;  //文件类型
-    qint64 timeTotal; //音视频总时间
+    void run();
+    void clearData();
+    void setPlayState(MainDecoder::PlayState state);
+    void displayVideo(QImage image);
+    static int videoThread(void *arg);
+    double synchronize(AVFrame *frame, double pts);
+    bool isRealtime(AVFormatContext *pFormatCtx);
+    int initFilter();
 
-    //进度调整
-    AVPacket seekPacket;
-    qint64 seekPos;
-    double seekTime;
+    QString srcPath;    //当前播放的文件路径
+    Audio* audio;   //audio对象
 
-    //解协议，解码
-    AVFormatContext *pFormatCtx;
-    AVCodecContext *pCodecCtx;
-    AVStream *videoStream;
-    AvPacketQueue videoQueue;
-
-     //过滤器
-    AVFilterGraph *filterGraph;
-    AVFilterContext *filterSinkCxt;
-    AVFilterContext *filterSrcCxt;
+    int fileType;
 
     int videoIndex;
     int audioIndex;
     int subtitleIndex;
 
-    //标志位
+    QString currentFile;
+    QString currentType;
+
+    qint64 timeTotal;
+
+    AVPacket seekPacket;
+    qint64 seekPos;
+    double seekTime;
+
+    PlayState playState;
     bool isStop;
+    bool gotStop;
     bool isPause;
     bool isSeek;
     bool isReadFinished;
-    PlayState playState;
-
-    //同步
-    double videoClk; //frame pts
-
-    //audioDecoder对象
-    AudioDecoder* audioDecoder;
+    bool isDecodeFinished;
 
 
-    void setPlayState(MainDecoder::PlayState state);    //设置播放状态
-    void run();  //线程执行体
-    void clearData(); //清空数据
-    void displayVideo(QImage image); //
-    int initFilter(); //初始化过滤器
-    static int vedioThread(void *arg); //解析vedio的线程函数
-    double sync(AVFrame *frame, double pts); //同步函数
+    AVFormatContext *pFormatCtx;
+
+    AVCodecContext *pCodecCtx;          // video codec context
+
+    AvPacketQueue videoQueue;
+    AvPacketQueue subtitleQueue;
+
+    AVStream *videoStream;
+
+    double videoClk;    // video frame timestamp
+
+    AudioDecoder *audioDecoder;
+
+    AVFilterGraph   *filterGraph;
+    AVFilterContext *filterSinkCxt;
+    AVFilterContext *filterSrcCxt;
 
 public slots:
-     void decodeFile(QString,QString);  //读入一个音频文件，开始处理
-     void stopVideo();  //停止播放
-     void pauseVideo(); //暂停播放
-     void audioFinished();  //音频完成解析
+    void decoderFile(QString file, QString type);
+    void stopVideo();
+    void audioFinished();
 
 signals:
-     void sign_sendOneFrame(QImage image);
-     void sign_readFinished();  //读取完毕
-     void sign_sendVideoTime(qint64 time);  //发送视频播放时间
-     void sign_playStateChanged(MainDecoder::PlayState state);
+    void sign_sendOneFrame(QImage image);
+    void readFinished();
+    void gotVideo(QImage image);
+    void gotVideoTime(qint64 time);
+    void playStateChanged(MainDecoder::PlayState state);
+
 };
 
 

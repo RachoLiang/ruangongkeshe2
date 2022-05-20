@@ -29,6 +29,16 @@ public:
     //获取框的大小
     int getWidth();
     int getHeight();
+
+    //音量信息
+    Q_INVOKABLE int getVolume();
+    Q_INVOKABLE void setVolume(int);
+    Q_INVOKABLE bool isSilence();
+    Q_INVOKABLE void silence();
+
+    //暂停信息
+    Q_INVOKABLE bool isPaused();
+    Q_INVOKABLE void pause();
     
 protected:
     //绘制图片
@@ -40,6 +50,7 @@ private:
     int nHeight; //屏幕高
     int nWidth; //屏幕宽
     QString sourPath;   //文件路径
+    int lastVolume; //记录静音前的音量
     
 public slots:
     //获取图片的信号槽

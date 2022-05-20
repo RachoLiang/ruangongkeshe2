@@ -1,459 +1,764 @@
 #include <QDebug>
 #include "backend/audioDecoder.h"
+#include <string>
+#include <string.h>
 
 extern "C"
 {
 #include <libavcodec/avcodec.h>
 }
 
-//最小的SDL音频缓冲大小
+/* Minimum SDL audio buffer size, in samples. */
 #define SDL_AUDIO_MIN_BUFFER_SIZE 512
-
+/* Calculate actual buffer size keeping in mind not cause too frequent audio callbacks */
 #define SDL_AUDIO_MAX_CALLBACKS_PER_SEC 30
 
+const char *filter_descr = "atempo=2.0";
 
-//设置audio对象
-void AudioDecoder::setAudio(Audio * audio){
-    this->audio = audio;
-    //初始化AudioDecoder对象的部分信息
+//int AudioDecoder::init_filters(const char *filters_descr,AVFilterGraph* filterGraph,AVFilterContext* filterSrcCtx,AVFilterContext* filterSinkCtx)
+//{
+//    //初始化filter
+//    char args[512];
+//    int ret = 0;
+//    const AVFilter *abuffersrc  = avfilter_get_by_name("abuffer");
+//    const AVFilter *abuffersink = avfilter_get_by_name("abuffersink");
+//    AVFilterInOut *outputs = avfilter_inout_alloc();
+//    AVFilterInOut *inputs  = avfilter_inout_alloc();
+
+//    static const enum AVSampleFormat out_sample_fmts[] = { AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_NONE };
+//    static const int64_t out_channel_layouts[] = { AV_CH_LAYOUT_STEREO, -1 };
+//    static const int out_sample_rates[] = { codecCtx->sample_rate, -1 };
+//    AVRational time_base = stream->time_base;
+
+
+//    do
+//    {
+//        filterGraph = avfilter_graph_alloc();
+//        if (!outputs || !inputs || !filterGraph)
+//        {
+//            ret = AVERROR(ENOMEM);
+//            break;
+//        }
+
+//        /* buffer audio source: the decoded frames from the decoder will be inserted here. */
+//        if (!codecCtx->channel_layout)
+//            codecCtx->channel_layout = av_get_default_channel_layout(codecCtx->channels);
+//        snprintf(args, sizeof(args),
+//                 "time_base=%d/%d:sample_rate=%d:sample_fmt=%s:channel_layout=0x%x",
+//                 time_base.num, time_base.den, codecCtx->sample_rate,
+//                 av_get_sample_fmt_name(codecCtx->sample_fmt), codecCtx->channel_layout);
+//        ret = avfilter_graph_create_filter(&filterSrcCtx, abuffersrc, "in",
+//                                           args, NULL, filterGraph);
+
+//        if (ret < 0)
+//        {
+//            printf("Cannot create audio buffer source\n");
+//            break;
+//        }
+
+//        /* buffer audio sink: to terminate the filter chain. */
+//        ret = avfilter_graph_create_filter(&filterSinkCtx, abuffersink, "out",
+//                                           NULL, NULL, filterGraph);
+//        if (ret < 0)
+//        {
+//            printf("Cannot create audio buffer sink\n");
+//            break;
+//        }
+
+//        ret = av_opt_set_int_list(filterSinkCtx, "sample_fmts", out_sample_fmts, -1,
+//                                  AV_OPT_SEARCH_CHILDREN);
+//        if (ret < 0)
+//        {
+//            printf( "Cannot set output sample format\n");
+//            break;
+//        }
+
+//        ret = av_opt_set_int_list(filterSinkCtx, "channel_layouts", out_channel_layouts, -1,
+//                                  AV_OPT_SEARCH_CHILDREN);
+//        if (ret < 0)
+//        {
+//            printf( "Cannot set output channel layout\n");
+//            break;
+//        }
+
+//        ret = av_opt_set_int_list(filterSinkCtx, "sample_rates", out_sample_rates, -1,
+//                                  AV_OPT_SEARCH_CHILDREN);
+//        if (ret < 0)
+//        {
+//            printf( "Cannot set output sample rate\n");
+//            break;
+//        }
+
+//        outputs->name       = av_strdup("in");
+//        outputs->filter_ctx = filterSrcCtx;
+//        outputs->pad_idx    = 0;
+//        outputs->next       = NULL;
+
+//        inputs->name       = av_strdup("out");
+//        inputs->filter_ctx = filterSinkCtx;
+//        inputs->pad_idx    = 0;
+//        inputs->next       = NULL;
+
+
+//        if ((ret = avfilter_graph_parse_ptr(filterGraph, filters_descr,
+//                                            &inputs, &outputs, NULL)) < 0)
+//            qDebug()<<"rey:"<<ret;
+//            break;
+
+//        if ((ret = avfilter_graph_config(filterGraph, NULL)) < 0)
+//            qDebug()<<"rey1:"<<ret;
+//            break;
+
+//    }
+//    while(0);
+
+//    avfilter_inout_free(&inputs);
+//    avfilter_inout_free(&outputs);
+
+//    return ret;
+//}
+
+//int AudioDecoder::init_filters(const char *filters_descr,AVFilterGraph* filterGraph,AVFilterContext* filterSrcCtx,AVFilterContext* filterSinkCtx)
+//{
+//    //初始化filter
+//    char args[512];
+//    int ret = 0;
+//    const AVFilter *abuffersrc  = avfilter_get_by_name("abuffer");
+//    const AVFilter *abuffersink = avfilter_get_by_name("abuffersink");
+//    AVFilterInOut *outputs = avfilter_inout_alloc();
+//    AVFilterInOut *inputs  = avfilter_inout_alloc();
+
+//    static const enum AVSampleFormat out_sample_fmts[] = { AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_NONE };
+//    static const int64_t out_channel_layouts[] = { AV_CH_LAYOUT_STEREO, -1 };
+//    static const int out_sample_rates[] = { codecCtx->sample_rate, -1 };
+//    AVRational time_base = stream->time_base;
+
+
+//    do
+//    {
+//        filterGraph2 = avfilter_graph_alloc();
+//        if (!outputs || !inputs || !filterGraph2)
+//        {
+//            ret = AVERROR(ENOMEM);
+//            break;
+//        }
+
+//        /* buffer audio source: the decoded frames from the decoder will be inserted here. */
+//        if (!codecCtx->channel_layout)
+//            codecCtx->channel_layout = av_get_default_channel_layout(codecCtx->channels);
+//        snprintf(args, sizeof(args),
+//                 "time_base=%d/%d:sample_rate=%d:sample_fmt=%s:channel_layout=0x%x",
+//                 time_base.num, time_base.den, codecCtx->sample_rate,
+//                 av_get_sample_fmt_name(codecCtx->sample_fmt), codecCtx->channel_layout);
+//        ret = avfilter_graph_create_filter(&filterSrcCtx2, abuffersrc, "in",
+//                                           args, NULL, filterGraph2);
+
+//        if (ret < 0)
+//        {
+//            printf("Cannot create audio buffer source\n");
+//            break;
+//        }
+
+//        /* buffer audio sink: to terminate the filter chain. */
+//        ret = avfilter_graph_create_filter(&filterSinkCtx2, abuffersink, "out",
+//                                           NULL, NULL, filterGraph2);
+//        if (ret < 0)
+//        {
+//            printf("Cannot create audio buffer sink\n");
+//            break;
+//        }
+
+//        ret = av_opt_set_int_list(filterSinkCtx2, "sample_fmts", out_sample_fmts, -1,
+//                                  AV_OPT_SEARCH_CHILDREN);
+//        if (ret < 0)
+//        {
+//            printf( "Cannot set output sample format\n");
+//            break;
+//        }
+
+//        ret = av_opt_set_int_list(filterSinkCtx2, "channel_layouts", out_channel_layouts, -1,
+//                                  AV_OPT_SEARCH_CHILDREN);
+//        if (ret < 0)
+//        {
+//            printf( "Cannot set output channel layout\n");
+//            break;
+//        }
+
+//        ret = av_opt_set_int_list(filterSinkCtx2, "sample_rates", out_sample_rates, -1,
+//                                  AV_OPT_SEARCH_CHILDREN);
+//        if (ret < 0)
+//        {
+//            printf( "Cannot set output sample rate\n");
+//            break;
+//        }
+
+//        outputs->name       = av_strdup("in");
+//        outputs->filter_ctx = filterSrcCtx2;
+//        outputs->pad_idx    = 0;
+//        outputs->next       = NULL;
+
+//        inputs->name       = av_strdup("out");
+//        inputs->filter_ctx = filterSinkCtx2;
+//        inputs->pad_idx    = 0;
+//        inputs->next       = NULL;
+
+
+//        qDebug()<<"parse:"<<filters_descr;
+//        if ((ret = avfilter_graph_parse_ptr(filterGraph2, filters_descr,
+//                                            &inputs, &outputs, NULL)) < 0)
+//            qDebug()<<"rey:"<<ret;
+//            break;
+
+//        if ((ret = avfilter_graph_config(filterGraph2, NULL)) < 0)
+//            qDebug()<<"rey1:"<<ret;
+//            break;
+
+//    }
+//    while(0);
+
+//    avfilter_inout_free(&inputs);
+//    avfilter_inout_free(&outputs);
+
+//    return ret;
+//}
+
+int AudioDecoder::init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **src, AVFilterContext **out,
+                      const char *value) {
+
+    std::string x = "sample_rate=";
+    std::string temp = ":";
+    std::string temp1 = "sample_fmt=";
+    std::string temp2 = "channel_layout=";
+    x += std::to_string(codecCtx->sample_rate) + temp;
+    x += temp1 + std::to_string(codecCtx->sample_fmt) + temp;
+    x += temp2 + std::to_string(audioDstChannelLayout);
+    qDebug()<<"src-拼接字符串："<<x.c_str();
+    //"sample_rates=48000:sample_fmts=s16p:channel_layouts=stereo"
+
+    //初始化AVFilterGraph
+    AVFilterGraph *graph = avfilter_graph_alloc();
+    //获取abuffer用于接收输入端
+    const AVFilter *abuffer = avfilter_get_by_name("abuffer");
+    AVFilterContext *abuffer_ctx = avfilter_graph_alloc_filter(graph, abuffer, "src");
+    //设置参数，这里需要匹配原始音频采样率、数据格式（位数）
+    if (avfilter_init_str(abuffer_ctx, x.c_str()) <
+        0) {
+        qDebug()<<"error init abuffer filter";
+        return -1;
+    }
+    //初始化 filter
+
+    //初始化atempo filter
+    const AVFilter *volume = avfilter_get_by_name("atempo");
+    AVFilterContext *volume_ctx = avfilter_graph_alloc_filter(graph, volume, "atempo");
+    //这里采用av_dict_set设置参数
+    AVDictionary *args = NULL;
+    av_dict_set(&args, "tempo", value, 0);      //调节倍速播放
+    if (avfilter_init_dict(volume_ctx, &args) < 0) {
+        qDebug()<<"error init volume filter";
+        return -1;
+    }
+
+    const AVFilter *aformat = avfilter_get_by_name("aformat");
+    AVFilterContext *aformat_ctx = avfilter_graph_alloc_filter(graph, aformat, "aformat");
+
+
+    std::string x_2 = "sample_rates=";
+    std::string temp_2 = ":";
+    std::string temp1_2 = "sample_fmts=";
+    std::string temp2_2 = "channel_layouts=";
+    x_2 += std::to_string(codecCtx->sample_rate) + temp_2;
+    x_2 += temp1_2 + std::to_string(8) + temp_2;
+    x_2 += temp2_2 + std::to_string(audioDstChannelLayout);
+    qDebug()<<"sinl-拼接字符串："<<x_2.c_str();
+
+    if (avfilter_init_str(aformat_ctx,
+                          "sample_rates=48000:sample_fmts=s16p:channel_layouts=stereo") < 0) {
+        qDebug()<<"error init aformat filter";
+        return -1;
+    }
+    //初始化sink用于输出
+    const AVFilter *sink = avfilter_get_by_name("abuffersink");
+    AVFilterContext *sink_ctx = avfilter_graph_alloc_filter(graph, sink, "sink");
+    if (avfilter_init_str(sink_ctx, NULL) < 0) {//无需参数
+        qDebug()<<"error init sink filter";
+        return -1;
+    }
+    //链接各个filter上下文
+    if (avfilter_link(abuffer_ctx, 0, volume_ctx, 0) != 0) {
+        qDebug()<<"error link to volume filter";
+        return -1;
+    }
+    if (avfilter_link(volume_ctx, 0, aformat_ctx, 0) != 0) {
+        qDebug()<<"error link to aformat filter";
+        return -1;
+    }
+    if (avfilter_link(aformat_ctx, 0, sink_ctx, 0) != 0) {
+        qDebug()<<"error link to sink filter";
+        return -1;
+    }
+    if (avfilter_graph_config(graph, NULL) < 0) {
+        qDebug()<<"error config filter graph";
+        return -1;
+    }
+    *pGraph = graph;
+    *src = abuffer_ctx;
+    *out = sink_ctx;
+    qDebug()<<"init filter success...";
+    return 0;
 }
 
-//构造初始化函数
-AudioDecoder::AudioDecoder(QObject* parent):
+
+
+AudioDecoder::AudioDecoder(QObject *parent) :
     QObject(parent),
     isStop(false),
     isPause(false),
-    isReadFinished(false),
+    isreadFinished(false),
     totalTime(0),
     clock(0),
     volume(SDL_MIX_MAXVOLUME),
     audioDeviceFormat(AUDIO_F32SYS),
     aCovertCtx(NULL),
-    sendReturn(0)
+    sendReturn(0),
+    init_falg(false)
 {
 
 }
 
-//打开音频
-int AudioDecoder::open(AVFormatContext *formatCtx, int index){
-    AVCodec* codec;
-    SDL_AudioSpec suitSpec;
-    int suitNbChannels;
-    const char* env;
+int AudioDecoder::openAudio(AVFormatContext *pFormatCtx, int index)
+{
+    AVCodec *codec;
+    SDL_AudioSpec wantedSpec;
+    int wantedNbChannels;
+    const char *env;
 
-    //声道信息初始化
+    /*  soundtrack array use to adjust */
     int nextNbChannels[]   = {0, 0, 1, 6, 2, 6, 4, 6};
     int nextSampleRates[]  = {0, 44100, 48000, 96000, 192000};
     int nextSampleRateIdx = FF_ARRAY_ELEMS(nextSampleRates) - 1;
 
-    //控制参数初始化
     isStop = false;
     isPause = false;
-    isReadFinished = false;
+    isreadFinished = false;
 
     audioSrcFmt = AV_SAMPLE_FMT_NONE;
     audioSrcChannelLayout = 0;
     audioSrcFreq = 0;
 
-    formatCtx->streams[index]->discard = AVDISCARD_DEFAULT;
+    pFormatCtx->streams[index]->discard = AVDISCARD_DEFAULT;
 
-    //解析的音频流
-    stream = formatCtx->streams[index];
+    stream = pFormatCtx->streams[index];
 
-    //初始化解码上下文
-    codeCtx = avcodec_alloc_context3(NULL);
-    avcodec_parameters_to_context(codeCtx,formatCtx->streams[index]->codecpar);
+    codecCtx = avcodec_alloc_context3(NULL);
+    avcodec_parameters_to_context(codecCtx, pFormatCtx->streams[index]->codecpar);
 
-    //找到音频解析器
-    if ((codec = (AVCodec*)avcodec_find_decoder(codeCtx->codec_id)) == NULL) {
-        avcodec_free_context(&codeCtx);
+    /* find audio decoder */
+    if ((codec = (AVCodec*)avcodec_find_decoder(codecCtx->codec_id)) == NULL) {
+        avcodec_free_context(&codecCtx);
         qDebug() << "Audio decoder not found.";
         return -1;
     }
 
-    //打开音频解析器
-    if (avcodec_open2(codeCtx, codec, NULL) < 0) {
-        avcodec_free_context(&codeCtx);
+    /* open audio decoder */
+    if (avcodec_open2(codecCtx, codec, NULL) < 0) {
+        avcodec_free_context(&codecCtx);
         qDebug() << "Could not open audio decoder.";
         return -1;
     }
 
-    //获取时长
-    totalTime = formatCtx->duration;
+    totalTime = pFormatCtx->duration;
 
     env = SDL_getenv("SDL_AUDIO_CHANNELS");
-    if(env){
-        qDebug()<<"获取SDL音频通道数";
-        suitNbChannels = atoi(env);
-        audioDstChannelLayout = av_get_default_channel_layout(suitNbChannels);
-
+    if (env) {
+        qDebug() << "SDL audio channels";
+        wantedNbChannels = atoi(env);
+        audioDstChannelLayout = av_get_default_channel_layout(wantedNbChannels);
     }
 
-    suitNbChannels = codeCtx->channels;
-
-    //对比SDL获取的参数和资源参数
-    if(!audioDstChannelLayout ||
-    (suitNbChannels != av_get_channel_layout_nb_channels(audioDstChannelLayout))){
-        audioDstChannelLayout = av_get_default_channel_layout(suitNbChannels);
+    wantedNbChannels = codecCtx->channels;
+    if (!audioDstChannelLayout ||
+        (wantedNbChannels != av_get_channel_layout_nb_channels(audioDstChannelLayout))) {
+        audioDstChannelLayout = av_get_default_channel_layout(wantedNbChannels);
         audioDstChannelLayout &= ~AV_CH_LAYOUT_STEREO_DOWNMIX;
     }
 
-    //音频输出格式
-    suitSpec.channels = av_get_channel_layout_nb_channels(audioDstChannelLayout);
-    suitSpec.freq = codeCtx->sample_rate;
-
-    //异常情况
-    if(suitSpec.freq <= 0|| suitSpec.channels <= 0){
-        avcodec_free_context(&codeCtx);
-        qDebug()<<"无效的采样速率或通道数";
+    wantedSpec.channels    = av_get_channel_layout_nb_channels(audioDstChannelLayout);
+    wantedSpec.freq        = codecCtx->sample_rate;
+    if (wantedSpec.freq <= 0 || wantedSpec.channels <= 0) {
+        avcodec_free_context(&codecCtx);
+        qDebug() << "Invalid sample rate or channel count, freq: " << wantedSpec.freq << " channels: " << wantedSpec.channels;
         return -1;
     }
 
-    //找到合适的解析频率
-    while(nextSampleRateIdx && nextSampleRates[nextSampleRateIdx] >= suitSpec.freq){
+    while (nextSampleRateIdx && nextSampleRates[nextSampleRateIdx] >= wantedSpec.freq) {
         nextSampleRateIdx--;
     }
 
-    //初始化音频输出参数
-    suitSpec.format = audioDeviceFormat;
-    suitSpec.silence = 0;
-    suitSpec.samples = FFMAX(SDL_AUDIO_MIN_BUFFER_SIZE, 2 << av_log2(suitSpec.freq / SDL_AUDIO_MAX_CALLBACKS_PER_SEC));
-    //音频条函数
-    suitSpec.callback = &AudioDecoder::audioCallBack;
-    suitSpec.userdata = this;
+    wantedSpec.format      = audioDeviceFormat;
+    wantedSpec.silence     = 0;
+    wantedSpec.samples     = FFMAX(SDL_AUDIO_MIN_BUFFER_SIZE, 2 << av_log2(wantedSpec.freq / SDL_AUDIO_MAX_CALLBACKS_PER_SEC));
+    //音频回调函数：最重要
+    wantedSpec.callback    = &AudioDecoder::audioCallback;
+    wantedSpec.userdata    = this;
 
-    //打开音频设备
+    /* This function opens the audio device with the desired parameters, placing
+     * the actual hardware parameters in the structure pointed to spec.
+     */
     while (1) {
-        while (SDL_OpenAudio(&suitSpec,&spec) < 0){
-        qDebug() << QString("SDL_OpenAudio (%1 channels, %2 Hz): %3")
-                .arg(suitSpec.channels).arg(suitSpec.freq).arg(SDL_GetError());
-        suitSpec.channels = nextNbChannels[FFMIN(7, suitSpec.channels)];
-        if (!suitSpec.channels){
-            suitSpec.freq = nextSampleRates[nextSampleRateIdx--];
-            suitSpec.channels = suitNbChannels;
-            if(!suitSpec.freq){
-                avcodec_free_context(&codeCtx);
-                qDebug()<<"没有合适的环境，音频打开失败";
-                return -1;
+        while (SDL_OpenAudio(&wantedSpec, &spec) < 0) {
+            qDebug() << QString("SDL_OpenAudio (%1 channels, %2 Hz): %3")
+                    .arg(wantedSpec.channels).arg(wantedSpec.freq).arg(SDL_GetError());
+            wantedSpec.channels = nextNbChannels[FFMIN(7, wantedSpec.channels)];
+            if (!wantedSpec.channels) {
+                wantedSpec.freq = nextSampleRates[nextSampleRateIdx--];
+                wantedSpec.channels = wantedNbChannels;
+                if (!wantedSpec.freq) {
+                    avcodec_free_context(&codecCtx);
+                    qDebug() << "No more combinations to try, audio open failed";
+                    return -1;
+                }
             }
+            audioDstChannelLayout = av_get_default_channel_layout(wantedSpec.channels);
         }
-        //重新获取channelLayout参数
-        audioDstChannelLayout = av_get_default_channel_layout(suitSpec.channels);
+
+        if (spec.format != audioDeviceFormat) {
+            qDebug() << "SDL audio format: " << wantedSpec.format << " is not supported"
+                     << ", set to advised audio format: " <<  spec.format;
+            wantedSpec.format = spec.format;
+            audioDeviceFormat = spec.format;
+            SDL_CloseAudio();
+        } else {
+            break;
+        }
     }
 
-    //formt不一致
-    if(spec.format != audioDeviceFormat){
-        qDebug() << "SDL audio format: " << suitSpec.format << " is not supported"
-                 << ", set to advised audio format: " <<  spec.format;
-        suitSpec.format = spec.format;
-        audioDeviceFormat = spec.format;
-        SDL_CloseAudio();
-    }else {
-    break;
-    }
-    }
-
-    //channel不一致
-    if(spec.channels != suitSpec.channels){
+    if (spec.channels != wantedSpec.channels) {
         audioDstChannelLayout = av_get_default_channel_layout(spec.channels);
-        if(!audioDstChannelLayout){
-            avcodec_free_context(&codeCtx);
-            qDebug()<<"SDL建议的通道数："<<spec.channels<<" 不被支持";
+        if (!audioDstChannelLayout) {
+            avcodec_free_context(&codecCtx);
+            qDebug() << "SDL advised channel count " << spec.channels << " is not supported!";
             return -1;
         }
     }
 
-    //设置采样格式
-    switch(audioDeviceFormat){
-        case AUDIO_U8:
-            audioDstFmt    = AV_SAMPLE_FMT_U8;
-            audioDepth = 1;
-            break;
+    /* set sample format */
+    qDebug()<<"打开音频格式："<<audioDeviceFormat;
+    switch (audioDeviceFormat) {
+    case AUDIO_U8:
+        audioDstFmt    = AV_SAMPLE_FMT_U8;
+        audioDepth = 1;
+        break;
 
-        case AUDIO_S16SYS:
-            audioDstFmt    = AV_SAMPLE_FMT_S16;
-            audioDepth = 2;
-            break;
+    case AUDIO_S16SYS:
+        audioDstFmt    = AV_SAMPLE_FMT_S16;
+        audioDepth = 2;
+        break;
 
-        case AUDIO_S32SYS:
-            audioDstFmt    = AV_SAMPLE_FMT_S32;
-            audioDepth = 4;
-            break;
+    case AUDIO_S32SYS:
+        audioDstFmt    = AV_SAMPLE_FMT_S32;
+        audioDepth = 4;
+        break;
 
-        case AUDIO_F32SYS:
-            audioDstFmt    = AV_SAMPLE_FMT_FLT;
-            audioDepth = 4;
-            break;
+    case AUDIO_F32SYS:
+        audioDstFmt    = AV_SAMPLE_FMT_FLT;
+        audioDepth = 4;
+        break;
 
-        default:
-            audioDstFmt    = AV_SAMPLE_FMT_S16;
-            audioDepth = 2;
-            break;
+    default:
+        audioDstFmt    = AV_SAMPLE_FMT_S16;
+        audioDepth = 2;
+        break;
     }
 
-    //开启声音
+    /* open sound */
     SDL_PauseAudio(0);
 
-    return 0;
 
+    return 0;
 }
 
-//关闭音频
-void AudioDecoder::close(){
-    //清空数据
-    clearDate();
+void AudioDecoder::closeAudio()
+{
+    emptyAudioData();
 
-    //关闭音频
     SDL_LockAudio();
     SDL_CloseAudio();
     SDL_UnlockAudio();
 
-    //关闭解析器
-    avcodec_close(codeCtx);
-    //释放内存
-    avcodec_free_context(&codeCtx);
+    avcodec_close(codecCtx);
+    avcodec_free_context(&codecCtx);
 }
 
-//读取文件完毕-信号槽
-void AudioDecoder::slot_readFileFinished(){
-    isReadFinished = true;
+void AudioDecoder::readFileFinished()
+{
+    isreadFinished = true;
 }
 
-//暂停
-void AudioDecoder::pause(bool pause){
+void AudioDecoder::pauseAudio(bool pause)
+{
     isPause = pause;
 }
 
-//停止
-void AudioDecoder::stop(){
+void AudioDecoder::stopAudio()
+{
     isStop = true;
 }
 
-//包入队列
-void AudioDecoder::avpacketEnqueue(AVPacket *packet){
+void AudioDecoder::packetEnqueue(AVPacket *packet)
+{
     packetQueue.enqueue(packet);
 }
 
-//清空数据
-void AudioDecoder::clearDate(){
-    //重置缓冲区信息
+void AudioDecoder::emptyAudioData()
+{
     audioBuf = nullptr;
+
+    audioBufIndex = 0;
     audioBufSize = 0;
     audioBufSize1 = 0;
-    audioBufIndex = 0;
 
     clock = 0;
+
     sendReturn = 0;
 
-    //清空包队列
     packetQueue.empty();
 }
 
-//获取音量
-int AudioDecoder::getVolume(){
+int AudioDecoder::getVolume()
+{
     return volume;
 }
 
-//设置音量
-void AudioDecoder::setVolume(int volume){
+void AudioDecoder::setVolume(int volume)
+{
     this->volume = volume;
 }
 
-//获取音频解析时钟信号
-double AudioDecoder::getAudioClock(){
-    if(codeCtx){
-        //根据音频缓冲区数据大小来控制pts
-        //还未播放的数据
-        int resBufSize = audioBufSize - audioBufIndex;
-        //每秒音频播放的字节数
-        int bytePerSec = codeCtx->sample_rate * codeCtx->channels * audioDepth;
-        clock = clock - static_cast<double>(resBufSize) / bytePerSec;
+double AudioDecoder::getAudioClock()
+{
+    if (codecCtx) {
+        /* control audio pts according to audio buffer data size */
+        int hwBufSize   = audioBufSize - audioBufIndex;
+        int bytesPerSec = codecCtx->sample_rate * codecCtx->channels * audioDepth;
+
+        clock -= static_cast<double>(hwBufSize) / bytesPerSec;
     }
     return clock;
 }
 
-//音频解析回调函数,负责将audioBuf中解码后的音频输出
-void AudioDecoder::audioCallBack(void *userData, quint8 *stream, int SDL_AudioBufSize){
-     AudioDecoder* decoder = (AudioDecoder*) userData;
+void AudioDecoder::audioCallback(void *userdata, quint8 *stream, int SDL_AudioBufSize)
+{
+    AudioDecoder *decoder = (AudioDecoder *)userdata;
 
-     //已经解析的位置
-     int hasDecodeIndex;
+    int decodedSize;
+    /* SDL_BufSize means audio play buffer left size
+     * while it greater than 0, means counld fill data to it
+     */
+    while (SDL_AudioBufSize > 0) {
+        if (decoder->isStop) {
+            return ;
+        }
 
-     //循环，直至取到指定大小的音频数据
-     while(SDL_AudioBufSize > 0){
-         //处理控制信息
-         if(decoder->isStop){
-             return;
-         }
-         if(decoder->isPause){
-             //轮询
-             SDL_Delay(10);
-             continue;
-         }
-         //缓冲区没有数据
-         if(decoder->audioBufIndex >= decoder->audioBufSize){
-             hasDecodeIndex = decoder->decodeAudio();
-             if(hasDecodeIndex < 0){
-                 //没有解析的数据，则静音
-                 decoder->audioBufSize = 1024;
-                 decoder->audioBuf = nullptr;
-             }else {
-                 decoder->audioBufSize = hasDecodeIndex;
-             }
-             //重置当前获取数据的位置
-             decoder->audioBufIndex = 0;
-         }
-         //已解码数据多于需要的数据,多余数据不能播放
-         int left = decoder->audioBufSize - decoder->audioBufIndex;
-         if(left > SDL_AudioBufSize){
-             left = SDL_AudioBufSize;
-         }
+        if (decoder->isPause) {
+            SDL_Delay(10);
+            continue;
+        }
 
-         if(decoder->audioBuf){
-             memset(stream,0,left);
-             //调整音量
-             SDL_MixAudio(stream,decoder->audioBuf + decoder->audioBufIndex,left,decoder->volume);
-         }
+        /* no data in buffer */
+        if (decoder->audioBufIndex >= decoder->audioBufSize) {
 
-         SDL_AudioBufSize -= left;
-         stream += left;
-         decoder->audioBufIndex += left;
-     }
+            decodedSize = decoder->decodeAudio();
+            /* if error, just output silence */
+            if (decodedSize < 0) {
+                /* if not decoded data, just output silence */
+                decoder->audioBufSize = 1024;
+                decoder->audioBuf = nullptr;
+            } else {
+                decoder->audioBufSize = decodedSize;
+            }
+            decoder->audioBufIndex = 0;
+        }
+
+        /* calculate number of data that haven't play */
+        int left = decoder->audioBufSize - decoder->audioBufIndex;
+        if (left > SDL_AudioBufSize) {
+            left = SDL_AudioBufSize;
+        }
+
+        if (decoder->audioBuf) {
+            memset(stream, 0, left);
+            SDL_MixAudio(stream, decoder->audioBuf + decoder->audioBufIndex, left, decoder->volume);
+        }
+
+        SDL_AudioBufSize -= left;
+        stream += left;
+        decoder->audioBufIndex += left;
+    }
 }
 
-//解析音频
-int AudioDecoder::decodeAudio(){
+int AudioDecoder::decodeAudio()
+{
+
     int ret;
-    AVFrame* frame = av_frame_alloc();
-    //已经重采样的数据大小
-    int hasResampltSize;
+    AVFrame *frame = av_frame_alloc();
+    int resampledDataSize;
 
-    if(!frame){
-        qDebug()<<"获取解析的音频帧失败";
+    if (!frame) {
+        qDebug() << "Decode audio frame alloc failed.";
         return -1;
     }
 
-    if(isStop){
+    if (isStop) {
         return -1;
     }
 
-    //待解码的包队列
-    if(packetQueue.queueSize() <= 0){
-        //文件读取完毕
-        if(isReadFinished){
+    if (packetQueue.queueSize() <= 0) {
+        if (isreadFinished) {
             isStop = true;
             SDL_Delay(100);
-            emit sign_playFinished();
+            emit playFinished();
         }
         return -1;
     }
 
-    //当上一个包完成解码后，获取新的包
-    if(sendReturn != AVERROR(EAGAIN)){
-        packetQueue.dequeue(&packet,true);
+    /* get new packet whiel last packet all has been resolved */
+    if (sendReturn != AVERROR(EAGAIN)) {
+        packetQueue.dequeue(&packet, true);
     }
 
-    if(!strcmp((char*)packet.data,"FLUSH")){
-        avcodec_flush_buffers(codeCtx);
-        //引用次数减一
+    if (!strcmp((char*)packet.data, "FLUSH")) {
+        avcodec_flush_buffers(codecCtx);
         av_packet_unref(&packet);
         av_frame_free(&frame);
         sendReturn = 0;
-        qDebug()<<"跳过该帧音频";
+        qDebug() << "seek audio";
         return -1;
     }
 
-    //当上一个包还未完成解析
-    sendReturn = avcodec_send_packet(codeCtx,&packet);
-    if((sendReturn < 0) && (sendReturn != AVERROR(EAGAIN)) && (sendReturn != AVERROR_EOF)) {
+    /* while return -11 means packet have data not resolved,
+     * this packet cannot be unref
+     */
+    sendReturn = avcodec_send_packet(codecCtx, &packet);
+    if ((sendReturn < 0) && (sendReturn != AVERROR(EAGAIN)) && (sendReturn != AVERROR_EOF)) {
         av_packet_unref(&packet);
         av_frame_free(&frame);
-        qDebug()<<"发生音频解码失败，错误码："<<sendReturn;
+        qDebug() << "Audio send to decoder failed, error code: " << sendReturn;
         return sendReturn;
     }
 
-    ret = avcodec_receive_frame(codeCtx,frame);
-    if((ret < 0) && (ret != AVERROR(EAGAIN))) {
+    ret = avcodec_receive_frame(codecCtx, frame);
+
+    if(!init_falg){
+        //初始化filter
+        qDebug()<<"初始化滤波器情况："<<init_atempo_filter(&filterGraph2,&filterSrcCtx2,&filterSinkCtx2,"2.0");
+        init_falg = !init_falg;
+    }
+
+    if(ret >= 0){
+        int flag ;
+
+//    //过滤
+//    if ((flag=av_buffersrc_add_frame(filterSrcCtx2, frame) )< 0){
+//        qDebug()<<"flag:"<<flag;
+//           qDebug()<<"Error while feeding the audio filtergraph\n";
+//    }
+
+//    if (av_buffersink_get_frame(filterSinkCtx2, frame) < 0) {
+//        qDebug() << "av buffersrc get frame failed.";
+//        av_packet_unref(&packet);
+//    }
+
+//        qDebug()<<"format:"<<frame->format;
+//        qDebug()<<"channel_Layout:"<<frame->channel_layout;
+//        qDebug()<<"channel_sample:"<<frame->sample_rate;
+        if ((flag = av_buffersrc_add_frame_flags(filterSrcCtx2, frame,AV_BUFFERSRC_FLAG_NO_CHECK_FORMAT)) < 0) {//将frame放入输入filter上下文
+                            qDebug()<<"error add frame:"<<flag;
+
+                        }else{
+            qDebug()<<"success add frame";
+        }
+//            while (av_buffersink_get_frame(filterSinkCtx2, frame) >= 0) {//从输出filter上下文中获取frame
+//                qDebug()<<"循环从Sink中读取frame";
+//            }
+        //循环读取帧
+        qDebug()<<"从滤波器缓存中读取帧："<<av_buffersink_get_frame(filterSinkCtx2, frame);
+    }
+
+    if ((ret < 0) && (ret != AVERROR(EAGAIN))) {
         av_packet_unref(&packet);
         av_frame_free(&frame);
-        qDebug()<<"音频解码失败，错误码:"<< ret;
+        qDebug() << "Audio frame decode failed, error code: " << ret;
         return ret;
     }
 
-    //pts无效，该如何处理？
-    if(frame->pts != AV_NOPTS_VALUE){
-        //计算该帧在整个音视频中的播放时间
+    if (frame->pts != AV_NOPTS_VALUE) {
         clock = av_q2d(stream->time_base) * frame->pts;
-
+//        qDebug() << "no pts";
     }
 
-    //获取音频的通道数
+    /* get audio channels */
     qint64 inChannelLayout = (frame->channel_layout && frame->channels == av_get_channel_layout_nb_channels(frame->channel_layout)) ?
-              frame->channel_layout : av_get_default_channel_layout(frame->channels);
+                frame->channel_layout : av_get_default_channel_layout(frame->channels);
 
-    //frame采样格式不一致
-    if(frame->format != audioSrcFmt ||
-            inChannelLayout != audioSrcChannelLayout ||
-            frame->sample_rate != audioSrcFreq ||
-            !aCovertCtx){
-        if(aCovertCtx){
+    if (frame->format       != audioSrcFmt              ||
+        inChannelLayout     != audioSrcChannelLayout    ||
+        frame->sample_rate  != audioSrcFreq             ||
+        !aCovertCtx) {
+        if (aCovertCtx) {
             swr_free(&aCovertCtx);
         }
 
-        //初始化重采样结构体
-        aCovertCtx = swr_alloc_set_opts(nullptr,audioDstChannelLayout,audioDstFmt,spec.freq,
-                                        inChannelLayout,(AVSampleFormat)frame->format,frame->sample_rate,0,NULL);
-        //初始化aCoverCtx失败
-        if(!aCovertCtx || (swr_init(aCovertCtx) < 0)) {
+        /* init swr audio convert context */
+        aCovertCtx = swr_alloc_set_opts(nullptr, audioDstChannelLayout, audioDstFmt, spec.freq,
+                inChannelLayout, (AVSampleFormat)frame->format , frame->sample_rate, 0, NULL);
+        if (!aCovertCtx || (swr_init(aCovertCtx) < 0)) {
             av_packet_unref(&packet);
             av_frame_free(&frame);
             return -1;
         }
 
-        //重置重采样参数
-        audioSrcFmt = (AVSampleFormat)frame->format;
-        audioSrcChannelLayout = inChannelLayout;
-        audioSrcFreq = frame->sample_rate;
-        audioSrcChannels = frame->channels;
-
-        if(aCovertCtx){
-            const quint8 ** in = (const quint8 **)frame->extended_data;
-            uint8_t* out[]={audioBuf1};
-            int outCount = sizeof(audioBuf1) / (spec.channels * av_get_bytes_per_sample(audioDstFmt));
-
-            //输出格式转换
-            int sampleSize = swr_convert(aCovertCtx,out,outCount,in,frame->nb_samples);
-            if(sampleSize < 0) {
-                av_packet_unref(&packet);
-                av_frame_free(&frame);
-                return -1;
-            }
-
-            if(sampleSize == outCount){
-                qDebug()<<"音频缓冲区可能太小";
-                if(swr_init(aCovertCtx) < 0) {
-                    swr_free(&aCovertCtx);
-                }
-            }
-
-            audioBuf = audioBuf1;
-            hasResampltSize = sampleSize * spec.channels / av_get_bytes_per_sample(audioDstFmt);
-        }else {
-            //不需要格式转化
-            audioBuf = frame->data[0];
-            hasResampltSize = av_samples_get_buffer_size(NULL,frame->channels,frame->nb_samples,static_cast<AVSampleFormat>(frame->format),1);
-        }
-
-        //更新时钟
-        clock += static_cast<double>(hasResampltSize)/(audioDepth * codeCtx->channels * codeCtx->sample_rate);
-
-        if(sendReturn != AVERROR(EAGAIN)){
-            //引用次数减一
-            av_packet_unref(&packet);
-        }
-
-        av_frame_free(&frame);
-
-        return hasResampltSize;
+        audioSrcFmt             = (AVSampleFormat)frame->format;
+        audioSrcChannelLayout   = inChannelLayout;
+        audioSrcFreq            = frame->sample_rate;
+        audioSrcChannels        = frame->channels;
     }
+
+    if (aCovertCtx) {
+        const quint8 **in   = (const quint8 **)frame->extended_data;
+        uint8_t *out[] = {audioBuf1};
+
+        int outCount = sizeof(audioBuf1) / spec.channels / av_get_bytes_per_sample(audioDstFmt);
+
+        int sampleSize = swr_convert(aCovertCtx, out, outCount, in, frame->nb_samples);
+        if (sampleSize < 0) {
+            ///qDebug() << "swr convert failed";
+            av_packet_unref(&packet);
+            av_frame_free(&frame);
+            return -1;
+        }
+
+        if (sampleSize == outCount) {
+            qDebug() << "audio buffer is probably too small";
+            if (swr_init(aCovertCtx) < 0) {
+                swr_free(&aCovertCtx);
+            }
+        }
+
+        audioBuf = audioBuf1;
+        resampledDataSize = sampleSize * spec.channels * av_get_bytes_per_sample(audioDstFmt);
+    } else {
+        audioBuf = frame->data[0];
+        resampledDataSize = av_samples_get_buffer_size(NULL, frame->channels, frame->nb_samples, static_cast<AVSampleFormat>(frame->format), 1);
+    }
+
+    clock += static_cast<double>(resampledDataSize) / (audioDepth * codecCtx->channels * codecCtx->sample_rate);
+
+    if (sendReturn != AVERROR(EAGAIN)) {
+        av_packet_unref(&packet);
+    }
+
+    av_frame_free(&frame);
+
+    return resampledDataSize;
 }
