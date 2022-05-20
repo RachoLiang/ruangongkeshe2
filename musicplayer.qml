@@ -285,49 +285,15 @@ ApplicationWindow {
                     border.color: "black"
                     radius: 10
                     VideoShow{
-                        id: videoShow;
                         anchors.centerIn: parent;
                         nWidth: dpW(2000);
                         nHeight: dpH(3200);
                         width: dpW(2000);
                         height: dpH(3200);
-                        sourPath: "C:\\Users\\YYg\\Desktop\\test1.mp4"
+                        sourPath: "C:\\Users\\xgy\\Desktop\\mp3_test\\test.mp4"
                     }
                 }
 
-            }
-            Item{
-                Rectangle {
-                        id: button
-
-                        width: 100
-                        height: 30
-                        color: "red"
-                        radius: 5
-                        anchors.centerIn: parent
-
-                        Text {
-                            id: buttonText
-                            text: qsTr("提高音量,每次加3")
-                            color: "white"
-                            anchors.centerIn: parent
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                //音量调节
-//                                var x = videoShow.getVolume();
-//                                videoShow.setVolume(x + 3);
-                                //暂停
-//                                videoShow.pause();
-//                                buttonText.text = "暂停状态："+videoShow.isPaused();
-                                //静音
-                                videoShow.silence();
-                                buttonText.text = "静音状态："+videoShow.isSilence();
-                            }
-                        }
-                    }
             }
 
             Item {
@@ -363,7 +329,7 @@ ApplicationWindow {
                         to: 0
                     }
                     PauseAnimation {
-                        duration: 1000;
+                        duration: 1000
                     }
                     OpacityAnimator {
                         target: rightGradient

@@ -27,9 +27,9 @@ void VideoShow::setSourPath(QString path){
     //mainDecoder内部有video对象，可以通过改变video对象的值来更换mainDecoder
     //解析的值
     this->sourPath = path;
-//    if(maindecoder != nullptr){
-//        maindecoder->setCurrentFile(path);
-//    }
+    if(maindecoder != nullptr){
+        maindecoder->setCurrentFile(path);
+    }
     //发信号给mainDecoder解析视频
 
 }
@@ -47,20 +47,17 @@ VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage*)),this,SLOT(slot_getOneFrame(QImage*)));
     //发信号给解析器解析视频
-    maindecoder->decoderFile(path,"video");
+    maindecoder->decodeFile(path,"video");
 }
 
 VideoShow::VideoShow():nWidth(200),nHeight(400){
-    //参数初始化
-    lastVolume = 0;
-
     maindecoder = new MainDecoder();
-    sourPath = "C:\\Users\\YYg\\Desktop\\test1.mp4";
+    sourPath = "C:\\Users\\xgy\\Desktop\\mp3_test\\test.mp4";
     //maindecoder->setCurrentFile(sourPath);
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
     //发信号给解析器解析视频
-    maindecoder->decoderFile(sourPath,"video");
+    maindecoder->decodeFile(sourPath,"video");
 //    image.load("D:\\mediaPicture\\0.png");
 }
 
@@ -72,6 +69,7 @@ VideoShow::~VideoShow(){
 
 //信号槽函数
 void VideoShow::slot_getOneFrame(QImage tmp){
+    qDebug()<<"信号槽调用！";
 //    if(image){
 //        //复制图片
 //        this->image = *image;
@@ -86,64 +84,10 @@ void VideoShow::slot_getOneFrame(QImage tmp){
 void VideoShow::paint(QPainter * painter){
     //图片不为空
     if(!this->image.isNull()){
+        qDebug()<<"绘制图片";
         painter->drawImage(QRect(0,0,nWidth,nHeight),image);
     }
 }
-
-
-//音量控制
-int VideoShow::getVolume(){
-    int volume = 0;
-    if(maindecoder){
-        volume = maindecoder->getVolume();
-        if(volume < 0){
-            volume = 0;
-        }
-    }
-    qDebug()<<"调用了获取音量函数";
-    return volume;
-}
-
-void VideoShow::setVolume(int volume){
-    if(maindecoder){
-        maindecoder->setVolume(volume);
-    }
-}
-
-bool VideoShow::isSilence(){
-    if(getVolume() <= 0){
-        return true;
-    }else {
-        return false;
-    }
-}
-
-void VideoShow::silence(){
-    if(isSilence()){
-        //恢复音量
-        setVolume(lastVolume);
-    }else{
-        //静音，并记录上次的音量
-        lastVolume = getVolume();
-        setVolume(0);
-    }
-}
-
-//暂停控制
-bool VideoShow::isPaused(){
-    if(maindecoder){
-        return maindecoder->pauseState();
-    }else {
-       return true;
-    }
-}
-
-void VideoShow::pause(){
-    if(maindecoder){
-        maindecoder->pauseVideo();
-    }
-}
-
 
 
 

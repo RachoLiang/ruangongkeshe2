@@ -1,4 +1,4 @@
-#ifndef AUDIODECODER_H
+﻿#ifndef AUDIODECODER_H
 #define AUDIODECODER_H
 
 #include <QObject>
@@ -8,16 +8,6 @@
 extern "C"
 {
     #include <libswresample/swresample.h>
-    #include <libavfilter/avfilter.h>
-    #include <libavfilter/buffersink.h>
-    #include <libavfilter/buffersrc.h>
-    #include <libswscale/swscale.h>
-    #include <libavdevice/avdevice.h>
-    #include <libavutil/pixfmt.h>
-    #include <libavutil/opt.h>
-    #include <libavcodec/avfft.h>
-    #include <libavutil/imgutils.h>
-    #include <libavutil/time.h>
 }
 
 
@@ -25,81 +15,78 @@ extern "C"
 class AudioDecoder : public QObject
 {
     Q_OBJECT
+
 public:
     explicit AudioDecoder(QObject *parent = nullptr);
+    virtual ~AudioDecoder() {}
 
-    int openAudio(AVFormatContext *pFormatCtx, int index);
-    void closeAudio();
-    void pauseAudio(bool pause);
-    void stopAudio();
+    //音频打开、暂停、关闭等控制
+    int open(AVFormatContext* formatCtx,int index);
+    void close();
+    void pause(bool);
+    void stop();
     int getVolume();
-    void setVolume(int volume);
-    double getAudioClock();
-    void packetEnqueue(AVPacket *packet);
-    void emptyAudioData();
-    void setTotalTime(qint64 time);
+    void setVolume(int volume); //同时也设置audio对象中的音量等信息，供前端同步显示
+    double getAudioClock(); //获取时钟信息
+    void avpacketEnqueue(AVPacket* packet); //包入队列
+    void clearDate();   //清空数据
+    void setTotalTime(qint64 time); //设置播放总时长
+    void setAudio(Audio*);  //设置Audio对象
 
-    //初始化音频的过滤器函数
-//    int init_filters(const char *filters_descr,AVFilterGraph*,AVFilterContext*,AVFilterContext*);
-    int init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **src, AVFilterContext **out,
-                          const char *value);
 
 private:
-    int decodeAudio();
-    static void audioCallback(void *userdata, quint8 *stream, int SDL_AudioBufSize);
+    int decodeAudio();  //解析传入的音频流
+    static void audioCallBack(void* userData,quint8* stream,int SDL_AudioBufSize);  //数据回调函数
 
+    //音频对象
+    Audio * audio;
+
+    //标志位
     bool isStop;
     bool isPause;
-    bool isreadFinished;
+    bool isReadFinished;
 
+
+    //控制信息
     qint64 totalTime;
     double clock;
     int volume;
 
-    AVStream *stream;
+    //资源信息
+    AVStream* stream;
 
-    Audio* audio;   //audio对象
-
-    quint8 *audioBuf;
+    quint8* audioBuf;
     quint32 audioBufSize;
-    DECLARE_ALIGNED(16, quint8, audioBuf1) [192000];
+    DECLARE_ALIGNED(16,quint8,audioBuf1) [192000];
     quint32 audioBufSize1;
     quint32 audioBufIndex;
 
-    SDL_AudioSpec spec;
+    SDL_AudioSpec spec; //音频信息
 
-    quint32 audioDeviceFormat;  // audio device sample format
+    quint32 audioDeviceFormat; //音频解析器格式
     quint8 audioDepth;
-    struct SwrContext *aCovertCtx;
+    struct SwrContext* aCovertCtx;
     qint64 audioDstChannelLayout;
-    enum AVSampleFormat audioDstFmt;   // audio decode sample format
+    enum AVSampleFormat audioDstFmt;    //音频解析采样格式
 
     qint64 audioSrcChannelLayout;
-    int audioSrcChannels;
+    int audioSrcChannels;   //音频资源通道数
     enum AVSampleFormat audioSrcFmt;
     int audioSrcFreq;
 
-    AVCodecContext *codecCtx;          // audio codec context
+    AVCodecContext* codeCtx;    //解析器上下文
 
-    AvPacketQueue packetQueue;
+    AvPacketQueue packetQueue;  //包队列
 
     AVPacket packet;
 
     int sendReturn;
 
-    //二倍速播放filter信息
-    AVFilterGraph* filterGraph2;
-    AVFilterContext* filterSrcCtx2;
-    AVFilterContext* filterSinkCtx2;
-
-    bool init_falg;
-
-
 signals:
-    void playFinished();
+    void sign_playFinished();
 
 public slots:
-    void readFileFinished();
+    void slot_readFileFinished();
 
 
 };
