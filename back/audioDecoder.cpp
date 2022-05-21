@@ -641,7 +641,7 @@ int AudioDecoder::decodeAudio()
 
     if(!init_falg){
         //初始化filter
-        qDebug()<<"初始化滤波器情况："<<init_atempo_filter(&filterGraph2,&filterSrcCtx2,&filterSinkCtx2,"1.5");
+        qDebug()<<"初始化滤波器情况："<<init_atempo_filter(&filterGraph2,&filterSrcCtx2,&filterSinkCtx2,"1.0");
         init_falg = !init_falg;
     }
 
