@@ -1,4 +1,4 @@
-#include <QDebug>
+﻿#include <QDebug>
 #include "backend/audioDecoder.h"
 #include <string>
 #include <string.h>
@@ -659,6 +659,12 @@ int AudioDecoder::decodeAudio()
 //        av_packet_unref(&packet);
 //    }
 
+<<<<<<< HEAD
+=======
+//        qDebug()<<"format:"<<frame->format;
+//        qDebug()<<"channel_Layout:"<<frame->channel_layout;
+//        qDebug()<<"channel_sample:"<<frame->sample_rate;
+>>>>>>> 3972ff2512a8f3280500a2d5afd71fcebcf3610e
         if ((flag = av_buffersrc_add_frame_flags(filterSrcCtx2, frame,AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {//将frame放入输入filter上下文
                             qDebug()<<"error add frame:"<<flag;
 

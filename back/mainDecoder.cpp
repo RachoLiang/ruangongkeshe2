@@ -267,7 +267,7 @@ void MainDecoder::seekProgress(qint64 pos)
 
 double MainDecoder::synchronize(AVFrame *frame, double pts)
 {
-    double delay;
+//    double delay;
 
     if (pts != 0) {
         videoClk = pts; // Get pts,then set video clock to it
@@ -275,12 +275,23 @@ double MainDecoder::synchronize(AVFrame *frame, double pts)
         pts = videoClk; // Don't get pts,set it to video clock
     }
 
-    delay = av_q2d(pCodecCtx->time_base);
-    delay += frame->repeat_pict * (delay * 0.5);
+    double repeat_pict = frame->repeat_pict;
+
+    double frame_delay = av_q2d(pCodecCtx->time_base);
+
+    double fps = 1/frame_delay;
+
+    double extra_delay = repeat_pict /(2*fps);
+    double delay = extra_delay + frame_delay;
 
     videoClk += delay;
-
     return pts;
+//    delay = av_q2d(pCodecCtx->time_base);
+//    delay += frame->repeat_pict * (delay * 0.5);
+
+//    videoClk += delay;
+
+//    return pts;
 }
 
 int MainDecoder::videoThread(void *arg)
@@ -291,6 +302,11 @@ int MainDecoder::videoThread(void *arg)
     AVPacket packet;
     MainDecoder *decoder = (MainDecoder *)arg;
     AVFrame *pFrame  = av_frame_alloc();
+
+    //同步
+    double last_delay = 0; //上一次播放的两帧时间差；
+    double last_play = 0; //上一帧播放的时间
+    double start_time = av_gettime() / 1000000.0; //从第一帧开始的绝对时间
 
     while (true) {
         if (decoder->isStop) {
@@ -338,27 +354,34 @@ int MainDecoder::videoThread(void *arg)
             continue;
         }
 
+//        if ((pts = pFrame->pts) == AV_NOPTS_VALUE) {
+//            pts = 0;
+//        }
+        //获取pts
         if ((pts = pFrame->pts) == AV_NOPTS_VALUE) {
-            pts = 0;
+                pts = 0;
         }
-
         /// 音视频同步:关键
-        pts *= av_q2d(decoder->videoStream->time_base);
-        pts =  decoder->synchronize(pFrame, pts);
+        double play = pts * av_q2d(decoder->videoStream->time_base);
+        //纠正时间
+        play = decoder->synchronize(pFrame,play);
+//        pts *= av_q2d(decoder->videoStream->time_base);
+//        pts =  decoder->synchronize(pFrame, pts);
 
 
 
         if (decoder->audioIndex >= 0) {
-            while (1) {
-                if (decoder->isStop) {
-                    break;
-                }
 
-                double audioClk = decoder->audioDecoder->getAudioClock();
-//                qDebug()<<"音频时钟差:"<<audioClk-temp;
-//                qDebug()<<"temp:"<<temp;
-//                qDebug()<<"audioClocl:"<<audioClk;
-//                temp = audioClk;
+//            while (1) {
+//                if (decoder->isStop) {
+//                    break;
+//                }
+
+//                double audioClk = decoder->audioDecoder->getAudioClock();
+////                qDebug()<<"音频时钟差:"<<audioClk-temp;
+////                qDebug()<<"temp:"<<temp;
+////                qDebug()<<"audioClocl:"<<audioClk;
+////                temp = audioClk;
 //                pts = decoder->videoClk;
 
 //                qDebug()<<"音频时钟："<<audioClk;
@@ -366,15 +389,54 @@ int MainDecoder::videoThread(void *arg)
 //                qDebug()<<"音频和视频时间差:"<<audioClk - pts;
 
 
-                if (pts <= audioClk) {
-                     break;
-                }
-                int delayTime = (pts - audioClk) * 1000;
+//                if (pts <= audioClk) {
+//                     break;
+//                }
+//                int delayTime = (pts - audioClk) * 1000;
 
-                delayTime = delayTime > 5 ? 5 : delayTime;
+//                delayTime = delayTime > 5 ? 5 : delayTime;
 
-                SDL_Delay(delayTime);
-            }
+//                SDL_Delay(delayTime);
+//            }
+              double delay = play - last_play;
+              if(delay <=0 || delay >1){
+                  delay = last_delay;
+              }
+              double audioClk = decoder->audioDecoder->getAudioClock() *1.9;
+              last_delay = delay;
+              last_play = play;
+
+              //音频和视频的时间差
+              double diff = decoder->videoClk - audioClk;
+//              qDebug()<<"音频时钟："<<audioClk;
+//              qDebug()<<"视频时钟："<<decoder->videoClk;
+
+              //判断是否在合理范围
+              double sync_threshold = (delay>0.01?0.01:delay);
+              if(fabs(diff) > 0.5){
+                  if(diff <= -sync_threshold){
+                      delay = 0; //这里代表视频比音频慢了
+                  }else if(diff >= sync_threshold){
+                      delay = 2*delay;
+                  }
+              }
+              start_time += delay;
+              if(delay == 0 ){  //表示视频比音频慢了，选择性丢帧
+                  qDebug()<<"视频比音频慢了";
+                  if( (pFrame->key_frame == 1)
+                          || (pFrame->pict_type == AV_PICTURE_TYPE_I)){
+                      qDebug()<<"是关键帧";
+                  }else{
+                      qDebug()<<"丢帧了";
+                      continue; //丢帧
+                  }
+              }
+              double actual_delay = start_time - av_gettime()/1000000.0;
+              if(actual_delay < 0.01){
+                  actual_delay = 0.01;
+              }
+
+              av_usleep(actual_delay * 1000000.0 + 6000);
         }
 
         //过滤
