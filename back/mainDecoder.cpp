@@ -346,6 +346,8 @@ int MainDecoder::videoThread(void *arg)
         pts *= av_q2d(decoder->videoStream->time_base);
         pts =  decoder->synchronize(pFrame, pts);
 
+
+
         if (decoder->audioIndex >= 0) {
             while (1) {
                 if (decoder->isStop) {
@@ -357,11 +359,11 @@ int MainDecoder::videoThread(void *arg)
 //                qDebug()<<"temp:"<<temp;
 //                qDebug()<<"audioClocl:"<<audioClk;
 //                temp = audioClk;
-                pts = decoder->videoClk;
+//                pts = decoder->videoClk;
 
-                qDebug()<<"音频时钟："<<audioClk;
-                qDebug()<<"视频时钟："<<pts;
-                qDebug()<<"音频和视频时间差:"<<audioClk - pts;
+//                qDebug()<<"音频时钟："<<audioClk;
+//                qDebug()<<"视频时钟："<<pts;
+//                qDebug()<<"音频和视频时间差:"<<audioClk - pts;
 
 
                 if (pts <= audioClk) {
