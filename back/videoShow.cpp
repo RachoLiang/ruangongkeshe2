@@ -55,7 +55,7 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     lastVolume = 0;
 
     maindecoder = new MainDecoder();
-    sourPath = "C:\\Users\\YYg\\Desktop\\test1.mp4";
+    sourPath = "C:\\Users\\xgy\\Desktop\\mp3_test\\test.mp4";
     //maindecoder->setCurrentFile(sourPath);
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));

@@ -291,7 +291,7 @@ ApplicationWindow {
                         nHeight: dpH(3200);
                         width: dpW(2000);
                         height: dpH(3200);
-                        sourPath: "C:\\Users\\YYg\\Desktop\\test1.mp4"
+                        sourPath: "C:\\Users\\xgy\\Desktop\\mp3_test\\test.mp4"
                     }
                 }
 
