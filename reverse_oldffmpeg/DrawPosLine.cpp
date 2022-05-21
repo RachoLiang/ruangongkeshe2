@@ -12,12 +12,6 @@ DrawPosLine::~DrawPosLine()
 }
 
 
-/*
-工程: DrawPosLine
-日期: 2020-12-23
-环境: win10 QT5.12.6 MinGW32
-功能: 窗口绘制事件
-*/
 void DrawPosLine::paintEvent(QPaintEvent *e)
 {
     qDebug()<<"窗口绘制事件";
