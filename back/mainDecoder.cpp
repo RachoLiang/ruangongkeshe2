@@ -7,13 +7,8 @@ MainDecoder::MainDecoder() :
     isPause(false),
     isSeek(false),
     isReadFinished(false),
-    isFast(false),
-    isSlow(false),
-    isCut(false),
     audioDecoder(new AudioDecoder),
-    filterGraph(NULL),
-    seekTime(10),
-    cutPath("C:\\Users\\YYg\\Desktop\\picture")
+    filterGraph(NULL)
 {
     av_init_packet(&seekPacket);
     seekPacket.data = (uint8_t *)"FLUSH";
@@ -172,9 +167,7 @@ out:
 void MainDecoder::decoderFile(QString file, QString type)
 {
 //    qDebug() << "Current state:" << playState;
-    //目前先用mainDecoder内部的路径，后续会更改为Video对象
     qDebug() << "File name:" << file << ", type:" << type;
-    filePath = file;
     if (playState != STOP) {
         isStop = true;
         while (playState != STOP) {
@@ -268,32 +261,6 @@ double MainDecoder::getSpeed(){
     return 0.0;
 }
 
-void MainDecoder::setSeekTime(qint8 time){
-    seekTime = time;
-}
-
-qint8 MainDecoder::getSeekTime(){
-    return seekTime;
-}
-
-void MainDecoder::seekFast(){
-    //简单防止冲突
-    if(!isSlow){
-        isFast = true;
-    }
-}
-
-void MainDecoder::seekSlow(){
-    //简单防止冲突
-    if(!isFast){
-        isSlow = true;
-    }
-}
-
-void MainDecoder::cutOff(){
-    isCut = true;
-}
-
 double MainDecoder::getCurrentTime()
 {
     if (audioIndex >= 0) {
@@ -303,8 +270,6 @@ double MainDecoder::getCurrentTime()
     return 0;
 }
 
-//传入秒数，实现跳转
-//和totleTime配合，实现进度条
 void MainDecoder::seekProgress(qint64 pos)
 {
     if (!isSeek) {
@@ -402,19 +367,19 @@ int MainDecoder::videoThread(void *arg)
             continue;
         }
 
-update:
-        //更新目前播放的进度时间
-//        decoder->nowTime = pFrame->best_effort_timestamp * av_q2d(pFrame->time_base);
-//        qDebug()<<"当前播放时间戳："<<decoder->nowTime;
-//        qDebug()<<"总时长："<<decoder->timeTotal;
-
-
+//        if ((pts = pFrame->pts) == AV_NOPTS_VALUE) {
+//            pts = 0;
+//        }
         //获取pts
         if ((pts = pFrame->pts) == AV_NOPTS_VALUE) {
                 pts = 0;
         }
         /// 音视频同步:关键
         double play = pts * av_q2d(decoder->videoStream->time_base);
+        //纠正时间
+        play = decoder->synchronize(pFrame,play);
+//        pts *= av_q2d(decoder->videoStream->time_base);
+//        pts =  decoder->synchronize(pFrame, pts);
 
 
 
@@ -456,12 +421,12 @@ update:
 
               //音频和视频的时间差
               double diff = decoder->videoClk - audioClk;
-              qDebug()<<"音频时钟："<<audioClk;
-              qDebug()<<"视频时钟："<<decoder->videoClk;
+//              qDebug()<<"音频时钟："<<audioClk;
+//              qDebug()<<"视频时钟："<<decoder->videoClk;
 
               //判断是否在合理范围
               double sync_threshold = (delay>0.01?0.01:delay);
-              if(fabs(diff) > 1){
+              if(fabs(diff) > 0.08){
                   if(diff <= -sync_threshold){
                       delay = 0; //这里代表视频比音频慢了
                   }else if(diff >= sync_threshold){
@@ -504,20 +469,9 @@ update:
             QImage tmpImage(pFrame->data[0], decoder->pCodecCtx->width, decoder->pCodecCtx->height, QImage::Format_RGB32);
             /* deep copy, otherwise when tmpImage data change, this image cannot display */
             QImage image = tmpImage.copy();
-            //判断是否截图
-            if(decoder->isCut){
-                qDebug()<<"进行截图";
-                if (!decoder->cutPath.isEmpty()){
-                    image.save(decoder->cutPath);
-                } else {
-                    image.save(decoder->filePath);
-                }
-                decoder->isCut = false;
-            }
             //发送图片信号
             emit decoder->sign_sendOneFrame(image);
         }
-
 
         av_frame_unref(pFrame);
         av_packet_unref(&packet);
@@ -603,7 +557,6 @@ void MainDecoder::run()
         }
     }
 
-    //获取视频总时长
     if (!realTime) {
         emit gotVideoTime(pFormatCtx->duration);
         timeTotal = pFormatCtx->duration;
@@ -659,44 +612,9 @@ void MainDecoder::run()
             continue;
         }
 
-//快进
-fast:
-        if (isFast) {
-            qDebug()<<"快进";
-            if (currentType == "video"){
-                seekIndex = videoIndex;
-            } else{
-                seekIndex = audioIndex;
-            }
-            //计算当前应该跳转的位置,并执行后面的seek代码
-            seekPos = nowTime + seekTime;
-            if (seekPos > timeTotal){
-                seekPos = timeTotal;
-            }
-            isFast = false;
-            isSeek = true;
-        }
-
-//快退
-slow:
-        if (isSlow) {
-            qDebug()<<"快退";
-            if (currentType == "video"){
-                seekIndex = videoIndex;
-            } else{
-                seekIndex = audioIndex;
-            }
-            //计算当前应该跳转的位置,并执行后面的seek代码
-            seekPos = nowTime - seekTime;
-            if (seekPos < 0){
-                seekPos = 0;
-            }
-            isSlow = false;
-            isSeek = true;
-        }
-
-
-//进度跳转
+/* this seek just use in playing music, while read finished
+ * & have out of loop, then jump back to seek position
+ */
 seek:
         if (isSeek) {
             if (currentType == "video") {
@@ -706,16 +624,18 @@ seek:
             }
 
             AVRational avRational = av_get_time_base_q();
-            //寻找跳转位置
+//            qDebug()<<"分子:"<<avRational.num;
+//            qDebug()<<"分母:"<<avRational.den;
+//            qDebug()<<"倍速："<<avRational.num/avRational.den;
             seekPos = av_rescale_q(seekPos, avRational, pFormatCtx->streams[seekIndex]->time_base);
+
             if (av_seek_frame(pFormatCtx, seekIndex, seekPos, AVSEEK_FLAG_BACKWARD) < 0) {
-                qDebug() << "进度跳转失败！";
+                qDebug() << "Seek failed.";
 
             } else {
-                //清空目前数据
                 audioDecoder->emptyAudioData();
-                //添加Flush数据包
                 audioDecoder->packetEnqueue(&seekPacket);
+
                 if (currentType == "video") {
                     videoQueue.empty();
                     videoQueue.enqueue(&seekPacket);
@@ -725,7 +645,6 @@ seek:
 
             isSeek = false;
         }
-
 
         if (currentType == "video") {
             if (videoQueue.queueSize() > 512) {
