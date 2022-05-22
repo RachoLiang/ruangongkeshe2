@@ -312,6 +312,8 @@ AudioDecoder::AudioDecoder(QObject *parent) :
     audioDeviceFormat(AUDIO_F32SYS),
     aCovertCtx(NULL),
     sendReturn(0),
+    speed(1.0),
+    speedChanged(true),
     init_falg(false)
 {
 }
@@ -525,12 +527,26 @@ void AudioDecoder::setVolume(int volume)
     this->volume = volume;
 }
 
+//倍速播放
+void AudioDecoder::setSpeed(double speed){
+    speedChanged = true;
+    this->speed = speed;
+}
+
+double AudioDecoder::getSpeed(){
+    return speed;
+}
+
 double AudioDecoder::getAudioClock()
 {
     if (codecCtx) {
         /* control audio pts according to audio buffer data size */
         int hwBufSize   = audioBufSize - audioBufIndex;
         int bytesPerSec = codecCtx->sample_rate * codecCtx->channels * audioDepth;
+
+        qDebug()<<"hwBufSize:"<<hwBufSize;
+        qDebug()<<"audioBufSize:"<<audioBufSize;
+        qDebug()<<"bytesPerSec:"<<bytesPerSec;
 
         clock -= static_cast<double>(hwBufSize) / bytesPerSec;
     }
@@ -639,13 +655,20 @@ int AudioDecoder::decodeAudio()
 
     ret = avcodec_receive_frame(codecCtx, frame);
 
-    if(!init_falg){
+    //判断是否需要改变倍速
+    if(speedChanged){
         //初始化filter
-        qDebug()<<"初始化滤波器情况："<<init_atempo_filter(&filterGraph2,&filterSrcCtx2,&filterSinkCtx2,"1.0");
-        init_falg = !init_falg;
+        qDebug()<<"改成倍速："<<speed;
+        qDebug()<<"初始化滤波器情况："<<init_atempo_filter(&filterGraph,&filterSrcCtx,&filterSinkCtx,std::to_string(speed).c_str());
+        speedChanged = ! speedChanged;
     }
 
+
     if(ret >= 0){
+        //记录进入滤波器前的参数
+        double pts = frame->pts;
+        double pos = frame->pkt_pos;
+
         int flag ;
 
 //    //过滤
@@ -659,13 +682,7 @@ int AudioDecoder::decodeAudio()
 //        av_packet_unref(&packet);
 //    }
 
-<<<<<<< HEAD
-=======
-//        qDebug()<<"format:"<<frame->format;
-//        qDebug()<<"channel_Layout:"<<frame->channel_layout;
-//        qDebug()<<"channel_sample:"<<frame->sample_rate;
->>>>>>> 3972ff2512a8f3280500a2d5afd71fcebcf3610e
-        if ((flag = av_buffersrc_add_frame_flags(filterSrcCtx2, frame,AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {//将frame放入输入filter上下文
+        if ((flag = av_buffersrc_add_frame_flags(filterSrcCtx, frame,AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {//将frame放入输入filter上下文
                             qDebug()<<"error add frame:"<<flag;
 
                         }
@@ -673,7 +690,12 @@ int AudioDecoder::decodeAudio()
 //                qDebug()<<"循环从Sink中读取frame";
 //            }
         //循环读取帧
-        av_buffersink_get_frame(filterSinkCtx2, frame);
+        av_buffersink_get_frame(filterSinkCtx, frame);
+
+        frame->pts = pts;
+        frame->pkt_pos = pos;
+
+
     }
 
     if ((ret < 0) && (ret != AVERROR(EAGAIN))) {
@@ -718,7 +740,7 @@ int AudioDecoder::decodeAudio()
     }
 
     if (aCovertCtx) {
-        qDebug()<<"进入重采样！！";
+//        qDebug()<<"进入重采样！！";
         const quint8 **in   = (const quint8 **)frame->extended_data;
         uint8_t *out[] = {audioBuf1};
 

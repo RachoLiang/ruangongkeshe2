@@ -308,7 +308,7 @@ ApplicationWindow {
 
                         Text {
                             id: buttonText
-                            text: qsTr("提高音量,每次加3")
+                            text: qsTr("当前倍速:")
                             color: "white"
                             anchors.centerIn: parent
                         }
@@ -323,8 +323,16 @@ ApplicationWindow {
 //                                videoShow.pause();
 //                                buttonText.text = "暂停状态："+videoShow.isPaused();
                                 //静音
-                                videoShow.silence();
-                                buttonText.text = "静音状态："+videoShow.isSilence();
+//                                videoShow.silence();
+//                                buttonText.text = "静音状态："+videoShow.isSilence();
+                                //每次加0.5
+                                var speed = videoShow.getSpeed() + 0.25;
+                                if(speed > 2){
+                                    speed = 0.5;
+                                }
+                                videoShow.setSpeed(speed);
+                                buttonText.text = "当前播放倍速："+videoShow.getSpeed();
+
                             }
                         }
                     }

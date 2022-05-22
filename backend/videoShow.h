@@ -39,6 +39,10 @@ public:
     //暂停信息
     Q_INVOKABLE bool isPaused();
     Q_INVOKABLE void pause();
+
+    //设置倍速播放
+    Q_INVOKABLE void setSpeed(double speed);
+    Q_INVOKABLE double getSpeed();
     
 protected:
     //绘制图片

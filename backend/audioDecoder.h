@@ -39,8 +39,10 @@ public:
     void emptyAudioData();
     void setTotalTime(qint64 time);
 
+    void setSpeed(double speed);    //调整音频播放倍速
+    double getSpeed();  //获取当前倍速
+
     //初始化音频的过滤器函数
-//    int init_filters(const char *filters_descr,AVFilterGraph*,AVFilterContext*,AVFilterContext*);
     int init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **src, AVFilterContext **out,
                           const char *value);
 
@@ -87,10 +89,15 @@ private:
 
     int sendReturn;
 
-    //二倍速播放filter信息
-    AVFilterGraph* filterGraph2;
-    AVFilterContext* filterSrcCtx2;
-    AVFilterContext* filterSinkCtx2;
+    //倍速播放filter信息
+    AVFilterGraph* filterGraph;
+    AVFilterContext* filterSrcCtx;
+    AVFilterContext* filterSinkCtx;
+
+    //倍速播放
+    double speed;   //播放速度
+    bool speedChanged;  //是否改变播放速度
+
 
     bool init_falg;
 
