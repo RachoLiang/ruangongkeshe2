@@ -316,23 +316,30 @@ ApplicationWindow {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                //音量调节
+////                                音量调节
+
 //                                var x = videoShow.getVolume();
-//                                videoShow.setVolume(x + 3);
-                                //暂停
+//                                buttonText.text ="当前音量：" +  videoShow.getVolume() + "|快进|增加音量"
+//                                videoShow.setVolume(x + 10);
+////                                暂停
 //                                videoShow.pause();
 //                                buttonText.text = "暂停状态："+videoShow.isPaused();
                                 //静音
 //                                videoShow.silence();
 //                                buttonText.text = "静音状态："+videoShow.isSilence();
                                 //每次加0.5
-                                var speed = videoShow.getSpeed() + 0.25;
-                                if(speed > 2){
-                                    speed = 0.5;
-                                }
-                                videoShow.setSpeed(speed);
-                                buttonText.text = "当前播放倍速："+videoShow.getSpeed();
-
+//                                var speed = videoShow.getSpeed() + 0.25;
+//                                if(speed > 2){
+//                                    speed = 0.5;
+//                                }
+//                                videoShow.setSpeed(speed);
+//                                buttonText.text = "当前播放倍速："+videoShow.getSpeed();
+                                //测试快进
+                                videoShow.seekFast();
+                                //测试精准定位进度条
+//                                var process = 30;
+//                                videoShow.setProcess(process * 1000000);
+//                                buttonText.text = videoShow.getNowProcess() / 1000000;
                             }
                         }
                     }

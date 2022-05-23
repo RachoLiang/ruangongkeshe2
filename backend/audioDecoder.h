@@ -46,6 +46,9 @@ public:
     int init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **src, AVFilterContext **out,
                           const char *value);
 
+    qint64 totalTime;   //总时长
+    qint64 nowTime; //记录当前播放时间
+
 private:
     int decodeAudio();
     static void audioCallback(void *userdata, quint8 *stream, int SDL_AudioBufSize);
@@ -54,7 +57,7 @@ private:
     bool isPause;
     bool isreadFinished;
 
-    qint64 totalTime;
+
     double clock;
     int volume;
 

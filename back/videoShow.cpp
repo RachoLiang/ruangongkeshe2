@@ -55,12 +55,12 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     lastVolume = 0;
 
     maindecoder = new MainDecoder();
-    sourPath = "C:\\Users\\YYg\\Desktop\\test1.mp4";
+    sourPath = "D:\\CloudMusic\\Kiroro - 長い間.mp3";
     //maindecoder->setCurrentFile(sourPath);
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
     //发信号给解析器解析视频
-    maindecoder->decoderFile(sourPath,"video");
+    maindecoder->decoderFile(sourPath,"music");
 //    image.load("D:\\mediaPicture\\0.png");
 }
 
@@ -156,6 +156,40 @@ double VideoShow::getSpeed(){
         return maindecoder->getSpeed();
     }else{
         return 0;
+    }
+}
+
+//快进
+void VideoShow::seekFast(){
+    if(maindecoder){
+        maindecoder->seekFast();
+    }
+}
+
+//快退
+void VideoShow::seekSlow(){
+    if(maindecoder){
+        maindecoder->seekSlow();
+    }
+}
+
+//调节播放进度
+void VideoShow::setProcess(qint64 process){
+    if(maindecoder){
+        maindecoder->seekProgress(process);
+    }
+}
+
+//获取进度条信息
+qint64 VideoShow::getNowProcess(){
+    if(maindecoder){
+        return maindecoder->getNowTime();
+    }
+}
+
+qint64 VideoShow::getTotalProcess(){
+    if(maindecoder){
+        return maindecoder->getTotalTime();
     }
 }
 

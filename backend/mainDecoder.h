@@ -48,6 +48,15 @@ public:
     bool pauseState();
     double getSpeed();
     void setSpeed(double);
+    void setSeekTime(qint8 time);   //设置快进时间段
+    qint8 getSeekTime();    //获取快进时间段
+    void seekFast();    //快进
+    void seekSlow();    //快退
+    void cutOff();  //截图
+    qint64 getTotalTime();  //获取总时长
+    qint64 getNowTime();    //获取当前播放时长
+
+    int keyNum;
 
 private:
     void run();
@@ -72,11 +81,13 @@ private:
     QString currentType;
 
     qint64 timeTotal;
+    qint64 seekTime;    //一次快进/快退跳转的时间段，微秒数为单位
+    qint64 nowTime; //当前播放的时间
 
     AVPacket seekPacket;
     qint64 seekPos;
-    double seekTime;
 
+    //播放控制信息
     PlayState playState;
     bool isStop;
     bool gotStop;
@@ -84,6 +95,9 @@ private:
     bool isSeek;
     bool isReadFinished;
     bool isDecodeFinished;
+    bool isFast;    //是否快进
+    bool isSlow;    //是否快退
+    bool isCut;     //是否截图
 
 
     AVFormatContext *pFormatCtx;
@@ -96,12 +110,16 @@ private:
     AVStream *videoStream;
 
     double videoClk;    // video frame timestamp
+    QString filePath;   //文件路径
+    QString cutPath;    //截图保存路径，暂时写死
 
     AudioDecoder *audioDecoder;
 
     AVFilterGraph   *filterGraph;
     AVFilterContext *filterSinkCxt;
     AVFilterContext *filterSrcCxt;
+
+    int seekType;
 
 public slots:
     void decoderFile(QString file, QString type);

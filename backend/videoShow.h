@@ -43,6 +43,15 @@ public:
     //设置倍速播放
     Q_INVOKABLE void setSpeed(double speed);
     Q_INVOKABLE double getSpeed();
+
+    //获取进度条信息
+    Q_INVOKABLE qint64 getNowProcess();
+    Q_INVOKABLE qint64 getTotalProcess();
+    Q_INVOKABLE void setProcess(qint64 process);
+
+    //调整进度
+    Q_INVOKABLE void seekFast();
+    Q_INVOKABLE void seekSlow();
     
 protected:
     //绘制图片

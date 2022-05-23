@@ -361,6 +361,7 @@ int AudioDecoder::openAudio(AVFormatContext *pFormatCtx, int index)
 
     totalTime = pFormatCtx->duration;
 
+
     env = SDL_getenv("SDL_AUDIO_CHANNELS");
     if (env) {
         qDebug() << "SDL audio channels";
@@ -537,6 +538,8 @@ double AudioDecoder::getSpeed(){
     return speed;
 }
 
+
+
 double AudioDecoder::getAudioClock()
 {
     if (codecCtx) {
@@ -544,9 +547,6 @@ double AudioDecoder::getAudioClock()
         int hwBufSize   = audioBufSize - audioBufIndex;
         int bytesPerSec = codecCtx->sample_rate * codecCtx->channels * audioDepth;
 
-        qDebug()<<"hwBufSize:"<<hwBufSize;
-        qDebug()<<"audioBufSize:"<<audioBufSize;
-        qDebug()<<"bytesPerSec:"<<bytesPerSec;
 
         clock -= static_cast<double>(hwBufSize) / bytesPerSec;
     }
@@ -669,6 +669,9 @@ int AudioDecoder::decodeAudio()
         double pts = frame->pts;
         double pos = frame->pkt_pos;
 
+        //更新时间
+        nowTime = frame->best_effort_timestamp * av_q2d(stream->time_base);
+
         int flag ;
 
 //    //过滤
@@ -694,6 +697,9 @@ int AudioDecoder::decodeAudio()
 
         frame->pts = pts;
         frame->pkt_pos = pos;
+
+        //记录播放时长
+        nowTime = frame->best_effort_timestamp * av_q2d(stream->time_base) * AV_TIME_BASE;
 
 
     }
