@@ -674,25 +674,10 @@ int AudioDecoder::decodeAudio()
 
         int flag ;
 
-//    //过滤
-//    if ((flag=av_buffersrc_add_frame(filterSrcCtx2, frame) )< 0){
-//        qDebug()<<"flag:"<<flag;
-//           qDebug()<<"Error while feeding the audio filtergraph\n";
-//    }
-
-//    if (av_buffersink_get_frame(filterSinkCtx2, frame) < 0) {
-//        qDebug() << "av buffersrc get frame failed.";
-//        av_packet_unref(&packet);
-//    }
-
         if ((flag = av_buffersrc_add_frame_flags(filterSrcCtx, frame,AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {//将frame放入输入filter上下文
                             qDebug()<<"error add frame:"<<flag;
 
                         }
-//            while (av_buffersink_get_frame(filterSinkCtx2, frame) >= 0) {//从输出filter上下文中获取frame
-//                qDebug()<<"循环从Sink中读取frame";
-//            }
-        //循环读取帧
         av_buffersink_get_frame(filterSinkCtx, frame);
 
         frame->pts = pts;
@@ -746,6 +731,7 @@ int AudioDecoder::decodeAudio()
     }
 
     if (aCovertCtx) {
+        qDebug()<<"进入重采样！！";
         const quint8 **in   = (const quint8 **)frame->extended_data;
         uint8_t *out[] = {audioBuf1};
 
