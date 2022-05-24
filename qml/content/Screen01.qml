@@ -444,24 +444,24 @@ Rectangle {
                 id: setting_for_rb
             }
         }
-//        Image {
-//            anchors.fill: parent
-//            source: "images/basepic.png"
-//        }
         Rectangle{
-//            anchors.fill: parent
-            width: dpW(3000)
-            height: dpH(5000)
+            anchors.fill: parent
+            width: dpW(2000)
+            height: dpH(3200)
             border.width: 5
             border.color: "black"
             radius: 10
+            Image {
+                anchors.fill: parent
+                source: "images/basepic.png"
+            }
             VideoShow{
                 id: videoShow;
                 anchors.centerIn: parent;
-                nWidth: dpW(3000);
-                nHeight: dpH(5000);
-                width: dpW(3000);
-                height: dpH(5000);
+                nWidth: dpW(2000);
+                nHeight: dpH(3200);
+                width: dpW(2000);
+                height: dpH(3200);
             }
         }
         Image {
@@ -544,6 +544,9 @@ Rectangle {
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("播放")
+                    onClicked: {
+                        videoShow.show("C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4","video");
+                    }
                 }
             }
             Image {
@@ -705,6 +708,7 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked: {
                                     speedBox.visible = false
+                                    videoShow.setSpeed(1.00)
                                 }
                             }
                         }
@@ -718,6 +722,7 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked: {
                                     speedBox.visible = false
+                                    videoShow.setSpeed(1.25)
                                 }
                             }
                         }
@@ -731,6 +736,7 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked: {
                                     speedBox.visible = false
+                                    videoShow.setSpeed(1.50)
                                 }
                             }
                         }
@@ -744,6 +750,7 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked: {
                                     speedBox.visible = false
+                                    videoShow.setSpeed(1.75)
                                 }
                             }
                         }
@@ -756,6 +763,7 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked: {
                                     speedBox.visible = false
+                                    videoShow.setSpeed(2.00)
                                 }
                             }
                         }

@@ -52,6 +52,9 @@ public:
     //调整进度
     Q_INVOKABLE void seekFast();
     Q_INVOKABLE void seekSlow();
+
+    //播放（暂时封装）
+    Q_INVOKABLE void show(QString path,QString type);
     
 protected:
     //绘制图片

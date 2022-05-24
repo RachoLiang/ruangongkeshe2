@@ -55,12 +55,12 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     lastVolume = 0;
 
     maindecoder = new MainDecoder();
-    sourPath = "C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4";
+    //sourPath = "C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4";
     //maindecoder->setCurrentFile(sourPath);
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
     //发信号给解析器解析视频
-    maindecoder->decoderFile(sourPath,"video");
+    //maindecoder->decoderFile(sourPath,"video");
 //    image.load("D:\\mediaPicture\\0.png");
 }
 
@@ -191,6 +191,11 @@ qint64 VideoShow::getTotalProcess(){
     if(maindecoder){
         return maindecoder->getTotalTime();
     }
+}
+
+//播放
+void VideoShow::show(QString path, QString type){
+    maindecoder->decoderFile(path,type);
 }
 
 
