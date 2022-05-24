@@ -55,6 +55,11 @@ public:
 
     //播放（暂时封装）
     Q_INVOKABLE void show(QString path,QString type);
+
+    //截图功能
+    Q_INVOKABLE void cutOff();
+    Q_INVOKABLE QString getCutPath();
+    Q_INVOKABLE void setCutPath(QString path);
     
 protected:
     //绘制图片

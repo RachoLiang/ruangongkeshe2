@@ -55,6 +55,8 @@ public:
     void cutOff();  //截图
     qint64 getTotalTime();  //获取总时长
     qint64 getNowTime();    //获取当前播放时长
+    QString getCutPath();   //获取当前截图路径
+    void setCutPath(QString cutPath);   //设置当前截图路径
 
     int keyNum;
 
@@ -81,7 +83,8 @@ private:
     QString currentType;
 
     qint64 timeTotal;
-    qint64 seekTime;    //一次快进/快退跳转的时间段，微秒数为单位
+    qint64 seekTime;    //一次快进|快退跳转的时间段，微秒数为单位
+    int seekFrames;     //快进|快退多少帧
     qint64 nowTime; //当前播放的时间
 
     AVPacket seekPacket;

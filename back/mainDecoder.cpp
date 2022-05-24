@@ -13,6 +13,7 @@ MainDecoder::MainDecoder() :
     audioDecoder(new AudioDecoder),
     filterGraph(NULL),
     seekTime(5 * AV_TIME_BASE),
+    seekFrames(5),
     seekType(AVSEEK_FLAG_BACKWARD),
     keyNum(0),
     cutPath("C:\\Users\\YYg\\Desktop\\picture")
@@ -27,6 +28,13 @@ MainDecoder::MainDecoder() :
 MainDecoder::~MainDecoder()
 {
 
+}
+
+QString MainDecoder::getCutPath(){
+    return cutPath;
+}
+void MainDecoder::setCutPath(QString cutPath){
+    this->cutPath = cutPath;
 }
 
 //设置文件路径-->后续改为设置Audio对象
@@ -691,13 +699,9 @@ void MainDecoder::run()
 fast:
         if (isFast) {
             qDebug()<<"真正快进";
-            if (currentType == "video"){
-                seekIndex = videoIndex;
-            } else{
-                seekIndex = audioIndex;
-            }
             //计算当前应该跳转的位置,并执行后面的seek代码
-            seekPos = audioDecoder->nowTime + seekTime;
+            seekPos = audioDecoder->nowTime + seekFrames * av_q2d(pCodecCtx->time_base);
+
 
             if (seekPos > audioDecoder->totalTime){
                 seekPos = timeTotal;
@@ -712,13 +716,8 @@ fast:
 slow:
         if (isSlow) {
             qDebug()<<"快退";
-            if (currentType == "video"){
-                seekIndex = videoIndex;
-            } else{
-                seekIndex = audioIndex;
-            }
             //计算当前应该跳转的位置,并执行后面的seek代码
-            seekPos = nowTime - seekTime;
+            seekPos = nowTime -  seekFrames * av_q2d(pCodecCtx->time_base);
             if (seekPos < 0){
                 seekPos = 0;
             }
@@ -826,6 +825,7 @@ fail:
     if (currentType == "music") {
         setPlayState(MainDecoder::STOP);
     }
+
 
     qDebug() << "Main decoder finished.";
 }

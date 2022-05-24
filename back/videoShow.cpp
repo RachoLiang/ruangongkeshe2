@@ -198,4 +198,21 @@ void VideoShow::show(QString path, QString type){
     maindecoder->decoderFile(path,type);
 }
 
+//截图功能
+void VideoShow::cutOff(){
+    maindecoder->cutOff();
+}
+
+QString VideoShow::getCutPath(){
+    if (maindecoder) {
+        return maindecoder->getCutPath();
+    }
+}
+
+void VideoShow::setCutPath(QString path){
+    if (maindecoder) {
+        maindecoder->setCutPath(path);
+    }
+}
+
 

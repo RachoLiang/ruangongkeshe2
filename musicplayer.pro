@@ -15,6 +15,7 @@ SOURCES += \
     back/mySql.cpp \
     back/playerThread.cpp \
     back/records.cpp \
+    back/utils.cpp \
     back/vedio.cpp \
     back/myStack.cpp \
     back/videoShow.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     backend/myStack.h \
     backend/playerThread.h \
     backend/records.h \
+    backend/utils.h \
     backend/vedio.h \
     backend/videoShow.h
 
