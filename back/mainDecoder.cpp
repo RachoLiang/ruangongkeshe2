@@ -7,8 +7,15 @@ MainDecoder::MainDecoder() :
     isPause(false),
     isSeek(false),
     isReadFinished(false),
+    isFast(false),
+    isSlow(false),
+    isCut(false),
     audioDecoder(new AudioDecoder),
-    filterGraph(NULL)
+    filterGraph(NULL),
+    seekTime(5 * AV_TIME_BASE),
+    seekType(AVSEEK_FLAG_BACKWARD),
+    keyNum(0),
+    cutPath("C:\\Users\\YYg\\Desktop\\picture")
 {
     av_init_packet(&seekPacket);
     seekPacket.data = (uint8_t *)"FLUSH";
@@ -248,6 +255,67 @@ void MainDecoder::setVolume(int volume)
     audioDecoder->setVolume(volume);
 }
 
+void MainDecoder::setSpeed(double speed){
+    if(audioDecoder){
+        audioDecoder->setSpeed(speed);
+    }
+}
+
+double MainDecoder::getSpeed(){
+    if(audioDecoder){
+        return audioDecoder->getSpeed();
+    }
+    return 0.0;
+}
+
+void MainDecoder::setSeekTime(qint8 time){
+    seekTime = time;
+}
+
+qint8 MainDecoder::getSeekTime(){
+    return seekTime;
+}
+
+void MainDecoder::seekFast(){
+    qDebug()<<"快进";
+    //简单防止冲突
+    if(!isSlow){
+        isFast = true;
+    }
+    qDebug()<<"isFast:"<<isFast;
+}
+
+void MainDecoder::seekSlow(){
+    //简单防止冲突
+    if(!isFast){
+        isSlow = true;
+    }
+}
+
+void MainDecoder::cutOff(){
+    isCut = true;
+}
+
+qint64 MainDecoder::getTotalTime(){
+    //video:以视频流为主
+//    if (currentType == "video"){
+//        return timeTotal;
+//    }else{
+//        return audioDecoder->totalTime;
+//    }
+    return audioDecoder->totalTime;
+}
+
+qint64 MainDecoder::getNowTime(){
+//    //video:以视频流为主
+//    if (currentType == "video"){
+//        return nowTime;
+//    }else {
+//        return audioDecoder->nowTime;
+//    }
+    return audioDecoder->nowTime;
+}
+
 double MainDecoder::getCurrentTime()
 {
     if (audioIndex >= 0) {
@@ -348,15 +416,24 @@ int MainDecoder::videoThread(void *arg)
 
         // raw yuv
         ret = avcodec_receive_frame(decoder->pCodecCtx, pFrame);
+
         if ((ret < 0) && (ret != AVERROR_EOF)) {
             qDebug() << "Video frame decode failed, error code: " << ret;
             av_packet_unref(&packet);
             continue;
         }
 
-//        if ((pts = pFrame->pts) == AV_NOPTS_VALUE) {
-//            pts = 0;
-//        }
+        if( (pFrame->key_frame == 1)
+                || (pFrame->pict_type == AV_PICTURE_TYPE_I)){
+            decoder->keyNum = decoder->keyNum +1;
+            qDebug()<<"关键帧数量："<<decoder->keyNum;
+        }
+
+update:
+//        //更新目前播放的进度时间
+//        //如果视频流存在，以视频为基准
+//           decoder->nowTime = pFrame->best_effort_timestamp * av_q2d(decoder->videoStream->time_base) * AV_TIME_BASE;
+
         //获取pts
         if ((pts = pFrame->pts) == AV_NOPTS_VALUE) {
                 pts = 0;
@@ -368,7 +445,10 @@ int MainDecoder::videoThread(void *arg)
 //        pts *= av_q2d(decoder->videoStream->time_base);
 //        pts =  decoder->synchronize(pFrame, pts);
 
+
+
         if (decoder->audioIndex >= 0) {
+
 //            while (1) {
 //                if (decoder->isStop) {
 //                    break;
@@ -399,7 +479,8 @@ int MainDecoder::videoThread(void *arg)
               if(delay <=0 || delay >1){
                   delay = last_delay;
               }
-              double audioClk = decoder->audioDecoder->getAudioClock() *1.9;
+
+              double audioClk = decoder->audioDecoder->getAudioClock() ;
               last_delay = delay;
               last_play = play;
 
@@ -410,7 +491,7 @@ int MainDecoder::videoThread(void *arg)
 
               //判断是否在合理范围
               double sync_threshold = (delay>0.01?0.01:delay);
-              if(fabs(diff) > 0.5){
+              if(fabs(diff) > 0.08){
                   if(diff <= -sync_threshold){
                       delay = 0; //这里代表视频比音频慢了
                   }else if(diff >= sync_threshold){
@@ -453,6 +534,16 @@ int MainDecoder::videoThread(void *arg)
             QImage tmpImage(pFrame->data[0], decoder->pCodecCtx->width, decoder->pCodecCtx->height, QImage::Format_RGB32);
             /* deep copy, otherwise when tmpImage data change, this image cannot display */
             QImage image = tmpImage.copy();
+            //判断是否截图
+            if(decoder->isCut){
+                qDebug()<<"进行截图";
+                if (!decoder->cutPath.isEmpty()){
+                    image.save(decoder->cutPath);
+                } else {
+                    image.save(decoder->filePath);
+                }
+                decoder->isCut = false;
+            }
             //发送图片信号
             emit decoder->sign_sendOneFrame(image);
         }
@@ -596,6 +687,46 @@ void MainDecoder::run()
             continue;
         }
 
+//快进
+fast:
+        if (isFast) {
+            qDebug()<<"真正快进";
+            if (currentType == "video"){
+                seekIndex = videoIndex;
+            } else{
+                seekIndex = audioIndex;
+            }
+            //计算当前应该跳转的位置,并执行后面的seek代码
+            seekPos = audioDecoder->nowTime + seekTime;
+
+            if (seekPos > audioDecoder->totalTime){
+                seekPos = timeTotal;
+            }
+            //参数设置
+            isFast = false;
+            isSeek = true;
+            seekType = AVSEEK_FLAG_FRAME;
+        }
+
+//快退
+slow:
+        if (isSlow) {
+            qDebug()<<"快退";
+            if (currentType == "video"){
+                seekIndex = videoIndex;
+            } else{
+                seekIndex = audioIndex;
+            }
+            //计算当前应该跳转的位置,并执行后面的seek代码
+            seekPos = nowTime - seekTime;
+            if (seekPos < 0){
+                seekPos = 0;
+            }
+            isSlow = false;
+            isSeek = true;
+            seekType = AVSEEK_FLAG_BACKWARD;
+        }
+
 /* this seek just use in playing music, while read finished
  * & have out of loop, then jump back to seek position
  */
@@ -607,13 +738,13 @@ seek:
                 seekIndex = audioIndex;
             }
 
-            AVRational avRational = av_get_time_base_q();
-            qDebug()<<"分子:"<<avRational.num;
-            qDebug()<<"分母:"<<avRational.den;
-            qDebug()<<"倍速："<<avRational.num/avRational.den;
-            seekPos = av_rescale_q(seekPos, avRational, pFormatCtx->streams[seekIndex]->time_base);
+            nowTime = seekPos;
+            qDebug()<<"nowtime:"<<nowTime;
+            qDebug()<<"seekPos:"<<seekPos;
 
-            if (av_seek_frame(pFormatCtx, seekIndex, seekPos, AVSEEK_FLAG_BACKWARD) < 0) {
+            AVRational avRational = av_get_time_base_q();
+            seekPos = av_rescale_q(seekPos, avRational, pFormatCtx->streams[seekIndex]->time_base);
+            if (av_seek_frame(pFormatCtx, seekIndex, seekPos, seekType) < 0) {
                 qDebug() << "Seek failed.";
 
             } else {
@@ -628,6 +759,7 @@ seek:
             }
 
             isSeek = false;
+            seekType = AVSEEK_FLAG_BACKWARD;
         }
 
         if (currentType == "video") {
@@ -663,6 +795,13 @@ seek:
         /* just use at audio playing */
         if (isSeek) {
             goto seek;
+        }
+        if (isFast){
+            goto fast;
+        }
+
+        if (isSlow){
+            goto slow;
         }
 
         SDL_Delay(100);

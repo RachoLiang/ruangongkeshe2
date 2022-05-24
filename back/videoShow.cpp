@@ -55,7 +55,7 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     lastVolume = 0;
 
     maindecoder = new MainDecoder();
-    sourPath = "C:\\Users\\xgy\\Desktop\\mp3_test\\test.mp4";
+    sourPath = "C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4";
     //maindecoder->setCurrentFile(sourPath);
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
@@ -144,6 +144,53 @@ void VideoShow::pause(){
     }
 }
 
+//倍速播放
+void VideoShow::setSpeed(double speed){
+    if(maindecoder){
+        maindecoder->setSpeed(speed);
+    }
+}
 
+double VideoShow::getSpeed(){
+    if(maindecoder){
+        return maindecoder->getSpeed();
+    }else{
+        return 0;
+    }
+}
+
+//快进
+void VideoShow::seekFast(){
+    if(maindecoder){
+        maindecoder->seekFast();
+    }
+}
+
+//快退
+void VideoShow::seekSlow(){
+    if(maindecoder){
+        maindecoder->seekSlow();
+    }
+}
+
+//调节播放进度
+void VideoShow::setProcess(qint64 process){
+    if(maindecoder){
+        maindecoder->seekProgress(process);
+    }
+}
+
+//获取进度条信息
+qint64 VideoShow::getNowProcess(){
+    if(maindecoder){
+        return maindecoder->getNowTime();
+    }
+}
+
+qint64 VideoShow::getTotalProcess(){
+    if(maindecoder){
+        return maindecoder->getTotalTime();
+    }
+}
 
 

@@ -18,31 +18,7 @@ SOURCES += \
     back/vedio.cpp \
     back/myStack.cpp \
     back/videoShow.cpp \
-    musicplayer.cpp
-
-INCLUDEPATH += $$PWD/ffmpeg/include \
-                $$PWD/sdl/include
-
-LIBS    += $$PWD/ffmpeg/lib/avcodec.lib \
-            $$PWD/ffmpeg/lib/avdevice.lib \
-            $$PWD/ffmpeg/lib/avfilter.lib \
-            $$PWD/ffmpeg/lib/avformat.lib \
-            $$PWD/ffmpeg/lib/avutil.lib \
-            $$PWD/ffmpeg/lib/postproc.lib \
-            $$PWD/ffmpeg/lib/swresample.lib \
-            $$PWD/ffmpeg/lib/swscale.lib \
-            $$PWD/sdl/lib/libSDL2.a
-
-RESOURCES += \
-    icons/icons.qrc \
-    images/album-cover.jpg \
-    imagine-assets/imagine-assets.qrc \
-    qtquickcontrols2.conf \
-    musicplayer.qml
-    Headers/
-
-target.path = $$[QT_INSTALL_EXAMPLES]/quickcontrols2/imagine/musicplayer
-INSTALLS += target
+    main.cpp
 
 HEADERS += \
     backend/PlayList.h \
@@ -59,7 +35,32 @@ HEADERS += \
     backend/vedio.h \
     backend/videoShow.h
 
-DISTFILES += \
-    CMakeLists.txt \
-    qmlVideo.qml
+INCLUDEPATH += $$PWD/ffmpeg/include \
+                $$PWD/sdl/include
+
+LIBS    += $$PWD/ffmpeg/lib/avcodec.lib \
+            $$PWD/ffmpeg/lib/avdevice.lib \
+            $$PWD/ffmpeg/lib/avfilter.lib \
+            $$PWD/ffmpeg/lib/avformat.lib \
+            $$PWD/ffmpeg/lib/avutil.lib \
+            $$PWD/ffmpeg/lib/postproc.lib \
+            $$PWD/ffmpeg/lib/swresample.lib \
+            $$PWD/ffmpeg/lib/swscale.lib \
+            $$PWD/sdl/lib/libSDL2.a
+
+
+resources.files = qml/
+resources.prefix = /$${TARGET}
+RESOURCES += resources
+
+# Additional import path used to resolve QML modules in Qt Creator's code model
+QML_IMPORT_PATH =
+
+# Additional import path used to resolve QML modules just for Qt Quick Designer
+QML_DESIGNER_IMPORT_PATH = imports/
+
+# Default rules for deployment.
+qnx: target.path = /tmp/$${TARGET}/bin
+else: unix:!android: target.path = /opt/$${TARGET}/bin
+!isEmpty(target.path): INSTALLS += target
 

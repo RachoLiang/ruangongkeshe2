@@ -233,7 +233,7 @@ int AudioDecoder::init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **s
     x += temp1 + std::to_string(codecCtx->sample_fmt) + temp;
     x += temp2 + std::to_string(audioDstChannelLayout);
     qDebug()<<"src-拼接字符串："<<x.c_str();
-    //"sample_rates=48000:sample_fmts=s16p:channel_layouts=stereo"
+    //"sample_rate=48000:sample_fmt=s16p:channel_layous=stereo"
 
     //初始化AVFilterGraph
     AVFilterGraph *graph = avfilter_graph_alloc();
@@ -241,7 +241,7 @@ int AudioDecoder::init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **s
     const AVFilter *abuffer = avfilter_get_by_name("abuffer");
     AVFilterContext *abuffer_ctx = avfilter_graph_alloc_filter(graph, abuffer, "src");
     //设置参数，这里需要匹配原始音频采样率、数据格式（位数）
-    if (avfilter_init_str(abuffer_ctx, x.c_str()) <
+    if (avfilter_init_str(abuffer_ctx, "sample_rate=44100:sample_fmt=8:channel_layout=stereo") <
         0) {
         qDebug()<<"error init abuffer filter";
         return -1;
@@ -249,28 +249,19 @@ int AudioDecoder::init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **s
     //初始化 filter
 
     //初始化atempo filter
-    const AVFilter *volume = avfilter_get_by_name("atempo");
-    AVFilterContext *volume_ctx = avfilter_graph_alloc_filter(graph, volume, "atempo");
+    const AVFilter *atempo = avfilter_get_by_name("atempo");
+    AVFilterContext *atempo_ctx = avfilter_graph_alloc_filter(graph, atempo, "atempo");
     //这里采用av_dict_set设置参数
     AVDictionary *args = NULL;
+
     av_dict_set(&args, "tempo", value, 0);      //调节倍速播放
-    if (avfilter_init_dict(volume_ctx, &args) < 0) {
+    if (avfilter_init_dict(atempo_ctx, &args) < 0) {
         qDebug()<<"error init volume filter";
         return -1;
     }
 
     const AVFilter *aformat = avfilter_get_by_name("aformat");
     AVFilterContext *aformat_ctx = avfilter_graph_alloc_filter(graph, aformat, "aformat");
-
-
-    std::string x_2 = "sample_rates=";
-    std::string temp_2 = ":";
-    std::string temp1_2 = "sample_fmts=";
-    std::string temp2_2 = "channel_layouts=";
-    x_2 += std::to_string(codecCtx->sample_rate) + temp_2;
-    x_2 += temp1_2 + std::to_string(8) + temp_2;
-    x_2 += temp2_2 + std::to_string(audioDstChannelLayout);
-    qDebug()<<"sinl-拼接字符串："<<x_2.c_str();
 
     if (avfilter_init_str(aformat_ctx,
                           "sample_rates=48000:sample_fmts=s16p:channel_layouts=stereo") < 0) {
@@ -285,11 +276,11 @@ int AudioDecoder::init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **s
         return -1;
     }
     //链接各个filter上下文
-    if (avfilter_link(abuffer_ctx, 0, volume_ctx, 0) != 0) {
+    if (avfilter_link(abuffer_ctx, 0, atempo_ctx, 0) != 0) {
         qDebug()<<"error link to volume filter";
         return -1;
     }
-    if (avfilter_link(volume_ctx, 0, aformat_ctx, 0) != 0) {
+    if (avfilter_link(atempo_ctx, 0, aformat_ctx, 0) != 0) {
         qDebug()<<"error link to aformat filter";
         return -1;
     }
@@ -321,9 +312,10 @@ AudioDecoder::AudioDecoder(QObject *parent) :
     audioDeviceFormat(AUDIO_F32SYS),
     aCovertCtx(NULL),
     sendReturn(0),
+    speed(1.0),
+    speedChanged(true),
     init_falg(false)
 {
-
 }
 
 int AudioDecoder::openAudio(AVFormatContext *pFormatCtx, int index)
@@ -368,6 +360,7 @@ int AudioDecoder::openAudio(AVFormatContext *pFormatCtx, int index)
     }
 
     totalTime = pFormatCtx->duration;
+
 
     env = SDL_getenv("SDL_AUDIO_CHANNELS");
     if (env) {
@@ -535,12 +528,25 @@ void AudioDecoder::setVolume(int volume)
     this->volume = volume;
 }
 
+//倍速播放
+void AudioDecoder::setSpeed(double speed){
+    speedChanged = true;
+    this->speed = speed;
+}
+
+double AudioDecoder::getSpeed(){
+    return speed;
+}
+
+
+
 double AudioDecoder::getAudioClock()
 {
     if (codecCtx) {
         /* control audio pts according to audio buffer data size */
         int hwBufSize   = audioBufSize - audioBufIndex;
         int bytesPerSec = codecCtx->sample_rate * codecCtx->channels * audioDepth;
+
 
         clock -= static_cast<double>(hwBufSize) / bytesPerSec;
     }
@@ -649,13 +655,23 @@ int AudioDecoder::decodeAudio()
 
     ret = avcodec_receive_frame(codecCtx, frame);
 
-    if(!init_falg){
+    //判断是否需要改变倍速
+    if(speedChanged){
         //初始化filter
-        qDebug()<<"初始化滤波器情况："<<init_atempo_filter(&filterGraph2,&filterSrcCtx2,&filterSinkCtx2,"2.0");
-        init_falg = !init_falg;
+        qDebug()<<"改成倍速："<<speed;
+        qDebug()<<"初始化滤波器情况："<<init_atempo_filter(&filterGraph,&filterSrcCtx,&filterSinkCtx,std::to_string(speed).c_str());
+        speedChanged = ! speedChanged;
     }
 
+
     if(ret >= 0){
+        //记录进入滤波器前的参数
+        double pts = frame->pts;
+        double pos = frame->pkt_pos;
+
+        //更新时间
+        nowTime = frame->best_effort_timestamp * av_q2d(stream->time_base);
+
         int flag ;
 
 //    //过滤
@@ -669,20 +685,23 @@ int AudioDecoder::decodeAudio()
 //        av_packet_unref(&packet);
 //    }
 
-//        qDebug()<<"format:"<<frame->format;
-//        qDebug()<<"channel_Layout:"<<frame->channel_layout;
-//        qDebug()<<"channel_sample:"<<frame->sample_rate;
-        if ((flag = av_buffersrc_add_frame_flags(filterSrcCtx2, frame,AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {//将frame放入输入filter上下文
+        if ((flag = av_buffersrc_add_frame_flags(filterSrcCtx, frame,AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {//将frame放入输入filter上下文
                             qDebug()<<"error add frame:"<<flag;
 
-                        }else{
-            qDebug()<<"success add frame";
-        }
+                        }
 //            while (av_buffersink_get_frame(filterSinkCtx2, frame) >= 0) {//从输出filter上下文中获取frame
 //                qDebug()<<"循环从Sink中读取frame";
 //            }
         //循环读取帧
-        qDebug()<<"从滤波器缓存中读取帧："<<av_buffersink_get_frame(filterSinkCtx2, frame);
+        av_buffersink_get_frame(filterSinkCtx, frame);
+
+        frame->pts = pts;
+        frame->pkt_pos = pos;
+
+        //记录播放时长
+        nowTime = frame->best_effort_timestamp * av_q2d(stream->time_base) * AV_TIME_BASE;
+
+
     }
 
     if ((ret < 0) && (ret != AVERROR(EAGAIN))) {
@@ -694,25 +713,27 @@ int AudioDecoder::decodeAudio()
 
     if (frame->pts != AV_NOPTS_VALUE) {
         clock = av_q2d(stream->time_base) * frame->pts;
-//        qDebug() << "no pts";
     }
 
     /* get audio channels */
     qint64 inChannelLayout = (frame->channel_layout && frame->channels == av_get_channel_layout_nb_channels(frame->channel_layout)) ?
                 frame->channel_layout : av_get_default_channel_layout(frame->channels);
 
+    //重采样上下文
     if (frame->format       != audioSrcFmt              ||
         inChannelLayout     != audioSrcChannelLayout    ||
         frame->sample_rate  != audioSrcFreq             ||
         !aCovertCtx) {
         if (aCovertCtx) {
             swr_free(&aCovertCtx);
+            qDebug()<<"释放了swr上下文";
         }
 
         /* init swr audio convert context */
         aCovertCtx = swr_alloc_set_opts(nullptr, audioDstChannelLayout, audioDstFmt, spec.freq,
                 inChannelLayout, (AVSampleFormat)frame->format , frame->sample_rate, 0, NULL);
         if (!aCovertCtx || (swr_init(aCovertCtx) < 0)) {
+            qDebug()<<"重采样上下文初始化失败";
             av_packet_unref(&packet);
             av_frame_free(&frame);
             return -1;
@@ -725,6 +746,7 @@ int AudioDecoder::decodeAudio()
     }
 
     if (aCovertCtx) {
+//        qDebug()<<"进入重采样！！";
         const quint8 **in   = (const quint8 **)frame->extended_data;
         uint8_t *out[] = {audioBuf1};
 
