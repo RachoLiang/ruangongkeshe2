@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     //注册videoShow类
     qmlRegisterType<VideoShow>("VideoShow",1,0,"VideoShow");
 
-    engine.load(QUrl("qrc:/musicplayer.qml"));
+    engine.load(QUrl("qrc:/QML/content/App.qml"));
     if (engine.rootObjects().isEmpty())
         return -1;
 

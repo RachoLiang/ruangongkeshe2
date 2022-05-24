@@ -746,7 +746,6 @@ int AudioDecoder::decodeAudio()
     }
 
     if (aCovertCtx) {
-//        qDebug()<<"进入重采样！！";
         const quint8 **in   = (const quint8 **)frame->extended_data;
         uint8_t *out[] = {audioBuf1};
 
