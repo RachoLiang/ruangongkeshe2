@@ -2,11 +2,13 @@
 #include <QQmlApplicationEngine>
 #include <QSettings>
 #include <QIcon>
-//#include "backend/mySql.h"
 #include "backend/PlayList.h"
 #include "backend/mainDecoder.h"
 #include <QQmlContext>
 #include "backend/videoShow.h"
+#include "backend/thumbnailShow.h"
+
+#include "backend/videoDecoder.h"
 
 
 int main(int argc, char *argv[])
@@ -15,6 +17,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<PlayList>("playlistclass",1,0,"PlayList");
     qmlRegisterType<VideoShow>("VideoShow",1,0,"VideoShow");
+    qmlRegisterType<ThumbnailShow>("ThumnailShow",1,0,"ThumbnailShow");
 
     QQmlApplicationEngine engine;
     engine.addImportPath("qrc:/musicplayer/qml/imports");
@@ -26,5 +29,15 @@ int main(int argc, char *argv[])
     }, Qt::QueuedConnection);
     engine.load(url);
 
+    //test
+//    VideoDecoder *videoDecoder = new VideoDecoder();
+//    videoDecoder->currentFile = "C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4";
+//    videoDecoder->start();
+//    //videoDecoder->getFrame(7);
+//    //qDebug()<<AV_TIME_BASE;
+//    for(int i=1;i<100;i++){
+//        videoDecoder->getFrame(i);
+//        SDL_Delay(100);
+//    }
     return app.exec();
 }

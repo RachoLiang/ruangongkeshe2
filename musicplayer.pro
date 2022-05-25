@@ -15,8 +15,10 @@ SOURCES += \
     back/mySql.cpp \
     back/playerThread.cpp \
     back/records.cpp \
+    back/thumbnailShow.cpp \
     back/vedio.cpp \
     back/myStack.cpp \
+    back/videoDecoder.cpp \
     back/videoShow.cpp \
     main.cpp
 
@@ -32,7 +34,9 @@ HEADERS += \
     backend/myStack.h \
     backend/playerThread.h \
     backend/records.h \
+    backend/thumbnailShow.h \
     backend/vedio.h \
+    backend/videoDecoder.h \
     backend/videoShow.h
 
 INCLUDEPATH += $$PWD/ffmpeg/include \

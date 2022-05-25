@@ -500,12 +500,12 @@ update:
               }
               start_time += delay;
               if(delay == 0 ){  //表示视频比音频慢了，选择性丢帧
-                  qDebug()<<"视频比音频慢了";
+                  //qDebug()<<"视频比音频慢了";
                   if( (pFrame->key_frame == 1)
                           || (pFrame->pict_type == AV_PICTURE_TYPE_I)){
-                      qDebug()<<"是关键帧";
+                      //qDebug()<<"是关键帧";
                   }else{
-                      qDebug()<<"丢帧了";
+                      //qDebug()<<"丢帧了";
                       continue; //丢帧
                   }
               }
@@ -672,6 +672,7 @@ void MainDecoder::run()
         }
 
         SDL_CreateThread(&MainDecoder::videoThread, "video_thread", this);
+
     }
 
     setPlayState(MainDecoder::PLAYING);
