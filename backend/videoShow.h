@@ -55,6 +55,9 @@ public:
 
     //播放（暂时封装）
     Q_INVOKABLE void show(QString path,QString type);
+
+    //调整播放参数，对比度，亮度，饱和度
+    Q_INVOKABLE void setArgs(double contrast_per,double brightness_per,double saturation_per);
     
 protected:
     //绘制图片

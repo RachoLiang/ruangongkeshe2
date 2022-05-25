@@ -549,7 +549,7 @@ Rectangle {
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("播放")
                     onClicked: {
-                        videoShow.show("C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4","video");
+                        videoShow.show("C:\\Users\\xgy\\Desktop\\mp3_test\\test2.mp4","video");
                     }
                 }
             }
