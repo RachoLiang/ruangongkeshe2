@@ -47,7 +47,7 @@ public:
     //获取进度条信息
     Q_INVOKABLE qint64 getNowProcess();
     Q_INVOKABLE qint64 getTotalProcess();
-    Q_INVOKABLE void setProcess(qint64 process);
+    Q_INVOKABLE void setProcess(double process);
 
     //调整进度
     Q_INVOKABLE void seekFast();

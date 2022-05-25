@@ -13,9 +13,10 @@ import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
 import LLM
 import VideoShow 1.0
+import ThumnailShow 1.0
 
 Rectangle {
-    id:"window"
+    id: "window"
     width: Constants.width
     height: Constants.height
     anchors.fill: parent
@@ -535,6 +536,9 @@ Rectangle {
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("上一帧")
+                    onClicked: {
+                        videoShow.seekSlow()
+                    }
                 }
             }
             Image {
@@ -545,7 +549,7 @@ Rectangle {
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("播放")
                     onClicked: {
-                        videoShow.show("C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4","video");
+                        videoShow.show("C:\\Users\\YYg\\Desktop\\test2.mp4","video");
                     }
                 }
             }
@@ -558,6 +562,9 @@ Rectangle {
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("下一帧")
+                    onClicked: {
+                        videoShow.seekFast()
+                    }
                 }
             }
             Image {
@@ -629,9 +636,23 @@ Rectangle {
                     height: 100
                     x: handle111.x
                     y: handle111.y - 110
+
+                    ThumbnailShow{
+                        id: thumbnailShow;
+                        anchors.centerIn: parent;
+                        nWidth: 150;
+                        nHeight: 100;
+                        width: 150;
+                        height: 100;
+                    }
+
                 }
                 onValueChanged: {
-                    console.log(control.visualPosition)
+                    console.log("当前进度：",control.visualPosition)
+                    //缩略图显示
+                    thumbnailShow.getFrame(control.visualPosition);
+                    //改变播放进度
+                    videoShow.setProcess(control.visualPosition)
                 }
             }
             Text {

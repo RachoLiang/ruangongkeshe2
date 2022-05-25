@@ -46,6 +46,7 @@ VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     maindecoder->setCurrentFile(path);
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage*)),this,SLOT(slot_getOneFrame(QImage*)));
+
     //发信号给解析器解析视频
     maindecoder->decoderFile(path,"video");
 }
@@ -174,7 +175,7 @@ void VideoShow::seekSlow(){
 }
 
 //调节播放进度
-void VideoShow::setProcess(qint64 process){
+void VideoShow::setProcess(double process){
     if(maindecoder){
         maindecoder->seekProgress(process);
     }

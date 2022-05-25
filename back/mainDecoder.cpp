@@ -333,10 +333,13 @@ double MainDecoder::getCurrentTime()
     return 0;
 }
 
-void MainDecoder::seekProgress(qint64 pos)
+void MainDecoder::seekProgress(double pos)
 {
     if (!isSeek) {
-        seekPos = pos;
+        //百分比 * 总时长 * 微秒
+        qDebug()<<"pos:"<<pos;
+        qDebug()<<"totalTime:"<<audioDecoder->totalTime;
+        seekPos = pos * audioDecoder->totalTime;
         isSeek = true;
     }
 }
@@ -399,6 +402,7 @@ int MainDecoder::videoThread(void *arg)
              * otherwise just delay for data input
              */
             if (decoder->isReadFinished) {
+                qDebug()<<"------------------------------";
                 break;
             }
             SDL_Delay(1);
@@ -437,11 +441,6 @@ int MainDecoder::videoThread(void *arg)
             qDebug()<<"关键帧数量："<<decoder->keyNum;
         }
 
-update:
-//        //更新目前播放的进度时间
-//        //如果视频流存在，以视频为基准
-//           decoder->nowTime = pFrame->best_effort_timestamp * av_q2d(decoder->videoStream->time_base) * AV_TIME_BASE;
-
         //获取pts
         if ((pts = pFrame->pts) == AV_NOPTS_VALUE) {
                 pts = 0;
@@ -450,39 +449,11 @@ update:
         double play = pts * av_q2d(decoder->videoStream->time_base);
         //纠正时间
         play = decoder->synchronize(pFrame,play);
-//        pts *= av_q2d(decoder->videoStream->time_base);
-//        pts =  decoder->synchronize(pFrame, pts);
 
 
 
         if (decoder->audioIndex >= 0) {
 
-//            while (1) {
-//                if (decoder->isStop) {
-//                    break;
-//                }
-
-//                double audioClk = decoder->audioDecoder->getAudioClock();
-////                qDebug()<<"音频时钟差:"<<audioClk-temp;
-////                qDebug()<<"temp:"<<temp;
-////                qDebug()<<"audioClocl:"<<audioClk;
-////                temp = audioClk;
-//                pts = decoder->videoClk;
-
-//                qDebug()<<"音频时钟："<<audioClk;
-//                qDebug()<<"视频时钟："<<pts;
-//                qDebug()<<"音频和视频时间差:"<<audioClk - pts;
-
-
-//                if (pts <= audioClk) {
-//                     break;
-//                }
-//                int delayTime = (pts - audioClk) * 1000;
-
-//                delayTime = delayTime > 5 ? 5 : delayTime;
-
-//                SDL_Delay(delayTime);
-//            }
               double delay = play - last_play;
               if(delay <=0 || delay >1){
                   delay = last_delay;
@@ -508,12 +479,12 @@ update:
               }
               start_time += delay;
               if(delay == 0 ){  //表示视频比音频慢了，选择性丢帧
-                  qDebug()<<"视频比音频慢了";
+                  //qDebug()<<"视频比音频慢了";
                   if( (pFrame->key_frame == 1)
                           || (pFrame->pict_type == AV_PICTURE_TYPE_I)){
-                      qDebug()<<"是关键帧";
+                      //qDebug()<<"是关键帧";
                   }else{
-                      qDebug()<<"丢帧了";
+                      //qDebug()<<"丢帧了";
                       continue; //丢帧
                   }
               }
@@ -539,6 +510,7 @@ update:
             continue;
         } else {
             //到底如何得到一帧图片并渲染？ qt,
+//            qDebug()<<"调用了上下文";
             QImage tmpImage(pFrame->data[0], decoder->pCodecCtx->width, decoder->pCodecCtx->height, QImage::Format_RGB32);
             /* deep copy, otherwise when tmpImage data change, this image cannot display */
             QImage image = tmpImage.copy();
@@ -680,6 +652,7 @@ void MainDecoder::run()
         }
 
         SDL_CreateThread(&MainDecoder::videoThread, "video_thread", this);
+
     }
 
     setPlayState(MainDecoder::PLAYING);
@@ -700,7 +673,7 @@ fast:
         if (isFast) {
             qDebug()<<"真正快进";
             //计算当前应该跳转的位置,并执行后面的seek代码
-            seekPos = audioDecoder->nowTime + seekFrames * av_q2d(pCodecCtx->time_base);
+            seekPos = audioDecoder->nowTime + seekFrames * av_q2d(pCodecCtx->time_base) * AV_TIME_BASE;
 
 
             if (seekPos > audioDecoder->totalTime){
@@ -709,7 +682,8 @@ fast:
             //参数设置
             isFast = false;
             isSeek = true;
-            seekType = AVSEEK_FLAG_FRAME;
+//            seekType = AVSEEK_FLAG_FRAME;
+            seekType = AVSEEK_FLAG_BACKWARD;
         }
 
 //快退
@@ -717,7 +691,7 @@ slow:
         if (isSlow) {
             qDebug()<<"快退";
             //计算当前应该跳转的位置,并执行后面的seek代码
-            seekPos = nowTime -  seekFrames * av_q2d(pCodecCtx->time_base);
+            seekPos = nowTime -  seekFrames * av_q2d(pCodecCtx->time_base) * AV_TIME_BASE;
             if (seekPos < 0){
                 seekPos = 0;
             }
@@ -738,10 +712,10 @@ seek:
             }
 
             nowTime = seekPos;
-            qDebug()<<"nowtime:"<<nowTime;
-            qDebug()<<"seekPos:"<<seekPos;
 
             AVRational avRational = av_get_time_base_q();
+            qDebug()<<"缩放之前的seekPos:"<<seekPos;
+            qint64 seekPos_mil = seekPos;
             seekPos = av_rescale_q(seekPos, avRational, pFormatCtx->streams[seekIndex]->time_base);
             if (av_seek_frame(pFormatCtx, seekIndex, seekPos, seekType) < 0) {
                 qDebug() << "Seek failed.";
@@ -755,37 +729,90 @@ seek:
                     videoQueue.enqueue(&seekPacket);
                     videoClk = 0;
                 }
+
             }
 
             isSeek = false;
             seekType = AVSEEK_FLAG_BACKWARD;
-        }
 
-        if (currentType == "video") {
-            if (videoQueue.queueSize() > 512) {
-                SDL_Delay(10);
-                continue;
+            if (currentType == "video") {
+                if (videoQueue.queueSize() > 512) {
+                    SDL_Delay(10);
+                    continue;
+                }
             }
-        }
 
-        /* judge haven't reall all frame */
-        if (av_read_frame(pFormatCtx, packet) < 0){
-            qDebug() << "Read file completed.";
-            isReadFinished = true;
-            emit readFinished();
-            SDL_Delay(10);
-            break;
-        }
+            while (true) {
+                    qDebug()<<"进入while循环";
 
-        if (packet->stream_index == videoIndex && currentType == "video") {
-            videoQueue.enqueue(packet); // video stream
-        } else if (packet->stream_index == audioIndex) {
-            audioDecoder->packetEnqueue(packet); // audio stream
-        } else if (packet->stream_index == subtitleIndex) {
-//            subtitleQueue.enqueue(packet);
-            av_packet_unref(packet);    // subtitle stream
-        } else {
-            av_packet_unref(packet);
+                    /* judge haven't reall all frame */
+                    if (av_read_frame(pFormatCtx, packet) < 0){
+                        qDebug()<<"nowTime:"<<audioDecoder->nowTime;
+                        qDebug()<<"totalTime:"<<audioDecoder->totalTime;
+                        if(nowTime + 0.5 * AV_TIME_BASE >= audioDecoder->totalTime){
+                            qDebug() << "Read file completed.";
+                            isReadFinished = true;
+                            emit readFinished();
+                            SDL_Delay(10);
+                            break;
+                        }
+                    }
+
+                    if (packet->stream_index == seekIndex){
+                        //记录当前帧时间
+                        qint64 frameTime = packet->pts * av_q2d(pFormatCtx->streams[seekIndex]->time_base) * AV_TIME_BASE;
+
+                        qDebug()<<"seekPos_mil:"<<seekPos_mil;
+                        qDebug()<<"frameTime:"<<frameTime;
+
+                        //如果当前帧时间小于seekTime，则不解码
+                        if(seekPos_mil > frameTime ){
+                            continue;
+                        }
+
+                        if (packet->stream_index == videoIndex && currentType == "video") {
+                            videoQueue.enqueue(packet); // video stream
+                        } else if (packet->stream_index == audioIndex) {
+                            audioDecoder->packetEnqueue(packet); // audio stream
+                        } else if (packet->stream_index == subtitleIndex) {
+                            av_packet_unref(packet);    // subtitle stream
+                        } else {
+                            av_packet_unref(packet);
+                        }
+                        break;
+                    }
+                }
+
+        }else{
+            if (currentType == "video") {
+                if (videoQueue.queueSize() > 512) {
+                    SDL_Delay(10);
+                    continue;
+                }
+            }
+
+            /* judge haven't reall all frame */
+            if (av_read_frame(pFormatCtx, packet) < 0){
+                qDebug()<<"nowTime:"<<audioDecoder->nowTime;
+                qDebug()<<"totalTime:"<<audioDecoder->totalTime;
+                if(nowTime + 0.5 * AV_TIME_BASE >= audioDecoder->totalTime){
+                    qDebug() << "Read file completed.";
+                    isReadFinished = true;
+                    emit readFinished();
+                    SDL_Delay(10);
+                    break;
+                }
+            }
+
+            if (packet->stream_index == videoIndex && currentType == "video") {
+                videoQueue.enqueue(packet); // video stream
+            } else if (packet->stream_index == audioIndex) {
+                audioDecoder->packetEnqueue(packet); // audio stream
+            } else if (packet->stream_index == subtitleIndex) {
+                av_packet_unref(packet);    // subtitle stream
+            } else {
+                av_packet_unref(packet);
+            }
         }
     }
 
@@ -808,11 +835,13 @@ seek:
 
 fail:
     /* close audio device */
+    qDebug()<<"fail---------------------------";
     if (audioIndex >= 0) {
         audioDecoder->closeAudio();
     }
 
     if (currentType == "video") {
+        qDebug()<<"释放了上下文";
         avcodec_close(pCodecCtx);
         avcodec_free_context(&pCodecCtx);
     }

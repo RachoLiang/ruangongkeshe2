@@ -40,7 +40,7 @@ public:
     ~MainDecoder();
 
     double getCurrentTime();
-    void seekProgress(qint64 pos);
+    void seekProgress(double pos);
     int getVolume();
     void setVolume(int volume);
     void setCurrentFile(QString);
