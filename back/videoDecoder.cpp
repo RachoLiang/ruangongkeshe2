@@ -222,8 +222,8 @@ void VideoDecoder::run(){
                 }
                 double packet_time = _packet.pts * av_q2d(pFormatCtx->streams[videoIndex]->time_base);
                 //qDebug()<<"packet time"<<packet_time;
-                if(fabs(packet_time - pos)>1){
-                    qDebug()<<"与原位置相差过大 "<<packet_time<<pos;
+                if(packet_time < pos){
+                    qDebug()<<"比原位置小 "<<packet_time<<pos;
                     continue;
                 }
 
