@@ -134,4 +134,134 @@ QMediaPlayer* Audio::getPlayer(){
     return this->player;
 }
 
+const QString Audio::getFilePath() const
+{
+    return filePath;
+}
+
+void Audio::setFilePath(const QString &newFilePath)
+{
+    filePath = newFilePath;
+}
+
+const QString Audio::getFileName() const
+{
+    return fileName;
+}
+
+void Audio::setFileName(const QString &newFileName)
+{
+    fileName = newFileName;
+}
+
+int Audio::getDuration() const
+{
+    return duration;
+}
+
+void Audio::setDuration(int newDuration)
+{
+    duration = newDuration;
+}
+
+int Audio::getAudioBitRate() const
+{
+    return audioBitRate;
+}
+
+void Audio::setAudioBitRate(int newAudioBitRate)
+{
+    audioBitRate = newAudioBitRate;
+}
+
+const QString Audio::getAudioType() const
+{
+    return audioType;
+}
+
+void Audio::setAudioType(const QString &newAudioType)
+{
+    audioType = newAudioType;
+}
+
+int Audio::getNumberOfChannels() const
+{
+    return numberOfChannels;
+}
+
+void Audio::setNumberOfChannels(int newNumberOfChannels)
+{
+    numberOfChannels = newNumberOfChannels;
+}
+
+QString Audio::getAlbumInfo()
+{
+    return albumInfo;
+}
+
+void Audio::setAlbumInfo(const QString &newAlbumInfo)
+{
+    albumInfo = newAlbumInfo;
+}
+
+const QString Audio::getSinger() const
+{
+    return singer;
+}
+
+void Audio::setSinger(const QString &newSinger)
+{
+    singer = newSinger;
+}
+
+int Audio::getPosition() const
+{
+    return position;
+}
+
+const QDateTime Audio::getModificationTime() const
+{
+    return modificationTime;
+}
+
+void Audio::setModificationTime(const QDateTime &newModificationTime)
+{
+    modificationTime = newModificationTime;
+}
+
+void Audio::setIsvalid(bool newIsvalid)
+{
+    isvalid = newIsvalid;
+}
+
+const QString Audio::getType() const
+{
+    return type;
+}
+
+void Audio::setType(const QString &newType)
+{
+    type = newType;
+}
+
+const QImage Audio::getAlbumImage() const
+{
+    return albumImage;
+}
+
+void Audio::setAlbumImage(const QImage &newAlbumImage)
+{
+    albumImage = newAlbumImage;
+}
+
+const QString Audio::getLyrics() const
+{
+    return lyrics;
+}
+
+void Audio::setLyrics(const QString &newLyrics)
+{
+    lyrics = newLyrics;
+}
+
 

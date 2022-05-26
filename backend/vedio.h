@@ -15,6 +15,15 @@ public:
     void play();
     void pause();
     void adjustProgress(int);
+    int getVideoBitRate() const;
+    void setVideoBitRate(int newVideoBitRate);
+    int getVideoFrameRate() const;
+    void setVideoFrameRate(int newVideoFrameRate);
+    const QString getVideoType() const;
+    void setVideoType(const QString &newVideoType);
+    int getResolvingPower() const;
+    void setResolvingPower(int newResolvingPower);
+
 private:
     //QMediaPlayer* player;
     QVideoSink* sink;

@@ -673,7 +673,9 @@ Rectangle {
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("播放")
                     onClicked: {
+
                         videoShow.show("C:\\FFOutput\\林俊杰 - 关键词.mkv","video");
+
                     }
                 }
             }
@@ -716,7 +718,7 @@ Rectangle {
             ///// 自定义美化样式，请同学们自己放开注释
             Slider {
                 id: control
-                value: 0.5
+                value: 0.0
                 //                anchors.centerIn: parent
                 //                width: 200
                 //                height: 20
@@ -772,10 +774,21 @@ Rectangle {
 
                 }
                 onValueChanged: {
-                    console.log(control.visualPosition)
-                    thumbnailShow.getFrame(control.visualPosition);
+                    console.log("当前进度：",control.visualPosition)
+//                    //缩略图显示
+//                    thumbnailShow.getFrame(control.visualPosition);
+//                    //改变播放进度
+//                    videoShow.setProcess(control.visualPosition)
                 }
             }
+
+            //绑定进度条属性
+            Binding{
+                target: control
+                property: "value"
+                value: videoShow.process
+            }
+
             Text {
                 color: "#ffffff"
                 text: '5:12'
