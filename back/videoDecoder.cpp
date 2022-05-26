@@ -223,7 +223,7 @@ void VideoDecoder::run(){
                 double packet_time = _packet.pts * av_q2d(pFormatCtx->streams[videoIndex]->time_base);
                 //qDebug()<<"packet time"<<packet_time;
                 if(packet_time < pos){
-                    qDebug()<<"比原位置小 "<<packet_time<<pos;
+//                    qDebug()<<"比原位置小 "<<packet_time<<pos;
                     continue;
                 }
 
@@ -268,7 +268,7 @@ void VideoDecoder::run(){
                 av_frame_free(&pFrame);
                 break;
             }else{
-                qDebug()<<"非视频流packet";
+//                qDebug()<<"非视频流packet";
                 av_packet_unref(packet);
             }
         }
