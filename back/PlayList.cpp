@@ -53,6 +53,7 @@ bool isVideoFile(QString filePath)
 void PlayList::addFile(QString filePath)
 {
     bool isVideo=isVideoFile(filePath);
+    qDebug()<<"isVideo="<<isVideo<<",and playListType="<<playListType;
     if(isVideo==true&&playListType==1||isVideo==false&&playListType==2)
     {
         return; //该媒体不应该放到这个列表中，而是应该放到另一个列表
@@ -172,6 +173,10 @@ void PlayList::setNowIndex(int index)
     if(playListType==2)
     {
         emit showVideo(mediaPath);
+    }
+    else
+    {
+        emit showAudio(mediaPath);
     }
 }
 //enum PlayBackMode
