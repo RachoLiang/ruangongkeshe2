@@ -235,11 +235,12 @@ int VideoShow::updateProcess(void *arg){
 
         //播放状态
         if(state == MainDecoder::PLAYING){
-            qDebug()<<"当前状态是播放";
+            //qDebug()<<"当前状态是播放";
             double nowtime = videoShow->getNowProcess();
             double totaltime = videoShow->getTotalProcess();
             double x = nowtime / totaltime;
-            qDebug()<<x*100;
+            //qDebug()<<x*100;
+            SDL_Delay(100);
             videoShow->setmProcess(x);
         }
 

@@ -14,7 +14,7 @@ import QtQuick.Dialogs
 import LLM
 import VideoShow 1.0
 import ThumnailShow 1.0
-
+import playlistclass 1.0
 Rectangle {
     id: "window"
     width: Constants.width
@@ -32,6 +32,39 @@ Rectangle {
     }
     function dpX(numbers){
         return (dpW(numbers)+dpH(numbers))/2;
+    }
+    PlayList{
+        id:yinpinplaylist;  //在全局构造一个音频播放列表对象
+        onAddAudioFileInGUI:function(audioPath)
+        {
+            yinpinmodel.append({yinpintext:audioPath})
+        }
+
+//        onAddFileInGUI:function(filePath) //在PlayList.h中定义的信号void addFileInGUI(QString filePath);
+//        {
+//            //listviewmodel.append({Path:filePath})  //给ListViewModel起了个id，以便在此处对其操作
+//            yinpinmodel.append({yinpintext:filePath})
+//        }
+//        onChangeCurrentPlayingIndex: function(index)  //改变列表中的高亮条目
+//        {
+//            filesListView.currentIndex=index
+//        }
+//        onChangePlayModeButtonIcon: function(iconName)
+//        {
+//            playModeButton.icon.name=iconName
+//        }
+    }
+    PlayList{
+        id:shipinplaylist;
+        onAddVideoFileInGUI:function(videoPath)
+        {
+            //shipin.count+=1
+            shipinmodel.append({shipintext:videoPath})
+        }
+        onShowVideo:function(videoPath)
+        {
+            videoShow.show(videoPath,"video")
+        }
     }
 
     Image {
@@ -96,10 +129,20 @@ Rectangle {
                     FileDialog {
                         id: fileDialog
                         title: "导入音频或者视频文件"
-                        nameFilters: ["视频文件 (*.ts *.mp4 *.avi *.flv *.mkv *.3gp)", "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra)"]
+                        nameFilters: [ "视频文件 (*.ts *.mp4 *.avi *.flv *.mkv *.3gp)",
+                            "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra)"]
                         acceptLabel: "确定"
                         rejectLabel: "取消"
                         fileMode: FileDialog.OpenFile
+                        onAccepted: {
+
+                            console.log("对话框：选中的文件有")
+                            console.log(selectedFile)
+                            //选中的文件可能是音频，可能是视频，两个列表会自行取舍
+                            yinpinplaylist.addFile(selectedFile)
+                            shipinplaylist.addFile(selectedFile)
+
+                        }
                     }
                 }
 
@@ -181,8 +224,12 @@ Rectangle {
                     anchors.top: parent.top
                     anchors.topMargin: 60
                     spacing: 12
-                    Repeater {
-                        model: 2
+                    ListModel{
+                        id:yinpinmodel
+                        //ListElement{yinpintext:"ttteee";}
+                    }
+                    Component{
+                        id:yinpindelegate
                         Item {
                             anchors.leftMargin: 15
                             anchors.left: parent.left
@@ -192,7 +239,7 @@ Rectangle {
                                 spacing: 0
                                 Text {
                                     color: "#707070"
-                                    text: 'Feel my rhythm'
+                                    text: yinpintext
                                     font.pixelSize: 18
                                 }
                                 Text {
@@ -246,6 +293,16 @@ Rectangle {
                             }
                         }
                     }
+
+                    Repeater {
+                        id:yinpinrepeater
+                        model: yinpinmodel
+                        delegate: yinpindelegate
+                        Component.onCompleted: {
+                            yinpinplaylist.init(1)  //音频列表初始化
+                        }
+
+                    }
                 }
             }
             Item {
@@ -253,7 +310,7 @@ Rectangle {
                 width: parent.width
                 height: 60 + count * (40 + 12) - 12
                 clip: true
-                property int count: 3
+                property int count: 6
                 Behavior on height {
                     RotationAnimation {
                         duration: 500
@@ -304,14 +361,44 @@ Rectangle {
                         }
                     }
                 }
-                Column {
+                Frame {
+                    id: shipinframe
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
                     anchors.topMargin: 60
                     spacing: 12
-                    Repeater {
-                        model: 3
+                    height: 10000
+                    clip: true
+
+                    anchors.fill: parent
+
+                    //leftPadding: 1
+                    //rightPadding: 1
+
+                    //Layout.fillWidth: true
+                    //Layout.fillHeight: true
+//                    Column {
+//                        id:shipincolumn
+//                        anchors.left: parent.left
+//                        anchors.right: parent.right
+//                        anchors.top: parent.top
+//                        anchors.topMargin: 0
+//                        anchors.fill: parent
+//                        //Layout.fillWidth: true
+//                        //Layout.fillHeight: true
+//                        spacing: 12
+
+
+//                    }
+                    ListModel{
+                        id:shipinmodel
+                        //ListElement{shipintext:"ttteeess";}
+
+                    }
+
+                    Component{
+                        id:shipindelegate
                         Item {
                             anchors.leftMargin: 15
                             anchors.left: parent.left
@@ -327,13 +414,28 @@ Rectangle {
                                 spacing: 0
                                 Text {
                                     color: "#707070"
-                                    text: '202204141315'
+                                    text: shipintext
                                     font.pixelSize: 18
                                 }
                                 Text {
                                     color: "#b6b6b6"
                                     font.pixelSize: 13
                                     text: '5:10:00'
+                                }
+
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked:
+                                {
+                                    shipinplaylist.setNowIndex(index)
+                                    shipinrepeater.currentIndex=index
+                                    console.log("点击第"+shipinrepeater.currentIndex+"个视频")
+
+
+//                                        //console.log(index)
+//                                        filesListView.currentIndex=index
+//                                        playlist.setNowIndex(index)
                                 }
                             }
                             Image {
@@ -384,7 +486,29 @@ Rectangle {
                             }
                         }
                     }
+                    ListView {
+                        id:shipinrepeater
+                        parent:shipinframe
+                        anchors.fill: parent
+                        model: shipinmodel
+                        delegate: shipindelegate
+                        Component.onCompleted: {
+                            shipinplaylist.init(2)  //视频列表初始化
+                        }
+
+                    }
+                    ScrollBar.vertical: ScrollBar {
+                        parent: shipinframe
+                        policy: ScrollBar.AlwaysOn
+                        anchors.top: parent.top
+                        anchors.topMargin: shipinframe.topPadding
+                        anchors.right: parent.right
+                        anchors.rightMargin: 1
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: shipinframe.bottomPadding
+                    }
                 }
+
             }
         }
     }
