@@ -59,6 +59,14 @@ public:
     void setCutPath(QString cutPath);   //设置当前截图路径
     PlayState getPlayState();   //获取当前播放状态
 
+
+    double contrast;
+    double brightness;
+    double saturation;
+
+    void setFilter(double contrast,double brightness,double saturation);
+    int initFilter();
+
     int keyNum;
 
 private:
@@ -69,7 +77,6 @@ private:
     static int videoThread(void *arg);
     double synchronize(AVFrame *frame, double pts);
     bool isRealtime(AVFormatContext *pFormatCtx);
-    int initFilter();
 
     QString srcPath;    //当前播放的文件路径
     Audio* audio;   //audio对象
@@ -102,6 +109,7 @@ private:
     bool isFast;    //是否快进
     bool isSlow;    //是否快退
     bool isCut;     //是否截图
+    bool isFilterChanged;
 
 
     AVFormatContext *pFormatCtx;
@@ -122,6 +130,9 @@ private:
     AVFilterGraph   *filterGraph;
     AVFilterContext *filterSinkCxt;
     AVFilterContext *filterSrcCxt;
+
+    AVFilterInOut *out;
+    AVFilterInOut *in;
 
     int seekType;
 

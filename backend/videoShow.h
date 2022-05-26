@@ -72,6 +72,9 @@ public:
     //播放状态
     MainDecoder::PlayState getPlayState();
 
+    //调整播放参数，对比度，亮度，饱和度
+    Q_INVOKABLE void setArgs(double contrast_per,double brightness_per,double saturation_per);
+    
 protected:
     //绘制图片
    virtual void paint(QPainter *painter);

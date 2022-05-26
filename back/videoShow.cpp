@@ -285,3 +285,14 @@ void VideoShow::setCutPath(QString path){
 }
 
 
+//调整播放参数
+
+void VideoShow::setArgs(double contrast_per, double brightness_per, double saturation_per){
+    double contrast = contrast_per<0?-22:(-2 + 4 * contrast_per);  //-2.0~2.0
+    double brightness = brightness_per<0?-22:(-1 + 2 * brightness_per);  //-1.0~1.0
+    double saturation = saturation_per<0?-22:(3 * saturation_per);  //0~3.0
+
+    maindecoder->setFilter(contrast,brightness,saturation);
+}
+
+

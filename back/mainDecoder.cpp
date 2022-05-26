@@ -10,12 +10,16 @@ MainDecoder::MainDecoder() :
     isFast(false),
     isSlow(false),
     isCut(false),
+    isFilterChanged(false),
     audioDecoder(new AudioDecoder),
     filterGraph(NULL),
     seekTime(5 * AV_TIME_BASE),
     seekFrames(5),
     seekType(AVSEEK_FLAG_BACKWARD),
     keyNum(0),
+    contrast(1),
+    brightness(0),
+    saturation(1),
     cutPath("C:\\Users\\YYg\\Desktop\\picture")
 {
     av_init_packet(&seekPacket);
@@ -92,8 +96,8 @@ int MainDecoder::initFilter()
 {
     int ret;
 
-    AVFilterInOut *out = avfilter_inout_alloc();
-    AVFilterInOut *in = avfilter_inout_alloc();
+    out = avfilter_inout_alloc();
+    in = avfilter_inout_alloc();
     /* output format */
     enum AVPixelFormat pixFmts[] = {AV_PIX_FMT_RGB32, AV_PIX_FMT_NONE};
 
@@ -107,7 +111,8 @@ int MainDecoder::initFilter()
     /* just add filter ouptut format rgb32,
      * use for function avfilter_graph_parse_ptr()
      */
-    QString filter("pp=hb/vb/dr/al");
+    QString filter = QString("pp=hb/vb/dr/al,eq=contrast=%1:brightness=%2:saturation=%3").arg(this->contrast).arg(this->brightness).arg(this->saturation);
+    qDebug()<<"filter"<<filter;
 
     QString args = QString("video_size=%1x%2:pix_fmt=%3:time_base=%4/%5:pixel_aspect=%6/%7")
             .arg(pCodecCtx->width).arg(pCodecCtx->height).arg(pCodecCtx->pix_fmt)
@@ -498,6 +503,11 @@ int MainDecoder::videoThread(void *arg)
               av_usleep(actual_delay * 1000000.0 + 6000);
         }
 
+        if(decoder->isFilterChanged){
+            decoder->isFilterChanged = false;
+            decoder->initFilter();
+        }
+
         //过滤
 
         if (av_buffersrc_add_frame(decoder->filterSrcCxt, pFrame) < 0) {
@@ -864,4 +874,14 @@ fail:
 //暂停信息
 bool MainDecoder::pauseState(){
     return isPause;
+}
+
+void MainDecoder::setFilter(double contrast,double brightness,double saturation){
+    isFilterChanged = true;
+    if(contrast!=-22)
+    this->contrast = contrast;
+    if(brightness!=-22)
+    this->brightness = brightness;
+    if(saturation!=-22)
+    this->saturation = saturation;
 }
