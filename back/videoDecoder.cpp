@@ -188,7 +188,7 @@ void VideoDecoder::run(){
         qDebug()<<pos;
         int pos_mili = pos * AV_TIME_BASE;
         qint64 pos_int64 = av_rescale_q(pos_mili,avRational,pFormatCtx->streams[videoIndex]->time_base);
-        if(av_seek_frame(pFormatCtx,videoIndex,pos_int64,AVSEEK_FLAG_BACKWARD|AVSEEK_FLAG_FRAME)<0){
+        if(av_seek_frame(pFormatCtx,videoIndex,pos_int64,AVSEEK_FLAG_BACKWARD)<0){
             qDebug()<<"change postion fail!";
             continue;
         }

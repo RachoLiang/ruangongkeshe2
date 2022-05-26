@@ -1,4 +1,4 @@
-
+﻿
 
 /*
 This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
@@ -45,6 +45,10 @@ Window {
             Slider {
                 id: slider_liangdu
                 value: 0.5
+                onValueChanged: {
+                    //console.log(slider_liangdu.visualPosition);
+                    videoShow.setArgs(-1,slider_liangdu.visualPosition,-1);
+                }
             }
         }
         RowLayout {
@@ -56,6 +60,9 @@ Window {
             Slider {
                 id: slider_duibidu
                 value: 0.5
+                onValueChanged: {
+                    videoShow.setArgs(slider_duibidu.visualPosition,-1,-1);
+                }
             }
         }
         RowLayout {
@@ -66,7 +73,10 @@ Window {
 
             Slider {
                 id: slider_baohedu
-                value: 0.5
+                value: 0.33
+                onValueChanged: {
+                    videoShow.setArgs(-1,-1,slider_baohedu.visualPosition);
+                }
             }
         }
         RowLayout {

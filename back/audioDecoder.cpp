@@ -241,7 +241,7 @@ int AudioDecoder::init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **s
     const AVFilter *abuffer = avfilter_get_by_name("abuffer");
     AVFilterContext *abuffer_ctx = avfilter_graph_alloc_filter(graph, abuffer, "src");
     //设置参数，这里需要匹配原始音频采样率、数据格式（位数）
-    if (avfilter_init_str(abuffer_ctx, "sample_rate=44100:sample_fmt=8:channel_layout=stereo") <
+    if (avfilter_init_str(abuffer_ctx, x.c_str()) <
         0) {
         qDebug()<<"error init abuffer filter";
         return -1;

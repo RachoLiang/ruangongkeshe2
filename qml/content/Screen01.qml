@@ -58,6 +58,7 @@ Rectangle {
         id:shipinplaylist;
         onAddVideoFileInGUI:function(videoPath)
         {
+            //shipin.count+=1
             shipinmodel.append({shipintext:videoPath})
         }
         onShowVideo:function(videoPath)
@@ -309,7 +310,7 @@ Rectangle {
                 width: parent.width
                 height: 60 + count * (40 + 12) - 12
                 clip: true
-                property int count: 3
+                property int count: 6
                 Behavior on height {
                     RotationAnimation {
                         duration: 500
@@ -360,12 +361,36 @@ Rectangle {
                         }
                     }
                 }
-                Column {
+                Frame {
+                    id: shipinframe
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
                     anchors.topMargin: 60
                     spacing: 12
+                    height: 10000
+                    clip: true
+
+                    anchors.fill: parent
+
+                    //leftPadding: 1
+                    //rightPadding: 1
+
+                    //Layout.fillWidth: true
+                    //Layout.fillHeight: true
+//                    Column {
+//                        id:shipincolumn
+//                        anchors.left: parent.left
+//                        anchors.right: parent.right
+//                        anchors.top: parent.top
+//                        anchors.topMargin: 0
+//                        anchors.fill: parent
+//                        //Layout.fillWidth: true
+//                        //Layout.fillHeight: true
+//                        spacing: 12
+
+
+//                    }
                     ListModel{
                         id:shipinmodel
                         //ListElement{shipintext:"ttteeess";}
@@ -461,8 +486,9 @@ Rectangle {
                             }
                         }
                     }
-                    Repeater {
+                    ListView {
                         id:shipinrepeater
+                        parent:shipinframe
                         anchors.fill: parent
                         model: shipinmodel
                         delegate: shipindelegate
@@ -470,79 +496,19 @@ Rectangle {
                             shipinplaylist.init(2)  //视频列表初始化
                         }
 
-//                        Item {
-//                            anchors.leftMargin: 15
-//                            anchors.left: parent.left
-//                            anchors.right: parent.right
-//                            height: 40
-//                            Image {
-//                                source: "images/group_1.png"
-//                            }
-
-//                            Column {
-//                                anchors.left: parent.left
-//                                anchors.leftMargin: 62
-//                                spacing: 0
-//                                Text {
-//                                    color: "#707070"
-//                                    text: '202204141315'
-//                                    font.pixelSize: 18
-//                                }
-//                                Text {
-//                                    color: "#b6b6b6"
-//                                    font.pixelSize: 13
-//                                    text: '5:10:00'
-//                                }
-//                            }
-//                            Image {
-//                                anchors.verticalCenter: parent.verticalCenter
-//                                anchors.right: parent.right
-//                                source: "images/more(2).png"
-//                                anchors.rightMargin: 28
-//                                MouseArea {
-//                                    anchors.fill: parent
-//                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
-//                                    onClicked: {
-//                                        if (mouse.button === Qt.LeftButton)
-//                                            contextMenu3.popup()
-//                                    }
-//                                    onPressAndHold: {
-//                                        if (mouse.source === Qt.MouseEventNotSynthesized)
-//                                            contextMenu3.popup()
-//                                    }
-//                                }
-//                                SubWindow {
-//                                    id: subWindow3
-//                                }
-//                                Setting1 {
-//                                    id: setting_for_video
-//                                }
-
-//                                Menu {
-//                                    id: contextMenu3
-//                                    MenuItem {
-//                                        text: '置顶'
-//                                    }
-//                                    MenuItem {
-//                                        text: '设置'
-//                                        onTriggered: {
-//                                            setting_for_video.show()
-//                                        }
-//                                    }
-//                                    MenuItem {
-//                                        text: '倒放'
-//                                    }
-//                                    MenuItem {
-//                                        text: '详细信息'
-//                                        onTriggered: {
-//                                            subWindow3.show()
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
+                    }
+                    ScrollBar.vertical: ScrollBar {
+                        parent: shipinframe
+                        policy: ScrollBar.AlwaysOn
+                        anchors.top: parent.top
+                        anchors.topMargin: shipinframe.topPadding
+                        anchors.right: parent.right
+                        anchors.rightMargin: 1
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: shipinframe.bottomPadding
                     }
                 }
+
             }
         }
     }

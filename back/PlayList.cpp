@@ -119,28 +119,28 @@ void PlayList::init(int PlayListType)
      * 从数据库中读取数据，恢复出上次的fileList并同步nowIndex
      * 如果数据库中还存了上次的播放模式等信息，也可以考虑恢复
      */
-    mySql sql;
-    if(sql.openDb())
-    {
-        if(sql.isTableExist("records")) //如果有之前存的数据
-        {
-            qDebug()<<"恢复上次的播放列表";
-            sql.selectAllTofileList(fileList); //读取数据，恢复出fileList
-            //在后台恢复其他数据
-        }
-        sql.closeDb();
-    }
-    int len=fileList.size();
-    if(len!=0)
-    {
-        qDebug()<<"在界面恢复播放列表";
-        for(int idx=0;idx<len;idx++)
-        {
-            QString p=extractFileName(fileList[idx].filePath);
-            //qDebug()<<"界面恢复："<<p;
-            //emit addFileInGUI(p);
-        }
-    }
+//    mySql sql;
+//    if(sql.openDb())
+//    {
+//        if(sql.isTableExist("records")) //如果有之前存的数据
+//        {
+//            qDebug()<<"恢复上次的播放列表";
+//            sql.selectAllTofileList(fileList); //读取数据，恢复出fileList
+//            //在后台恢复其他数据
+//        }
+//        sql.closeDb();
+//    }
+//    int len=fileList.size();
+//    if(len!=0)
+//    {
+//        qDebug()<<"在界面恢复播放列表";
+//        for(int idx=0;idx<len;idx++)
+//        {
+//            QString p=extractFileName(fileList[idx].filePath);
+//            //qDebug()<<"界面恢复："<<p;
+//            //emit addFileInGUI(p);
+//        }
+//    }
 }
 void PlayList::showFileList()
 {
