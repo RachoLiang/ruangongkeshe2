@@ -14,7 +14,7 @@ import QtQuick.Dialogs
 import LLM
 import VideoShow 1.0
 import ThumnailShow 1.0
-
+import playlistclass 1.0
 Rectangle {
     id: "window"
     width: Constants.width
@@ -32,6 +32,38 @@ Rectangle {
     }
     function dpX(numbers){
         return (dpW(numbers)+dpH(numbers))/2;
+    }
+    PlayList{
+        id:yinpinplaylist;  //在全局构造一个音频播放列表对象
+        onAddAudioFileInGUI:function(audioPath)
+        {
+            yinpinmodel.append({yinpintext:audioPath})
+        }
+
+//        onAddFileInGUI:function(filePath) //在PlayList.h中定义的信号void addFileInGUI(QString filePath);
+//        {
+//            //listviewmodel.append({Path:filePath})  //给ListViewModel起了个id，以便在此处对其操作
+//            yinpinmodel.append({yinpintext:filePath})
+//        }
+//        onChangeCurrentPlayingIndex: function(index)  //改变列表中的高亮条目
+//        {
+//            filesListView.currentIndex=index
+//        }
+//        onChangePlayModeButtonIcon: function(iconName)
+//        {
+//            playModeButton.icon.name=iconName
+//        }
+    }
+    PlayList{
+        id:shipinplaylist;
+        onAddVideoFileInGUI:function(videoPath)
+        {
+            shipinmodel.append({shipintext:videoPath})
+        }
+        onShowVideo:function(videoPath)
+        {
+            videoShow.show(videoPath,"video")
+        }
     }
 
     Image {
@@ -96,10 +128,20 @@ Rectangle {
                     FileDialog {
                         id: fileDialog
                         title: "导入音频或者视频文件"
-                        nameFilters: ["视频文件 (*.ts *.mp4 *.avi *.flv *.mkv *.3gp)", "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra)"]
+                        nameFilters: [ "视频文件 (*.ts *.mp4 *.avi *.flv *.mkv *.3gp)",
+                            "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra)"]
                         acceptLabel: "确定"
                         rejectLabel: "取消"
                         fileMode: FileDialog.OpenFile
+                        onAccepted: {
+
+                            console.log("对话框：选中的文件有")
+                            console.log(selectedFile)
+                            //选中的文件可能是音频，可能是视频，两个列表会自行取舍
+                            yinpinplaylist.addFile(selectedFile)
+                            shipinplaylist.addFile(selectedFile)
+
+                        }
                     }
                 }
 
@@ -181,8 +223,12 @@ Rectangle {
                     anchors.top: parent.top
                     anchors.topMargin: 60
                     spacing: 12
-                    Repeater {
-                        model: 2
+                    ListModel{
+                        id:yinpinmodel
+                        //ListElement{yinpintext:"ttteee";}
+                    }
+                    Component{
+                        id:yinpindelegate
                         Item {
                             anchors.leftMargin: 15
                             anchors.left: parent.left
@@ -192,7 +238,7 @@ Rectangle {
                                 spacing: 0
                                 Text {
                                     color: "#707070"
-                                    text: 'Feel my rhythm'
+                                    text: yinpintext
                                     font.pixelSize: 18
                                 }
                                 Text {
@@ -245,6 +291,16 @@ Rectangle {
                                 }
                             }
                         }
+                    }
+
+                    Repeater {
+                        id:yinpinrepeater
+                        model: yinpinmodel
+                        delegate: yinpindelegate
+                        Component.onCompleted: {
+                            yinpinplaylist.init(1)  //音频列表初始化
+                        }
+
                     }
                 }
             }
@@ -310,8 +366,14 @@ Rectangle {
                     anchors.top: parent.top
                     anchors.topMargin: 60
                     spacing: 12
-                    Repeater {
-                        model: 3
+                    ListModel{
+                        id:shipinmodel
+                        //ListElement{shipintext:"ttteeess";}
+
+                    }
+
+                    Component{
+                        id:shipindelegate
                         Item {
                             anchors.leftMargin: 15
                             anchors.left: parent.left
@@ -327,13 +389,28 @@ Rectangle {
                                 spacing: 0
                                 Text {
                                     color: "#707070"
-                                    text: '202204141315'
+                                    text: shipintext
                                     font.pixelSize: 18
                                 }
                                 Text {
                                     color: "#b6b6b6"
                                     font.pixelSize: 13
                                     text: '5:10:00'
+                                }
+
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked:
+                                {
+                                    shipinplaylist.setNowIndex(index)
+                                    shipinrepeater.currentIndex=index
+                                    console.log("点击第"+shipinrepeater.currentIndex+"个视频")
+
+
+//                                        //console.log(index)
+//                                        filesListView.currentIndex=index
+//                                        playlist.setNowIndex(index)
                                 }
                             }
                             Image {
@@ -383,6 +460,87 @@ Rectangle {
                                 }
                             }
                         }
+                    }
+                    Repeater {
+                        id:shipinrepeater
+                        anchors.fill: parent
+                        model: shipinmodel
+                        delegate: shipindelegate
+                        Component.onCompleted: {
+                            shipinplaylist.init(2)  //视频列表初始化
+                        }
+
+//                        Item {
+//                            anchors.leftMargin: 15
+//                            anchors.left: parent.left
+//                            anchors.right: parent.right
+//                            height: 40
+//                            Image {
+//                                source: "images/group_1.png"
+//                            }
+
+//                            Column {
+//                                anchors.left: parent.left
+//                                anchors.leftMargin: 62
+//                                spacing: 0
+//                                Text {
+//                                    color: "#707070"
+//                                    text: '202204141315'
+//                                    font.pixelSize: 18
+//                                }
+//                                Text {
+//                                    color: "#b6b6b6"
+//                                    font.pixelSize: 13
+//                                    text: '5:10:00'
+//                                }
+//                            }
+//                            Image {
+//                                anchors.verticalCenter: parent.verticalCenter
+//                                anchors.right: parent.right
+//                                source: "images/more(2).png"
+//                                anchors.rightMargin: 28
+//                                MouseArea {
+//                                    anchors.fill: parent
+//                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+//                                    onClicked: {
+//                                        if (mouse.button === Qt.LeftButton)
+//                                            contextMenu3.popup()
+//                                    }
+//                                    onPressAndHold: {
+//                                        if (mouse.source === Qt.MouseEventNotSynthesized)
+//                                            contextMenu3.popup()
+//                                    }
+//                                }
+//                                SubWindow {
+//                                    id: subWindow3
+//                                }
+//                                Setting1 {
+//                                    id: setting_for_video
+//                                }
+
+//                                Menu {
+//                                    id: contextMenu3
+//                                    MenuItem {
+//                                        text: '置顶'
+//                                    }
+//                                    MenuItem {
+//                                        text: '设置'
+//                                        onTriggered: {
+//                                            setting_for_video.show()
+//                                        }
+//                                    }
+//                                    MenuItem {
+//                                        text: '倒放'
+//                                    }
+//                                    MenuItem {
+//                                        text: '详细信息'
+//                                        onTriggered: {
+//                                            subWindow3.show()
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
                     }
                 }
             }
@@ -549,7 +707,7 @@ Rectangle {
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("播放")
                     onClicked: {
-                        videoShow.show("C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4","video");
+                        videoShow.show("C:\\FFOutput\\林俊杰 - 关键词.mkv","video");
                     }
                 }
             }
