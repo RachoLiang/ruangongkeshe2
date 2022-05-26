@@ -29,5 +29,25 @@ int main(int argc, char *argv[])
     }, Qt::QueuedConnection);
     engine.load(url);
 
+    //test
+    AVFormatContext *fmt_ctx = NULL;
+    const AVDictionaryEntry *tag = NULL;
+    int ret;
+
+    QString path = "C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4";
+
+    if ((ret = avformat_open_input(&fmt_ctx, path.toLatin1().data(), NULL, NULL)))
+        qDebug()<<"1";
+
+    if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0) {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find stream information\n");
+        qDebug()<<"2";
+    }
+
+    while ((tag = av_dict_get(fmt_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
+        qDebug()<<tag->key<<tag->value;
+
+    avformat_close_input(&fmt_ctx);
+
     return app.exec();
 }
