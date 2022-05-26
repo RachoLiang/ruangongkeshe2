@@ -3,6 +3,7 @@
 #include <QQuickPaintedItem>
 #include <QImage>
 #include "backend/mainDecoder.h"
+#include "backend/utils.h"
 //怎么把视频解析的decoder和video类结合起来
 
 
@@ -13,6 +14,7 @@ public:
     Q_PROPERTY(int nWidth READ getWidth WRITE setWidth NOTIFY widthChanged)
     Q_PROPERTY(int nHeight  READ getHeight WRITE setHeight NOTIFY heightChanged)
     Q_PROPERTY(QString sourPath READ getSourPath WRITE setSourPath NOTIFY sourPathChanged)
+    Q_PROPERTY(double process MEMBER m_process READ getmProcess WRITE setmProcess NOTIFY processChanged)  //当前进度条
     
     VideoShow();
     explicit VideoShow(QString path);
@@ -45,9 +47,12 @@ public:
     Q_INVOKABLE double getSpeed();
 
     //获取进度条信息
-    Q_INVOKABLE qint64 getNowProcess();
-    Q_INVOKABLE qint64 getTotalProcess();
-    Q_INVOKABLE void setProcess(double process);
+    Q_INVOKABLE qint64 getNowProcess(); //获取当前播放的微秒数
+    Q_INVOKABLE qint64 getTotalProcess();   //获取当前总时长（微秒数）
+    Q_INVOKABLE void setProcess(double process);    //设置进度，传入进度百分比
+    static int updateProcess(void* arg);  //获取当前进度（百分比）
+    Q_INVOKABLE double getmProcess()const;
+    Q_INVOKABLE void setmProcess(double);
 
     //调整进度
     Q_INVOKABLE void seekFast();
@@ -60,7 +65,13 @@ public:
     Q_INVOKABLE void cutOff();
     Q_INVOKABLE QString getCutPath();
     Q_INVOKABLE void setCutPath(QString path);
-    
+
+    //获取媒体信息
+    Q_INVOKABLE Audio* getMediaObject(QString path);
+
+    //播放状态
+    MainDecoder::PlayState getPlayState();
+
 protected:
     //绘制图片
    virtual void paint(QPainter *painter);
@@ -72,14 +83,19 @@ private:
     int nWidth; //屏幕宽
     QString sourPath;   //文件路径
     int lastVolume; //记录静音前的音量
+    double m_process;
     
 public slots:
     //获取图片的信号槽
     void slot_getOneFrame(QImage image);
+    //获取当前播放状态
+//    void slot_playStateChanged(MainDecoder::PlayState playstate);
+
 signals:
     void widthChanged(int);
     void heightChanged(int);
     void sourPathChanged(QString);
+    void processChanged(const double& newprocess);
 };
 
 #endif // VIDEOSHOW_H

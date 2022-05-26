@@ -69,4 +69,7 @@ void getMeidaInfo(QString path,Audio* audio){
         audio = new Video();
         audio->setIsvalid(false);
     }
+
+    qDebug()<<"音频信息："<<audio->getAlbumInfo()<<audio->getAudioBitRate()<<audio->getAudioType()<<audio->getType()<<audio->getFileName()<<audio->getNumberOfChannels();
+    qDebug()<<"视频信息："<<((Video*)audio)->getVideoBitRate()<<((Video*)audio)->getVideoFrameRate()<<((Video*)audio)->getVideoType();
 }

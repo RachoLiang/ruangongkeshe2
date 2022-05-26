@@ -35,33 +35,33 @@ public:
     * setXXX()
     */
 
-    const QString &getFilePath() const;
+    const QString getFilePath() const;
     void setFilePath(const QString &newFilePath);
-    const QString &getFileName() const;
+    const QString getFileName() const;
     void setFileName(const QString &newFileName);
     int getDuration() const;
     void setDuration(int newDuration);
     int getAudioBitRate() const;
     void setAudioBitRate(int newAudioBitRate);
-    const QString &getAudioType() const;
+    const QString getAudioType() const;
     void setAudioType(const QString &newAudioType);
     int getNumberOfChannels() const;
     void setNumberOfChannels(int newNumberOfChannels);
-    const QString &getAlbumInfo() const;
+    QString getAlbumInfo();
     void setAlbumInfo(const QString &newAlbumInfo);
-    const QString &getSinger() const;
+    const QString getSinger() const;
     void setSinger(const QString &newSinger);
     int getPosition() const;
-    const QDateTime &getModificationTime() const;
+    const QDateTime getModificationTime() const;
     void setModificationTime(const QDateTime &newModificationTime);
 
     void setIsvalid(bool newIsvalid);
 
-    const QString &getType() const;
+    const QString getType() const;
     void setType(const QString &newType);
-    const QImage &getAlbumImage() const;
+    const QImage getAlbumImage() const;
     void setAlbumImage(const QImage &newAlbumImage);
-    const QString &getLyrics() const;
+    const QString getLyrics() const;
     void setLyrics(const QString &newLyrics);
 
 protected:

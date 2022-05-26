@@ -619,10 +619,13 @@ int AudioDecoder::decodeAudio()
         return -1;
     }
 
+    qDebug()<<"pack数量："<<packetQueue.queueSize();
+
     if (packetQueue.queueSize() <= 0) {
         if (isreadFinished) {
             isStop = true;
             SDL_Delay(100);
+            qDebug()<<"播放结束了";
             emit playFinished();
         }
         return -1;
@@ -685,7 +688,8 @@ int AudioDecoder::decodeAudio()
 
         //记录播放时长
         nowTime = frame->best_effort_timestamp * av_q2d(stream->time_base) * AV_TIME_BASE;
-
+        qDebug()<<"音频-播放时长："<<nowTime;
+        qDebug()<<"总时长："<<totalTime;
 
     }
 
@@ -730,8 +734,10 @@ int AudioDecoder::decodeAudio()
         audioSrcChannels        = frame->channels;
     }
 
+
     if (aCovertCtx) {
         //qDebug()<<"进入重采样！！";
+        qDebug()<<"我来了";
         const quint8 **in   = (const quint8 **)frame->extended_data;
         uint8_t *out[] = {audioBuf1};
 

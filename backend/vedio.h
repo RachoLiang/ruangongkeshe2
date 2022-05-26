@@ -19,7 +19,7 @@ public:
     void setVideoBitRate(int newVideoBitRate);
     int getVideoFrameRate() const;
     void setVideoFrameRate(int newVideoFrameRate);
-    const QString &getVideoType() const;
+    const QString getVideoType() const;
     void setVideoType(const QString &newVideoType);
     int getResolvingPower() const;
     void setResolvingPower(int newResolvingPower);

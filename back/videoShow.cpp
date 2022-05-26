@@ -38,9 +38,19 @@ QString VideoShow::getSourPath(){
     return sourPath;
 }
 
+//获取资源的媒体信息
+Audio* VideoShow::getMediaObject(QString path){
+    Audio* audio = nullptr;
+    qDebug()<<"解析的路径:"<<path;
+    getMeidaInfo(path,audio);
+    qDebug()<<"解析完毕！";
+    return audio;
+}
+
 //构造函数
 VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     sourPath = path;
+    m_process = 0.0;
     qDebug()<<"创建了VideoShow对象";
     maindecoder = new MainDecoder();
     maindecoder->setCurrentFile(path);
@@ -54,15 +64,11 @@ VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
 VideoShow::VideoShow():nWidth(200),nHeight(400){
     //参数初始化
     lastVolume = 0;
+    m_process = 0.0;
 
     maindecoder = new MainDecoder();
-    //sourPath = "C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4";
-    //maindecoder->setCurrentFile(sourPath);
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
-    //发信号给解析器解析视频
-    //maindecoder->decoderFile(sourPath,"video");
-//    image.load("D:\\mediaPicture\\0.png");
 }
 
 //析构函数
@@ -194,9 +200,71 @@ qint64 VideoShow::getTotalProcess(){
     }
 }
 
+double VideoShow::getmProcess()const{
+    return m_process;
+}
+
+void VideoShow::setmProcess(double process){
+    this->m_process = process;
+    emit processChanged(process);
+}
+
+
+//线程体
+//更新实时的进度条百分比
+int VideoShow::updateProcess(void *arg){
+    //获取当前的videoShow对象
+    VideoShow* videoShow = (VideoShow*)arg;
+
+    //进入循环
+    while (true){
+        MainDecoder::PlayState state = videoShow->getPlayState();
+        if(state == MainDecoder::STOP){
+            qDebug()<<"当前状态是Stop";
+//            break;
+            SDL_Delay(100);
+            continue;
+        }
+
+        //当Pause状态时，暂停更新
+        if(state == MainDecoder::PAUSE){
+            qDebug()<<"当前状态是暂停";
+            SDL_Delay(100);
+            continue;
+        }
+
+        //播放状态
+        if(state == MainDecoder::PLAYING){
+            qDebug()<<"当前状态是播放";
+            double nowtime = videoShow->getNowProcess();
+            double totaltime = videoShow->getTotalProcess();
+            double x = nowtime / totaltime;
+            qDebug()<<x*100;
+            videoShow->setmProcess(x);
+        }
+
+        //播放完成状态
+        if(state == MainDecoder::FINISH){
+            videoShow->setmProcess(1.0);
+        }
+    }
+
+    return 0;
+}
+
+//获取播放状态
+MainDecoder::PlayState VideoShow::getPlayState(){
+    if (maindecoder){
+        return maindecoder->getPlayState();
+    }
+}
+
 //播放
 void VideoShow::show(QString path, QString type){
+    sourPath = path;
     maindecoder->decoderFile(path,type);
+    //暂时：启动进度条监测
+     SDL_CreateThread(&VideoShow::updateProcess, "update_process", this);
 }
 
 //截图功能

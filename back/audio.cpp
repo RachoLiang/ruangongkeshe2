@@ -134,7 +134,7 @@ QMediaPlayer* Audio::getPlayer(){
     return this->player;
 }
 
-const QString &Audio::getFilePath() const
+const QString Audio::getFilePath() const
 {
     return filePath;
 }
@@ -144,7 +144,7 @@ void Audio::setFilePath(const QString &newFilePath)
     filePath = newFilePath;
 }
 
-const QString &Audio::getFileName() const
+const QString Audio::getFileName() const
 {
     return fileName;
 }
@@ -174,7 +174,7 @@ void Audio::setAudioBitRate(int newAudioBitRate)
     audioBitRate = newAudioBitRate;
 }
 
-const QString &Audio::getAudioType() const
+const QString Audio::getAudioType() const
 {
     return audioType;
 }
@@ -194,7 +194,7 @@ void Audio::setNumberOfChannels(int newNumberOfChannels)
     numberOfChannels = newNumberOfChannels;
 }
 
-const QString &Audio::getAlbumInfo() const
+QString Audio::getAlbumInfo()
 {
     return albumInfo;
 }
@@ -204,7 +204,7 @@ void Audio::setAlbumInfo(const QString &newAlbumInfo)
     albumInfo = newAlbumInfo;
 }
 
-const QString &Audio::getSinger() const
+const QString Audio::getSinger() const
 {
     return singer;
 }
@@ -219,7 +219,7 @@ int Audio::getPosition() const
     return position;
 }
 
-const QDateTime &Audio::getModificationTime() const
+const QDateTime Audio::getModificationTime() const
 {
     return modificationTime;
 }
@@ -234,7 +234,7 @@ void Audio::setIsvalid(bool newIsvalid)
     isvalid = newIsvalid;
 }
 
-const QString &Audio::getType() const
+const QString Audio::getType() const
 {
     return type;
 }
@@ -244,7 +244,7 @@ void Audio::setType(const QString &newType)
     type = newType;
 }
 
-const QImage &Audio::getAlbumImage() const
+const QImage Audio::getAlbumImage() const
 {
     return albumImage;
 }
@@ -254,7 +254,7 @@ void Audio::setAlbumImage(const QImage &newAlbumImage)
     albumImage = newAlbumImage;
 }
 
-const QString &Audio::getLyrics() const
+const QString Audio::getLyrics() const
 {
     return lyrics;
 }

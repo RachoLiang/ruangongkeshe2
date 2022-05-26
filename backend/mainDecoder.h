@@ -57,6 +57,7 @@ public:
     qint64 getNowTime();    //获取当前播放时长
     QString getCutPath();   //获取当前截图路径
     void setCutPath(QString cutPath);   //设置当前截图路径
+    PlayState getPlayState();   //获取当前播放状态
 
     int keyNum;
 

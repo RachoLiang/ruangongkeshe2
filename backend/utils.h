@@ -18,7 +18,7 @@ QString getNameByTime(QString filename);
 QString getNowTimeStr();
 
 //获取视频媒体类型信息
-void getMeidaInfo(QString path,Audio audio);
+void getMeidaInfo(QString path,Audio* audio);
 
 
 #endif // UTILS_H

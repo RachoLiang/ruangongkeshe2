@@ -27,7 +27,7 @@ void Video::setVideoFrameRate(int newVideoFrameRate)
     videoFrameRate = newVideoFrameRate;
 }
 
-const QString &Video::getVideoType() const
+const QString Video::getVideoType() const
 {
     return videoType;
 }

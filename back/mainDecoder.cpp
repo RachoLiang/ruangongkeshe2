@@ -205,8 +205,9 @@ void MainDecoder::decoderFile(QString file, QString type)
 void MainDecoder::audioFinished()
 {
     isStop = true;
+    qDebug()<<"音频播放结束！";
     if (currentType == "music") {
-        SDL_Delay(100);
+        SDL_Delay(100);  
         emit playStateChanged(MainDecoder::FINISH);
     }
 }
@@ -221,6 +222,7 @@ void MainDecoder::stopVideo()
     gotStop = true;
     isStop  = true;
     audioDecoder->stopAudio();
+    qDebug()<<"调用了stopAudio";
 
     if (currentType == "video") {
         /* wait for decoding & reading stop */
@@ -333,6 +335,10 @@ double MainDecoder::getCurrentTime()
     return 0;
 }
 
+MainDecoder::PlayState MainDecoder::getPlayState(){
+    return playState;
+}
+
 void MainDecoder::seekProgress(double pos)
 {
     if (!isSeek) {
@@ -375,7 +381,6 @@ double MainDecoder::synchronize(AVFrame *frame, double pts)
 
 int MainDecoder::videoThread(void *arg)
 {
-    double temp = 0;
     int ret;
     double pts;
     AVPacket packet;
@@ -388,6 +393,7 @@ int MainDecoder::videoThread(void *arg)
     double start_time = av_gettime() / 1000000.0; //从第一帧开始的绝对时间
 
     while (true) {
+        qDebug()<<decoder->isStop;
         if (decoder->isStop) {
             break;
         }
@@ -445,15 +451,13 @@ int MainDecoder::videoThread(void *arg)
         if ((pts = pFrame->pts) == AV_NOPTS_VALUE) {
                 pts = 0;
         }
-        /// 音视频同步:关键
+        // 音视频同步:关键
         double play = pts * av_q2d(decoder->videoStream->time_base);
         //纠正时间
         play = decoder->synchronize(pFrame,play);
 
 
-
         if (decoder->audioIndex >= 0) {
-
               double delay = play - last_play;
               if(delay <=0 || delay >1){
                   delay = last_delay;
@@ -465,8 +469,6 @@ int MainDecoder::videoThread(void *arg)
 
               //音频和视频的时间差
               double diff = decoder->videoClk - audioClk;
-//              qDebug()<<"音频时钟："<<audioClk;
-//              qDebug()<<"视频时钟："<<decoder->videoClk;
 
               //判断是否在合理范围
               double sync_threshold = (delay>0.01?0.01:delay);
@@ -743,12 +745,12 @@ seek:
             }
 
             while (true) {
-                    qDebug()<<"进入while循环";
+//                    qDebug()<<"进入while循环";
 
                     /* judge haven't reall all frame */
                     if (av_read_frame(pFormatCtx, packet) < 0){
-                        qDebug()<<"nowTime:"<<audioDecoder->nowTime;
-                        qDebug()<<"totalTime:"<<audioDecoder->totalTime;
+//                        qDebug()<<"nowTime:"<<audioDecoder->nowTime;
+//                        qDebug()<<"totalTime:"<<audioDecoder->totalTime;
                         if(nowTime + 0.5 * AV_TIME_BASE >= audioDecoder->totalTime){
                             qDebug() << "Read file completed.";
                             isReadFinished = true;
@@ -762,8 +764,8 @@ seek:
                         //记录当前帧时间
                         qint64 frameTime = packet->pts * av_q2d(pFormatCtx->streams[seekIndex]->time_base) * AV_TIME_BASE;
 
-                        qDebug()<<"seekPos_mil:"<<seekPos_mil;
-                        qDebug()<<"frameTime:"<<frameTime;
+//                        qDebug()<<"seekPos_mil:"<<seekPos_mil;
+//                        qDebug()<<"frameTime:"<<frameTime;
 
                         //如果当前帧时间小于seekTime，则不解码
                         if(seekPos_mil > frameTime ){
@@ -793,8 +795,8 @@ seek:
 
             /* judge haven't reall all frame */
             if (av_read_frame(pFormatCtx, packet) < 0){
-                qDebug()<<"nowTime:"<<audioDecoder->nowTime;
-                qDebug()<<"totalTime:"<<audioDecoder->totalTime;
+//                qDebug()<<"nowTime:"<<audioDecoder->nowTime;
+//                qDebug()<<"totalTime:"<<audioDecoder->totalTime;
                 if(nowTime + 0.5 * AV_TIME_BASE >= audioDecoder->totalTime){
                     qDebug() << "Read file completed.";
                     isReadFinished = true;
