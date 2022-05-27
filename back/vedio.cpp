@@ -1,4 +1,4 @@
-#include "backend/vedio.h"
+﻿#include "backend/vedio.h"
 
 
 void Video::setVideoOutput(QVideoWidget* output){
@@ -7,42 +7,33 @@ void Video::setVideoOutput(QVideoWidget* output){
     }
 }
 
-int Video::getVideoBitRate() const
+QString Video::getVideoBitRate() const
 {
     return videoBitRate;
 }
 
-void Video::setVideoBitRate(int newVideoBitRate)
+void Video::setVideoBitRate(QString newVideoBitRate)
 {
     videoBitRate = newVideoBitRate;
 }
 
-int Video::getVideoFrameRate() const
+QString Video::getVideoFrameRate() const
 {
     return videoFrameRate;
 }
 
-void Video::setVideoFrameRate(int newVideoFrameRate)
+void Video::setVideoFrameRate(QString newVideoFrameRate)
 {
     videoFrameRate = newVideoFrameRate;
 }
 
-const QString Video::getVideoType() const
-{
-    return videoType;
-}
 
-void Video::setVideoType(const QString &newVideoType)
-{
-    videoType = newVideoType;
-}
-
-int Video::getResolvingPower() const
+QString Video::getResolvingPower() const
 {
     return resolvingPower;
 }
 
-void Video::setResolvingPower(int newResolvingPower)
+void Video::setResolvingPower(QString newResolvingPower)
 {
     resolvingPower = newResolvingPower;
 }
@@ -54,4 +45,5 @@ Video::Video(QString vedioPath):Audio(vedioPath)
     isValid();
     //加载文件
     //初始化媒体信息
+    this->resolvingPower = "";
 }

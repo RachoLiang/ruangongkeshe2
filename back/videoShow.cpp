@@ -38,14 +38,14 @@ QString VideoShow::getSourPath(){
     return sourPath;
 }
 
-//获取资源的媒体信息
-Audio* VideoShow::getMediaObject(QString path){
-    Audio* audio = nullptr;
-    qDebug()<<"解析的路径:"<<path;
-    getMeidaInfo(path,audio);
-    qDebug()<<"解析完毕！";
-    return audio;
-}
+////获取资源的媒体信息
+//Audio* VideoShow::getMediaObject(QString path){
+//    Audio* audio = nullptr;
+//    qDebug()<<"解析的路径:"<<path;
+//    getMeidaInfo(path,audio);
+//    qDebug()<<"解析完毕！";
+//    return audio;
+//}
 
 //构造函数
 VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
@@ -240,8 +240,8 @@ int VideoShow::updateProcess(void *arg){
             double totaltime = videoShow->getTotalProcess();
             double x = nowtime / totaltime;
             //qDebug()<<x*100;
-            SDL_Delay(100);
             videoShow->setmProcess(x);
+            SDL_Delay(500);
         }
 
         //播放完成状态

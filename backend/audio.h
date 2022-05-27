@@ -1,4 +1,4 @@
-#ifndef AUDIO_H
+﻿#ifndef AUDIO_H
 #define AUDIO_H
 
 #include <QMediaPlayer>
@@ -41,12 +41,14 @@ public:
     void setFileName(const QString &newFileName);
     int getDuration() const;
     void setDuration(int newDuration);
-    int getAudioBitRate() const;
-    void setAudioBitRate(int newAudioBitRate);
-    const QString getAudioType() const;
-    void setAudioType(const QString &newAudioType);
+    QString getAudioBitRate() const;
+    void setAudioBitRate(QString newAudioBitRate);
+    QString getMediaType() const;
+    void setMediaType(QString type);
     int getNumberOfChannels() const;
     void setNumberOfChannels(int newNumberOfChannels);
+    QString getSampleRate() const;
+    void setSampleRate(QString rate);
     QString getAlbumInfo();
     void setAlbumInfo(const QString &newAlbumInfo);
     const QString getSinger() const;
@@ -73,11 +75,12 @@ private:
     QString filePath;  //文件路径
     QString fileName;  //文件名
     QString type;   //music|video
+    QString mediaType;  //详细的媒体类型，比如mp4
     //媒体信息
     int duration;   //音频|音视频时间长度
-    int audioBitRate;   //音频码率
-    QString audioType;  //音频类型
+    QString audioBitRate;   //音频码率
     int numberOfChannels;  //声道数
+    QString sample_rate;
     QString albumInfo; //专辑信息
     QString singer;  //演唱者
     QImage albumImage;  //专辑图片
