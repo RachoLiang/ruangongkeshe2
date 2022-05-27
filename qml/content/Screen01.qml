@@ -39,12 +39,10 @@ Rectangle {
         {
             yinpinmodel.append({yinpintext:audioPath})
         }
-
-//        onAddFileInGUI:function(filePath) //在PlayList.h中定义的信号void addFileInGUI(QString filePath);
-//        {
-//            //listviewmodel.append({Path:filePath})  //给ListViewModel起了个id，以便在此处对其操作
-//            yinpinmodel.append({yinpintext:filePath})
-//        }
+        onShowAudio: function(audioPath)
+        {
+            videoShow.show(audioPath,"audio");
+        }
 //        onChangeCurrentPlayingIndex: function(index)  //改变列表中的高亮条目
 //        {
 //            filesListView.currentIndex=index
@@ -164,7 +162,7 @@ Rectangle {
             Item {
                 id: yinpin
                 width: parent.width
-                property int count: 2
+                property int count: 3
                 height: 60 + count * (40 + 12) - 12
                 clip: true
                 Behavior on height {
@@ -218,18 +216,25 @@ Rectangle {
                         }
                     }
                 }
-                Column {
+                Frame {
+                    id: yinpinframe
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
                     anchors.topMargin: 60
                     spacing: 12
+                    height: 10000
+                    clip: true
+                    anchors.fill: parent
                     ListModel{
                         id:yinpinmodel
-                        //ListElement{yinpintext:"ttteee";}
+
+
                     }
+
                     Component{
                         id:yinpindelegate
+
                         Item {
                             anchors.leftMargin: 15
                             anchors.left: parent.left
@@ -238,14 +243,23 @@ Rectangle {
                             Column {
                                 spacing: 0
                                 Text {
-                                    color: "#707070"
+                                    color: yinpinlistview.currentIndex==index?"red":"#707070"
                                     text: yinpintext
-                                    font.pixelSize: 18
+                                    font.pixelSize: yinpinlistview.currentIndex==index?18:15
                                 }
                                 Text {
                                     color: "#b6b6b6"
-                                    font.pixelSize: 13
+                                    font.pixelSize: 11
                                     text: 'Red Velvet'
+                                }
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked:
+                                {
+                                    yinpinplaylist.setNowIndex(index)
+                                    yinpinlistview.currentIndex=index
+                                    console.log("点击第"+yinpinlistview.currentIndex+"个音频")
                                 }
                             }
                             Image {
@@ -293,17 +307,29 @@ Rectangle {
                             }
                         }
                     }
-
-                    Repeater {
-                        id:yinpinrepeater
+                    ListView {
+                        id:yinpinlistview
+                        parent:yinpinframe
+                        anchors.fill: parent
                         model: yinpinmodel
                         delegate: yinpindelegate
                         Component.onCompleted: {
-                            yinpinplaylist.init(1)  //音频列表初始化
+                            yinpinplaylist.init(1)  //视频列表初始化
+                        }
+                        ScrollBar.vertical: ScrollBar {
+                            parent: yinpinframe
+                            policy: ScrollBar.AlwaysOn
+                            anchors.top: parent.top
+                            anchors.topMargin: yinpinframe.topPadding
+                            anchors.right: parent.right
+                            anchors.rightMargin: 1
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: yinpinframe.bottomPadding
                         }
 
                     }
                 }
+
             }
             Item {
                 id: shipin
@@ -373,24 +399,7 @@ Rectangle {
 
                     anchors.fill: parent
 
-                    //leftPadding: 1
-                    //rightPadding: 1
 
-                    //Layout.fillWidth: true
-                    //Layout.fillHeight: true
-//                    Column {
-//                        id:shipincolumn
-//                        anchors.left: parent.left
-//                        anchors.right: parent.right
-//                        anchors.top: parent.top
-//                        anchors.topMargin: 0
-//                        anchors.fill: parent
-//                        //Layout.fillWidth: true
-//                        //Layout.fillHeight: true
-//                        spacing: 12
-
-
-//                    }
                     ListModel{
                         id:shipinmodel
                         //ListElement{shipintext:"ttteeess";}
@@ -399,8 +408,10 @@ Rectangle {
 
                     Component{
                         id:shipindelegate
+
                         Item {
                             anchors.leftMargin: 15
+                            //anchors.topMargin: 10
                             anchors.left: parent.left
                             anchors.right: parent.right
                             height: 40
@@ -412,14 +423,18 @@ Rectangle {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 62
                                 spacing: 0
+
+
                                 Text {
-                                    color: "#707070"
+                                    color: shipinlistview.currentIndex==index?"red":"#707070"
                                     text: shipintext
-                                    font.pixelSize: 18
+                                    font.pixelSize: shipinlistview.currentIndex==index?18:15
+
+
                                 }
                                 Text {
                                     color: "#b6b6b6"
-                                    font.pixelSize: 13
+                                    font.pixelSize: 11
                                     text: '5:10:00'
                                 }
 
@@ -429,13 +444,9 @@ Rectangle {
                                 onClicked:
                                 {
                                     shipinplaylist.setNowIndex(index)
-                                    shipinrepeater.currentIndex=index
-                                    console.log("点击第"+shipinrepeater.currentIndex+"个视频")
+                                    shipinlistview.currentIndex=index
+                                    console.log("点击第"+shipinlistview.currentIndex+"个视频")
 
-
-//                                        //console.log(index)
-//                                        filesListView.currentIndex=index
-//                                        playlist.setNowIndex(index)
                                 }
                             }
                             Image {
@@ -487,7 +498,7 @@ Rectangle {
                         }
                     }
                     ListView {
-                        id:shipinrepeater
+                        id:shipinlistview
                         parent:shipinframe
                         anchors.fill: parent
                         model: shipinmodel
@@ -495,18 +506,19 @@ Rectangle {
                         Component.onCompleted: {
                             shipinplaylist.init(2)  //视频列表初始化
                         }
+                        ScrollBar.vertical: ScrollBar {
+                            parent: shipinframe
+                            policy: ScrollBar.AlwaysOn
+                            anchors.top: parent.top
+                            anchors.topMargin: shipinframe.topPadding
+                            anchors.right: parent.right
+                            anchors.rightMargin: 1
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: shipinframe.bottomPadding
+                        }
 
                     }
-                    ScrollBar.vertical: ScrollBar {
-                        parent: shipinframe
-                        policy: ScrollBar.AlwaysOn
-                        anchors.top: parent.top
-                        anchors.topMargin: shipinframe.topPadding
-                        anchors.right: parent.right
-                        anchors.rightMargin: 1
-                        anchors.bottom: parent.bottom
-                        anchors.bottomMargin: shipinframe.bottomPadding
-                    }
+
                 }
 
             }

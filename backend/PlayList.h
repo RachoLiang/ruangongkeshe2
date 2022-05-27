@@ -68,5 +68,6 @@ signals: //信号只需要定义，不需要实现
     void changeCurrentPlayingIndex(int index);
     void changePlayModeButtonIcon(QString iconName);
     void showVideo(QString videoPath);
+    void showAudio(QString audioPath);
 };
 #endif // PLAYLIST_H
