@@ -563,6 +563,7 @@ void AudioDecoder::audioCallback(void *userdata, quint8 *stream, int SDL_AudioBu
      */
     while (SDL_AudioBufSize > 0) {
         if (decoder->isStop) {
+            qDebug()<<"音频回调函数：stop返回";
             return ;
         }
 
@@ -616,6 +617,7 @@ int AudioDecoder::decodeAudio()
     }
 
     if (isStop) {
+        qDebug()<<"音频解码:stop返回";
         return -1;
     }
 
@@ -773,4 +775,10 @@ int AudioDecoder::decodeAudio()
     av_frame_free(&frame);
 
     return resampledDataSize;
+}
+
+AVRational AudioDecoder::getTimeBase(){
+    if(codecCtx){
+        return codecCtx->time_base;
+    }
 }

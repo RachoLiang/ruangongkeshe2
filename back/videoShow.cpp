@@ -38,14 +38,14 @@ QString VideoShow::getSourPath(){
     return sourPath;
 }
 
-//获取资源的媒体信息
-Audio* VideoShow::getMediaObject(QString path){
-    Audio* audio = nullptr;
-    qDebug()<<"解析的路径:"<<path;
-    getMeidaInfo(path,audio);
-    qDebug()<<"解析完毕！";
-    return audio;
-}
+////获取资源的媒体信息
+//Audio* VideoShow::getMediaObject(QString path){
+//    Audio* audio = nullptr;
+//    qDebug()<<"解析的路径:"<<path;
+//    getMeidaInfo(path,audio);
+//    qDebug()<<"解析完毕！";
+//    return audio;
+//}
 
 //构造函数
 VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
@@ -283,17 +283,20 @@ int VideoShow::updateProcess(void *arg){
 
         //播放状态
         if(state == MainDecoder::PLAYING){
-//            qDebug()<<"当前状态是播放";
             double nowtime = videoShow->getNowProcess();
-            if(nowtime - last_time > 30 * 1000 * 1000){
-                SDL_Delay(50);
-//                qDebug()<<"lastTime:"<<last_time/1000000;
-//                qDebug()<<"nowtime:"<<nowtime / 1000000;
+//            if(nowtime - last_time >  * 1000 * 1000){
+//                SDL_Delay(50);
+//                continue;
+//            }else{
+//                if(nowtime>0){
+//                    last_time = nowtime;
+//                }
+//            }
+            if(nowtime <= 0){
+                SDL_Delay(100);
                 continue;
-            }else{
-                if(nowtime>0){
-                    last_time = nowtime;
-                }
+            }else {
+                last_time = nowtime;
             }
             double totaltime = videoShow->getTotalProcess();
             double x = nowtime / totaltime;
@@ -344,10 +347,13 @@ void VideoShow::slot_setPlayState(MainDecoder::PlayState playState){
 
 //播放
 void VideoShow::show(QString path, QString type){
+    //清空上次播放的缓存
+    maindecoder->stopVideo();
+    qDebug()<<"stop之后";
     sourPath = path;
     maindecoder->decoderFile(path,type);
     //暂时：启动进度条监测
-     SDL_CreateThread(&VideoShow::updateProcess, "update_process", this);
+    SDL_CreateThread(&VideoShow::updateProcess, "update_process", this);
 }
 
 //截图功能

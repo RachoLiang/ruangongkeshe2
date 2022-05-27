@@ -15,6 +15,7 @@ MainDecoder::MainDecoder() :
     filterGraph(NULL),
     seekTime(5 * AV_TIME_BASE),
     seekFrames(5),
+    seekPos(0),
     seekType(AVSEEK_FLAG_BACKWARD),
     keyNum(0),
     contrast(1),
@@ -204,6 +205,7 @@ void MainDecoder::decoderFile(QString file, QString type)
     currentFile = file;
     currentType = type;
 
+
     qDebug()<<"开始解码："<<file;
     this->start();
 }
@@ -388,6 +390,8 @@ double MainDecoder::synchronize(AVFrame *frame, double pts)
 
 int MainDecoder::videoThread(void *arg)
 {
+
+    qDebug()<<"进入解码线程---------";
     int ret;
     double pts;
     AVPacket packet;
@@ -687,8 +691,11 @@ fast:
         if (isFast) {
             qDebug()<<"真正快进";
             //计算当前应该跳转的位置,并执行后面的seek代码
-
-            seekPos = audioDecoder->nowTime + seekFrames * av_q2d(pCodecCtx->time_base) * AV_TIME_BASE;
+            if(currentType == "video"){
+                seekPos = audioDecoder->nowTime + seekFrames * av_q2d(pCodecCtx->time_base) * AV_TIME_BASE;
+            }else {
+                seekPos = audioDecoder->nowTime + seekFrames * av_q2d(audioDecoder->getTimeBase()) * AV_TIME_BASE;
+            }
             qDebug()<<"快进前时间："<<audioDecoder->nowTime;
             qDebug()<<"快进后时间："<<seekPos;
 
@@ -698,7 +705,6 @@ fast:
             //参数设置
             isFast = false;
             isSeek = true;
-//            seekType = AVSEEK_FLAG_FRAME;
             seekType = AVSEEK_FLAG_BACKWARD;
         }
 
@@ -851,6 +857,7 @@ seek:
 fail:
     /* close audio device */
     if (audioIndex >= 0) {
+        qDebug()<<"释放音频上下文";
         audioDecoder->closeAudio();
     }
 
@@ -864,7 +871,6 @@ fail:
     avformat_free_context(pFormatCtx);
 
     isReadFinished = true;
-    qDebug()<<"stop了";
 
     if (currentType == "music") {
         setPlayState(MainDecoder::STOP);

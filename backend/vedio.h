@@ -1,4 +1,4 @@
-#ifndef VEDIO_H
+﻿#ifndef VEDIO_H
 #define VEDIO_H
 
 #include <QMediaPlayer>
@@ -15,22 +15,19 @@ public:
     void play();
     void pause();
     void adjustProgress(int);
-    int getVideoBitRate() const;
-    void setVideoBitRate(int newVideoBitRate);
-    int getVideoFrameRate() const;
-    void setVideoFrameRate(int newVideoFrameRate);
-    const QString getVideoType() const;
-    void setVideoType(const QString &newVideoType);
-    int getResolvingPower() const;
-    void setResolvingPower(int newResolvingPower);
+    QString getVideoBitRate() const;
+    void setVideoBitRate(QString newVideoBitRate);
+    QString getVideoFrameRate() const;
+    void setVideoFrameRate(QString newVideoFrameRate);
+    QString getResolvingPower() const;
+    void setResolvingPower(QString newResolvingPower);
 
 private:
     //QMediaPlayer* player;
     QVideoSink* sink;
-    int videoBitRate;     //视频码率
-    int videoFrameRate;   //视频帧率
-    QString videoType;    //视频类型
-    int resolvingPower;   //分辨率
+    QString videoBitRate;     //视频码率  xxxkbps 千位/s
+    QString videoFrameRate;   //视频帧率  xxxfps
+    QString resolvingPower;   //分辨率   1920x1080
 
 };
 

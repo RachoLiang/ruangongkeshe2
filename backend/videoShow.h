@@ -79,7 +79,7 @@ public:
     Q_INVOKABLE void setCutPath(QString path);
 
     //获取媒体信息
-    Q_INVOKABLE Audio* getMediaObject(QString path);
+    //Q_INVOKABLE Audio* getMediaObject(QString path);
 
     //播放状态
     Q_INVOKABLE MainDecoder::PlayState getPlayState();
