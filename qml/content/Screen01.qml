@@ -24,6 +24,7 @@ Rectangle {
     property real multiplierH: (window.height/640)*1000;
     property real multiplierW: (window.width/360)*1000;
 
+    property bool nowIsPlayingAudio: true    //记录当前正在播放的是音频还是视频，从而知道该操作哪个列表
     function dpH(numbers) {
        return numbers*multiplierH/10000;
     }
@@ -43,25 +44,33 @@ Rectangle {
         {
             videoShow.show(audioPath,"music");
         }
+        onChangePlayModeButtonIcon: function(iconName) //改变播放模式按钮图片
+        {
+            playmodeimage.source=iconName
+        }
+        onChangeCurrentPlayingIndex: function(index) //改变列表中的高亮条目
+        {
+            yinpinlistview.currentIndex=index
+        }
+
 //        onChangeCurrentPlayingIndex: function(index)  //改变列表中的高亮条目
 //        {
 //            filesListView.currentIndex=index
-//        }
-//        onChangePlayModeButtonIcon: function(iconName)
-//        {
-//            playModeButton.icon.name=iconName
 //        }
     }
     PlayList{
         id:shipinplaylist;
         onAddVideoFileInGUI:function(videoPath)
         {
-            //shipin.count+=1
             shipinmodel.append({shipintext:videoPath})
         }
         onShowVideo:function(videoPath)
         {
             videoShow.show(videoPath,"video")
+        }
+        onChangeCurrentPlayingIndex: function(index) //改变列表中的高亮条目
+        {
+            shipinlistview.currentIndex=index
         }
     }
 
@@ -259,6 +268,7 @@ Rectangle {
                                 {
                                     yinpinplaylist.setNowIndex(index)
                                     yinpinlistview.currentIndex=index
+                                    nowIsPlayingAudio=true
                                     console.log("点击第"+yinpinlistview.currentIndex+"个音频")
                                 }
                             }
@@ -282,18 +292,18 @@ Rectangle {
                                 SubWindow {
                                     id: subWindow
                                     //基本属性
-                                    fileName: shipinplaylist.getMediaInfo(index,"video","fileName")
-                                    fileType: shipinplaylist.getMediaInfo(index,"video","fileType")
-                                    path: shipinplaylist.getMediaInfo(index,"video","path")
-                                    totalTime: shipinplaylist.getMediaInfo(index,"video","totalTime")
+                                    fileName: yinpinplaylist.getMediaInfo(index,"music","fileName")
+                                    fileType: yinpinplaylist.getMediaInfo(index,"music","fileType")
+                                    path: yinpinplaylist.getMediaInfo(index,"music","path")
+                                    totalTime: yinpinplaylist.getMediaInfo(index,"music","totalTime")
                                     //视频属性
                                     videoBitRate: "非视频类型"
                                     videoFrameRate: "非视频类型"
                                     resolvingPower: "非视频类型"
                                     //音频属性
-                                    audioBitRate: shipinplaylist.getMediaInfo(index,"video","audioBitRate")
-                                    numberOfChannels: shipinplaylist.getMediaInfo(index,"video","numberOfChannels")
-                                    sample_rate: shipinplaylist.getMediaInfo(index,"video","sample_rate")
+                                    audioBitRate: yinpinplaylist.getMediaInfo(index,"music","audioBitRate")
+                                    numberOfChannels: yinpinplaylist.getMediaInfo(index,"music","numberOfChannels")
+                                    sample_rate: yinpinplaylist.getMediaInfo(index,"music","sample_rate")
                                 }
                                 Setting1 {
                                     id: setting_for_music
@@ -458,6 +468,7 @@ Rectangle {
                                 {
                                     shipinplaylist.setNowIndex(index)
                                     shipinlistview.currentIndex=index
+                                    nowIsPlayingAudio=false
                                     console.log("点击第"+shipinlistview.currentIndex+"个视频")
 
                                 }
@@ -687,6 +698,14 @@ Rectangle {
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("上一集")
+                    onClicked: {
+                        if(nowIsPlayingAudio){
+                            yinpinplaylist.playLastMedia()
+                        }
+                        else{
+                            shipinplaylist.playLastMedia()
+                        }
+                    }
                 }
             }
             Image {
@@ -742,6 +761,15 @@ Rectangle {
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("下一集")
+                    onClicked: {
+                        if(nowIsPlayingAudio){
+                            yinpinplaylist.playNextMedia()
+                        }
+                        else{
+                            shipinplaylist.playNextMedia()
+                        }
+
+                    }
                 }
             }
             Text {
@@ -846,7 +874,6 @@ Rectangle {
                 property: "text"
                 value: videoShow.rightTime
             }
-
             Text {
                 id: rightTime
                 color: "#ffffff"
@@ -864,6 +891,20 @@ Rectangle {
                     anchors.fill: parent
                     onClicked: {
 
+                    }
+                }
+            }
+            Image {
+                id:playmodeimage
+                source: "images/singlePlay.png"
+                RoundButton {
+                    anchors.fill: parent
+                    flat: true
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("改变播放模式")
+                    onClicked: {
+                        yinpinplaylist.changePlayMode()
+                        shipinplaylist.changePlayMode()
                     }
                 }
             }

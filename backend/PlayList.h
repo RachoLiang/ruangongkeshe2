@@ -54,6 +54,7 @@ public:
     Q_INVOKABLE void setNowIndex(int index);  //用户点击某个媒体时，更新当前播放序号，并播放该媒体
     Q_INVOKABLE void playNextMedia();    //点击下一首，根据播放模式获取下一首的文件路径，并播放
     Q_INVOKABLE void playLastMedia();    //点击上一首
+    Q_INVOKABLE void autoPlayNextMedia();    //在当前曲目播放完成后调用，自动播放下一首，根据播放模式获取下一首的文件路径，并播放
     Q_INVOKABLE void changePlayMode();   //点击播放模式按钮
 
     //QString nowPlayingFilePath();
