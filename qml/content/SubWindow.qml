@@ -1,4 +1,4 @@
-
+﻿
 
 /*
 This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
@@ -13,13 +13,26 @@ import QtQuick.Layouts 1.15
 Window {
     width: 260
     height: 380
+    property string fileName: "未知文件名"
+    property string fileType: "未知类型"
+    property string path: "未知路径"
+    property string totalTime: "未获取到具体时间"
+    property string videoBitRate: "0kbps"
+    property string videoFrameRate: "0fps"
+    property string resolvingPower: "未识别到分辨率"
+
+    property string audioBitRate: "0kbps"
+    property string numberOfChannels: "未获取到声道数"
+    property string sample_rate: "未识别到采样率"
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
         anchors.rightMargin: 12
         anchors.leftMargin: 12
         Text {
-            text: '名称.mp3'
+            //text: '名称.mp3'
+            text:fileName
             font.pixelSize: 18
         }
         Rectangle {
@@ -36,26 +49,31 @@ Window {
 
         Text {
             Layout.leftMargin: 12
-            text: '文件类型：\t mp3'
+            text: '文件类型：\t '+fileType
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '文件大小：\t 200.01MB'
+            text: '文件位置：\t '+path
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '文件位置：\t C:/Desktop/test'
+            text: '时长：\t ' + totalTime + "s"
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '文件码率：\t 500fp'
+            text: '视频分辨率：\t '+ resolvingPower
+        }
+
+        Text {
+            Layout.leftMargin: 12
+            text: '视频码率：\t '+ videoBitRate
         }
         Text {
             Layout.leftMargin: 12
-            text: '文件时长：\t 3分15秒'
+            text: '视频帧率：\t '+ videoFrameRate
         }
         //        Repeater {
         //            model: 5
@@ -75,14 +93,19 @@ Window {
             font.pixelSize: 12
             font.styleName: "Bold"
         }
-
-        Repeater {
-            model: 3
-            Text {
-                Layout.leftMargin: 12
-                text: '文件类型：\tmp3'
-            }
+        Text {
+            Layout.leftMargin: 12
+            text: '音频码率：\t '+audioBitRate
         }
+        Text {
+            Layout.leftMargin: 12
+            text: '音频声道数：\t '+numberOfChannels
+        }
+        Text {
+            Layout.leftMargin: 12
+            text: '音频采样率：\t '+sample_rate
+        }
+
     }
 }
 

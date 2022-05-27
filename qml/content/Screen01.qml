@@ -281,6 +281,19 @@ Rectangle {
                                 }
                                 SubWindow {
                                     id: subWindow
+                                    //基本属性
+                                    fileName: shipinplaylist.getMediaInfo(index,"video","fileName")
+                                    fileType: shipinplaylist.getMediaInfo(index,"video","fileType")
+                                    path: shipinplaylist.getMediaInfo(index,"video","path")
+                                    totalTime: shipinplaylist.getMediaInfo(index,"video","totalTime")
+                                    //视频属性
+                                    videoBitRate: "非视频类型"
+                                    videoFrameRate: "非视频类型"
+                                    resolvingPower: "非视频类型"
+                                    //音频属性
+                                    audioBitRate: shipinplaylist.getMediaInfo(index,"video","audioBitRate")
+                                    numberOfChannels: shipinplaylist.getMediaInfo(index,"video","numberOfChannels")
+                                    sample_rate: shipinplaylist.getMediaInfo(index,"video","sample_rate")
                                 }
                                 Setting1 {
                                     id: setting_for_music
@@ -468,6 +481,19 @@ Rectangle {
                                 }
                                 SubWindow {
                                     id: subWindow3
+                                    //基本属性
+                                    fileName: shipinplaylist.getMediaInfo(index,"video","fileName")
+                                    fileType: shipinplaylist.getMediaInfo(index,"video","fileType")
+                                    path: shipinplaylist.getMediaInfo(index,"video","path")
+                                    totalTime: shipinplaylist.getMediaInfo(index,"video","totalTime")
+                                    //视频属性
+                                    videoBitRate: shipinplaylist.getMediaInfo(index,"video","videoBitRate")
+                                    videoFrameRate: shipinplaylist.getMediaInfo(index,"video","videoFrameRate")
+                                    resolvingPower: shipinplaylist.getMediaInfo(index,"video","resolvingPower")
+                                    //音频属性
+                                    audioBitRate: shipinplaylist.getMediaInfo(index,"video","audioBitRate")
+                                    numberOfChannels: shipinplaylist.getMediaInfo(index,"video","numberOfChannels")
+                                    sample_rate: shipinplaylist.getMediaInfo(index,"video","sample_rate")
                                 }
                                 Setting1 {
                                     id: setting_for_video
