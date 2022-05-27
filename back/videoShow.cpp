@@ -51,12 +51,16 @@ Audio* VideoShow::getMediaObject(QString path){
 VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     sourPath = path;
     m_process = 0.0;
+    m_playState = MainDecoder::STOP;
+    m_leftTime = "00:00";
+    m_rightTime = "00:00";
     qDebug()<<"创建了VideoShow对象";
     maindecoder = new MainDecoder();
     maindecoder->setCurrentFile(path);
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage*)),this,SLOT(slot_getOneFrame(QImage*)));
-
+    //连接maindecoder -- videoShow: 播放状态改变
+    connect(maindecoder,SIGNAL(sign_playStateChanged(MainDecoder::PlayState)),this,SLOT(slot_setPlayState(MainDecoder::PlayState)));
     //发信号给解析器解析视频
     maindecoder->decoderFile(path,"video");
 }
@@ -65,10 +69,12 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     //参数初始化
     lastVolume = 0;
     m_process = 0.0;
+    m_playState = MainDecoder::STOP;
 
     maindecoder = new MainDecoder();
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
+    connect(maindecoder,SIGNAL(sign_playStateChanged(MainDecoder::PlayState)),this,SLOT(slot_setPlayState(MainDecoder::PlayState)));
 }
 
 //析构函数
@@ -151,6 +157,25 @@ void VideoShow::pause(){
     }
 }
 
+//Stop控制
+bool VideoShow::isStop(){
+    if(maindecoder){
+        if(maindecoder->getPlayState() == MainDecoder::STOP){
+            return true;
+        }else{
+            return false;
+        }
+    }else{
+        return true;
+    }
+}
+
+void VideoShow::stopPlay(){
+    if(maindecoder){
+        maindecoder->stopVideo();
+    }
+}
+
 //倍速播放
 void VideoShow::setSpeed(double speed){
     if(maindecoder){
@@ -209,42 +234,89 @@ void VideoShow::setmProcess(double process){
     emit processChanged(process);
 }
 
+//进度条时间
+QString VideoShow::getLeftTime(){
+    return m_leftTime;
+}
+
+QString VideoShow::getRightTime(){
+    return m_rightTime;
+}
+
+void VideoShow::setLeftTime(QString leftTime){
+    this->m_leftTime = leftTime;
+    emit leftTimeChanged(leftTime);
+}
+
+void VideoShow::setRightTime(QString rightTime){
+    this->m_rightTime = rightTime;
+    emit rightTimeChanged(rightTime);
+}
+
 
 //线程体
 //更新实时的进度条百分比
 int VideoShow::updateProcess(void *arg){
     //获取当前的videoShow对象
     VideoShow* videoShow = (VideoShow*)arg;
+    double last_time = 0.0;
 
     //进入循环
     while (true){
         MainDecoder::PlayState state = videoShow->getPlayState();
         if(state == MainDecoder::STOP){
             qDebug()<<"当前状态是Stop";
-//            break;
+            //重置参数
+            videoShow->setLeftTime("00:00");
+            videoShow->setRightTime("00:00");
+            //自动调用下一首播放
             SDL_Delay(100);
             continue;
         }
 
         //当Pause状态时，暂停更新
         if(state == MainDecoder::PAUSE){
-            qDebug()<<"当前状态是暂停";
+//            qDebug()<<"当前状态是暂停";
             SDL_Delay(100);
             continue;
         }
 
         //播放状态
         if(state == MainDecoder::PLAYING){
-            qDebug()<<"当前状态是播放";
+//            qDebug()<<"当前状态是播放";
             double nowtime = videoShow->getNowProcess();
+            if(nowtime - last_time > 30 * 1000 * 1000){
+                SDL_Delay(50);
+//                qDebug()<<"lastTime:"<<last_time/1000000;
+//                qDebug()<<"nowtime:"<<nowtime / 1000000;
+                continue;
+            }else{
+                if(nowtime>0){
+                    last_time = nowtime;
+                }
+            }
             double totaltime = videoShow->getTotalProcess();
             double x = nowtime / totaltime;
-            qDebug()<<x*100;
+            //设置进度条未知
             videoShow->setmProcess(x);
+            //设置进度条时间
+            int nowTime_int = nowtime / 1000000;
+            int totalTime_int = totaltime / 1000000;
+            QString leftTime = QVariant(ceil(nowTime_int / 60)).toString() + QVariant(":").toString()+QVariant(nowTime_int % 60).toString();
+            QString rightTime = QVariant(ceil(totalTime_int / 60)).toString() + QVariant(":").toString()+QVariant(totalTime_int % 60).toString();
+            videoShow->setLeftTime(leftTime);
+            videoShow->setRightTime(rightTime);
+            SDL_Delay(300);
         }
 
         //播放完成状态
         if(state == MainDecoder::FINISH){
+            qDebug()<<"当前状态是finish";
+            //重置参数
+            videoShow->setLeftTime("00:00");
+            videoShow->setRightTime("00:00");
+            //自动调用下一首播放
+            SDL_Delay(500);
             videoShow->setmProcess(1.0);
         }
     }
@@ -257,6 +329,17 @@ MainDecoder::PlayState VideoShow::getPlayState(){
     if (maindecoder){
         return maindecoder->getPlayState();
     }
+}
+
+MainDecoder::PlayState VideoShow::getmPlayState()const{
+    return m_playState;
+}
+
+//maindecode发送信号的槽函数，本身不会被前端调用
+void VideoShow::slot_setPlayState(MainDecoder::PlayState playState){
+    qDebug()<<"videoShow:setPlayState信号槽被调用";
+    this->m_playState = playState;
+    emit playStateChanged(playState);
 }
 
 //播放

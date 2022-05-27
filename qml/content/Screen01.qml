@@ -550,7 +550,13 @@ Rectangle {
                     ToolTip.text: qsTr("播放")
                     onClicked: {
 //                        videoShow.getMediaObject("C:\\Users\\YYg\\Desktop\\test2.mp4");
-                        videoShow.show("C:\\Users\\YYg\\Desktop\\test2.mp4","video");
+                        //如果当前处于暂停状态，则播放一个视频
+                        if(videoShow.isStop()){
+                            console.log("Stop状态");
+                            videoShow.show("C:\\Users\\YYg\\Desktop\\test2.mp4","video");
+                        }else{
+                            videoShow.pause();
+                        }
                     }
                 }
             }
@@ -578,6 +584,7 @@ Rectangle {
                 }
             }
             Text {
+                id: lefTime
                 color: "#ffffff"
                 text: '00:00'
                 anchors.verticalCenter: parent.verticalCenter
@@ -649,11 +656,12 @@ Rectangle {
 
                 }
                 onValueChanged: {
-                    console.log("当前进度：",control.visualPosition)
-//                    //缩略图显示
-//                    thumbnailShow.getFrame(control.visualPosition);
-//                    //改变播放进度
-//                    videoShow.setProcess(control.visualPosition)
+                    if(control.pressed){
+                        //缩略图显示
+                        thumbnailShow.getFrame(control.visualPosition);
+                        //改变播放进度
+                        videoShow.setProcess(control.visualPosition)
+                    }
                 }
             }
 
@@ -664,9 +672,24 @@ Rectangle {
                 value: videoShow.process
             }
 
+            //绑定进度条播放时间
+            Binding{
+                target: lefTime
+                property: "text"
+                value: videoShow.leftTime
+            }
+
+            //绑定播放总时长
+            Binding{
+                target: rightTime
+                property: "text"
+                value: videoShow.rightTime
+            }
+
             Text {
+                id: rightTime
                 color: "#ffffff"
-                text: '5:12'
+                text: "00:00"
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: 30
                 Layout.rightMargin: 30
