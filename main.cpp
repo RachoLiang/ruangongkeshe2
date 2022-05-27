@@ -29,5 +29,7 @@ int main(int argc, char *argv[])
     }, Qt::QueuedConnection);
     engine.load(url);
 
+    //Video *video = getVideoInfo("C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4");
+
     return app.exec();
 }

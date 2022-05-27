@@ -563,6 +563,7 @@ void AudioDecoder::audioCallback(void *userdata, quint8 *stream, int SDL_AudioBu
      */
     while (SDL_AudioBufSize > 0) {
         if (decoder->isStop) {
+            qDebug()<<"音频回调函数：stop返回";
             return ;
         }
 
@@ -616,10 +617,10 @@ int AudioDecoder::decodeAudio()
     }
 
     if (isStop) {
+        qDebug()<<"音频解码:stop返回";
         return -1;
     }
 
-    qDebug()<<"pack数量："<<packetQueue.queueSize();
 
     if (packetQueue.queueSize() <= 0) {
         if (isreadFinished) {
@@ -636,7 +637,7 @@ int AudioDecoder::decodeAudio()
         packetQueue.dequeue(&packet, true);
     }
 
-    if (!strcmp((char*)packet.data, "FLUSH")) {
+    if (packet.data != nullptr &&!strcmp((char*)packet.data, "FLUSH")) {
         avcodec_flush_buffers(codecCtx);
         av_packet_unref(&packet);
         av_frame_free(&frame);
@@ -688,8 +689,8 @@ int AudioDecoder::decodeAudio()
 
         //记录播放时长
         nowTime = frame->best_effort_timestamp * av_q2d(stream->time_base) * AV_TIME_BASE;
-        qDebug()<<"音频-播放时长："<<nowTime;
-        qDebug()<<"总时长："<<totalTime;
+//        qDebug()<<"音频-播放时长："<<nowTime;
+//        qDebug()<<"总时长："<<totalTime;
 
     }
 
@@ -737,7 +738,7 @@ int AudioDecoder::decodeAudio()
 
     if (aCovertCtx) {
         //qDebug()<<"进入重采样！！";
-        qDebug()<<"我来了";
+//        qDebug()<<"我来了";
         const quint8 **in   = (const quint8 **)frame->extended_data;
         uint8_t *out[] = {audioBuf1};
 
@@ -774,4 +775,10 @@ int AudioDecoder::decodeAudio()
     av_frame_free(&frame);
 
     return resampledDataSize;
+}
+
+AVRational AudioDecoder::getTimeBase(){
+    if(codecCtx){
+        return codecCtx->time_base;
+    }
 }

@@ -42,6 +42,9 @@ public:
     void setSpeed(double speed);    //调整音频播放倍速
     double getSpeed();  //获取当前倍速
 
+    //获取时间基
+    AVRational getTimeBase();
+
     //初始化音频的过滤器函数
     int init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **src, AVFilterContext **out,
                           const char *value);

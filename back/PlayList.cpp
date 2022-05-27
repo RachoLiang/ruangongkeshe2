@@ -223,6 +223,14 @@ void PlayList::playNextMedia()  //用户点击下一首按钮
     /*
      * 调用播放mediaPath操作
      */
+    if(playListType==1)
+    {
+        emit showAudio(mediaPath);
+    }
+    else
+    {
+        emit showVideo(mediaPath);
+    }
 }
 void PlayList::playLastMedia()
 {
@@ -253,14 +261,22 @@ void PlayList::playLastMedia()
     /*
      * 播放mediaPath
      */
+    if(playListType==1)
+    {
+        emit showAudio(mediaPath);
+    }
+    else
+    {
+        emit showVideo(mediaPath);
+    }
 }
 void PlayList::changePlayMode()
 {
     playMode=(playMode+1)%5;
-    QString iconName="";
     historyList.clear();   //改变播放模式，会导致随机播放记录的清空
     dequePos=0;
     dequeSize=0;
+    QString iconName="";
     if(playMode==SinglePlay)iconName="singlePlay";
     else if(playMode==SingleLoop)iconName="singleLoop";
     else if(playMode==SequentialPlay)iconName="sequentialPlay";
@@ -271,7 +287,70 @@ void PlayList::changePlayMode()
         historyList.push_back(nowIndex); //当前播放的一首，加入播放列表中
         dequeSize++;
     }
+    if(playListType==2)return;  //只需要一个列表对象对界面上的图片进行替换
     qDebug()<<"当前播放模式："<<iconName;
+    iconName="images/"+iconName+".png";
     emit changePlayModeButtonIcon(iconName);
 
+}
+/*
+ * enum PlayBackMode
+{
+    SinglePlay=0,    //只播放当前
+    SingleLoop=1,    //单曲循环
+    SequentialPlay=2,//顺序播放
+    Repeat=3,      //列表循环
+    Shuffle=4     //随机播放
+};*/
+void PlayList::autoPlayNextMedia()
+{
+    int listLength=fileList.size();
+    if(listLength==0)return ; //列表为空，则什么都不做
+    if(playMode==Shuffle)     //随机播放模式
+    {
+        if(dequeSize>dequePos+1)  //存在下一首的历史记录
+        {
+            dequePos++;
+            nowIndex=historyList[dequePos];
+        }
+        else  //没有下一个的历史记录，则随机产生下一个，并增加到历史记录中
+        {
+            nowIndex=bigRandomInteger(listLength,nowIndex);
+            historyList.push_back(nowIndex);
+            dequeSize++;
+            dequePos=dequeSize-1;
+        }
+    }
+    else if(playMode==SinglePlay)  //只播放当前，则播放完成后就不再播放下一首
+    {
+        return;
+    }
+    else if(playMode==SingleLoop)
+    {
+        //单曲循环模式，则播放完成后重新播放即可
+    }
+    else if(playMode==SequentialPlay) //顺序播放模式，如果正好播完了列表最后一首，那么停止，否则顺序下一首
+    {
+        if(nowIndex==listLength-1)return;
+        nowIndex++;
+    }
+    else if(playMode==Repeat) //列表循环模式，对表长取模
+    {
+        nowIndex=(nowIndex+1)%(listLength);
+    }
+    QString mediaPath=fileList[nowIndex].filePath;
+    qDebug()<<"点击了下一首，播放："<<mediaPath;
+    emit changeCurrentPlayingIndex(nowIndex);
+
+    /*
+     * 调用播放mediaPath操作
+     */
+    if(playListType==1)
+    {
+        emit showAudio(mediaPath);
+    }
+    else
+    {
+        emit showVideo(mediaPath);
+    }
 }

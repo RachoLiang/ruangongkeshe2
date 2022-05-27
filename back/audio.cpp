@@ -1,4 +1,4 @@
-#include "backend/audio.h"
+﻿#include "backend/audio.h"
 
 //通过文件路径初始化
 Audio::Audio(QString audioPath){
@@ -164,24 +164,24 @@ void Audio::setDuration(int newDuration)
     duration = newDuration;
 }
 
-int Audio::getAudioBitRate() const
+QString Audio::getAudioBitRate() const
 {
     return audioBitRate;
 }
 
-void Audio::setAudioBitRate(int newAudioBitRate)
+void Audio::setAudioBitRate(QString newAudioBitRate)
 {
     audioBitRate = newAudioBitRate;
 }
 
-const QString Audio::getAudioType() const
+QString Audio::getMediaType() const
 {
-    return audioType;
+    return mediaType;
 }
 
-void Audio::setAudioType(const QString &newAudioType)
+void Audio::setMediaType(QString type)
 {
-    audioType = newAudioType;
+    mediaType = type;
 }
 
 int Audio::getNumberOfChannels() const
@@ -194,6 +194,15 @@ void Audio::setNumberOfChannels(int newNumberOfChannels)
     numberOfChannels = newNumberOfChannels;
 }
 
+QString Audio::getSampleRate() const
+{
+    return sample_rate;
+}
+
+void Audio::setSampleRate(QString rate)
+{
+    sample_rate = rate;
+}
 QString Audio::getAlbumInfo()
 {
     return albumInfo;

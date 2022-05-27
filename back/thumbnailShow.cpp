@@ -5,8 +5,7 @@
 ThumbnailShow::ThumbnailShow(){
     this->videoDecoder = new VideoDecoder();
     connect(videoDecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
-    videoDecoder->start_thread(); //线程开始
-    setPathAndStart("C:\\Users\\YYg\\Desktop\\test2.mp4");
+    setPathAndStart("C:\\Users\\xgy\\Desktop\\mp3_test\\test2.mp4");
 }
 
 ThumbnailShow::~ThumbnailShow(){

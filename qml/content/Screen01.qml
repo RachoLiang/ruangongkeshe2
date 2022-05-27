@@ -24,6 +24,7 @@ Rectangle {
     property real multiplierH: (window.height/640)*1000;
     property real multiplierW: (window.width/360)*1000;
 
+    property bool nowIsPlayingAudio: true    //记录当前正在播放的是音频还是视频，从而知道该操作哪个列表
     function dpH(numbers) {
        return numbers*multiplierH/10000;
     }
@@ -41,27 +42,35 @@ Rectangle {
         }
         onShowAudio: function(audioPath)
         {
-            videoShow.show(audioPath,"audio");
+            videoShow.show(audioPath,"music");
         }
+        onChangePlayModeButtonIcon: function(iconName) //改变播放模式按钮图片
+        {
+            playmodeimage.source=iconName
+        }
+        onChangeCurrentPlayingIndex: function(index) //改变列表中的高亮条目
+        {
+            yinpinlistview.currentIndex=index
+        }
+
 //        onChangeCurrentPlayingIndex: function(index)  //改变列表中的高亮条目
 //        {
 //            filesListView.currentIndex=index
-//        }
-//        onChangePlayModeButtonIcon: function(iconName)
-//        {
-//            playModeButton.icon.name=iconName
 //        }
     }
     PlayList{
         id:shipinplaylist;
         onAddVideoFileInGUI:function(videoPath)
         {
-            //shipin.count+=1
             shipinmodel.append({shipintext:videoPath})
         }
         onShowVideo:function(videoPath)
         {
             videoShow.show(videoPath,"video")
+        }
+        onChangeCurrentPlayingIndex: function(index) //改变列表中的高亮条目
+        {
+            shipinlistview.currentIndex=index
         }
     }
 
@@ -259,6 +268,7 @@ Rectangle {
                                 {
                                     yinpinplaylist.setNowIndex(index)
                                     yinpinlistview.currentIndex=index
+                                    nowIsPlayingAudio=true
                                     console.log("点击第"+yinpinlistview.currentIndex+"个音频")
                                 }
                             }
@@ -445,6 +455,7 @@ Rectangle {
                                 {
                                     shipinplaylist.setNowIndex(index)
                                     shipinlistview.currentIndex=index
+                                    nowIsPlayingAudio=false
                                     console.log("点击第"+shipinlistview.currentIndex+"个视频")
 
                                 }
@@ -661,6 +672,14 @@ Rectangle {
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("上一集")
+                    onClicked: {
+                        if(nowIsPlayingAudio){
+                            yinpinplaylist.playLastMedia()
+                        }
+                        else{
+                            shipinplaylist.playLastMedia()
+                        }
+                    }
                 }
             }
             Image {
@@ -685,9 +704,13 @@ Rectangle {
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("播放")
                     onClicked: {
-
-                        videoShow.show("C:\\FFOutput\\林俊杰 - 关键词.mkv","video");
-
+                        //如果当前处于暂停状态，则播放一个视频
+                        if(videoShow.isStop()){
+                            console.log("Stop状态");
+                            videoShow.show("C:\\Users\\YYg\\Desktop\\test2.mp4","video");
+                        }else{
+                            videoShow.pause();
+                        }
                     }
                 }
             }
@@ -712,9 +735,19 @@ Rectangle {
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("下一集")
+                    onClicked: {
+                        if(nowIsPlayingAudio){
+                            yinpinplaylist.playNextMedia()
+                        }
+                        else{
+                            shipinplaylist.playNextMedia()
+                        }
+
+                    }
                 }
             }
             Text {
+                id: lefTime
                 color: "#ffffff"
                 text: '00:00'
                 anchors.verticalCenter: parent.verticalCenter
@@ -786,11 +819,12 @@ Rectangle {
 
                 }
                 onValueChanged: {
-                    console.log("当前进度：",control.visualPosition)
-//                    //缩略图显示
-//                    thumbnailShow.getFrame(control.visualPosition);
-//                    //改变播放进度
-//                    videoShow.setProcess(control.visualPosition)
+                    if(control.pressed){
+                        //缩略图显示
+                        thumbnailShow.getFrame(control.visualPosition);
+                        //改变播放进度
+                        videoShow.setProcess(control.visualPosition)
+                    }
                 }
             }
 
@@ -801,9 +835,23 @@ Rectangle {
                 value: videoShow.process
             }
 
+            //绑定进度条播放时间
+            Binding{
+                target: lefTime
+                property: "text"
+                value: videoShow.leftTime
+            }
+
+            //绑定播放总时长
+            Binding{
+                target: rightTime
+                property: "text"
+                value: videoShow.rightTime
+            }
             Text {
+                id: rightTime
                 color: "#ffffff"
-                text: '5:12'
+                text: "00:00"
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: 30
                 Layout.rightMargin: 30
@@ -817,6 +865,20 @@ Rectangle {
                     anchors.fill: parent
                     onClicked: {
 
+                    }
+                }
+            }
+            Image {
+                id:playmodeimage
+                source: "images/singlePlay.png"
+                RoundButton {
+                    anchors.fill: parent
+                    flat: true
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("改变播放模式")
+                    onClicked: {
+                        yinpinplaylist.changePlayMode()
+                        shipinplaylist.changePlayMode()
                     }
                 }
             }

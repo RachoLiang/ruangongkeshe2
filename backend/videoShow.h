@@ -15,7 +15,10 @@ public:
     Q_PROPERTY(int nHeight  READ getHeight WRITE setHeight NOTIFY heightChanged)
     Q_PROPERTY(QString sourPath READ getSourPath WRITE setSourPath NOTIFY sourPathChanged)
     Q_PROPERTY(double process MEMBER m_process READ getmProcess WRITE setmProcess NOTIFY processChanged)  //当前进度条
-    
+    Q_PROPERTY(MainDecoder::PlayState playState MEMBER m_playState READ getmPlayState WRITE slot_setPlayState NOTIFY playStateChanged)
+    Q_PROPERTY(QString leftTime MEMBER m_leftTime READ getLeftTime WRITE setLeftTime NOTIFY leftTimeChanged)
+    Q_PROPERTY(QString rightTime MEMBER m_rightTime READ getRightTime WRITE setRightTime NOTIFY rightTimeChanged)
+
     VideoShow();
     explicit VideoShow(QString path);
     ~VideoShow();
@@ -42,6 +45,9 @@ public:
     Q_INVOKABLE bool isPaused();
     Q_INVOKABLE void pause();
 
+    Q_INVOKABLE bool isStop();      //判断当前是否处于Stop状态
+    Q_INVOKABLE void stopPlay();    //停止当前播放的视频，清空缓存
+
     //设置倍速播放
     Q_INVOKABLE void setSpeed(double speed);
     Q_INVOKABLE double getSpeed();
@@ -53,6 +59,12 @@ public:
     static int updateProcess(void* arg);  //获取当前进度（百分比）
     Q_INVOKABLE double getmProcess()const;
     Q_INVOKABLE void setmProcess(double);
+
+    //进度条时间
+    QString getLeftTime();
+    void setLeftTime(QString);
+    QString getRightTime();
+    void setRightTime(QString);
 
     //调整进度
     Q_INVOKABLE void seekFast();
@@ -67,10 +79,12 @@ public:
     Q_INVOKABLE void setCutPath(QString path);
 
     //获取媒体信息
-    Q_INVOKABLE Audio* getMediaObject(QString path);
+    //Q_INVOKABLE Audio* getMediaObject(QString path);
 
     //播放状态
-    MainDecoder::PlayState getPlayState();
+    Q_INVOKABLE MainDecoder::PlayState getPlayState();
+    Q_INVOKABLE MainDecoder::PlayState getmPlayState()const;
+
 
     //调整播放参数，对比度，亮度，饱和度
     Q_INVOKABLE void setArgs(double contrast_per,double brightness_per,double saturation_per);
@@ -86,12 +100,15 @@ private:
     int nWidth; //屏幕宽
     QString sourPath;   //文件路径
     int lastVolume; //记录静音前的音量
-    double m_process;
+    double m_process;   //进度百分比
+    MainDecoder::PlayState m_playState; //播放状态，从后端获取
+    QString m_leftTime;     //进度条左边时间："56:32"
+    QString m_rightTime;    //进度条右边时间："60:00"
     
 public slots:
     //获取图片的信号槽
     void slot_getOneFrame(QImage image);
-    //获取当前播放状态
+    void slot_setPlayState(MainDecoder::PlayState);
 //    void slot_playStateChanged(MainDecoder::PlayState playstate);
 
 signals:
@@ -99,6 +116,9 @@ signals:
     void heightChanged(int);
     void sourPathChanged(QString);
     void processChanged(const double& newprocess);
+    void playStateChanged(const MainDecoder::PlayState);
+    void leftTimeChanged(QString);
+    void rightTimeChanged(QString);
 };
 
 #endif // VIDEOSHOW_H

@@ -246,7 +246,7 @@ void VideoDecoder::run(){
 //                }
 
                 if (av_buffersrc_add_frame(filterSrcCxt, pFrame) < 0) {
-                    qDebug() << "av buffersrc add frame failed.";
+                    qDebug() << "gggav buffersrc add frame failed.";
                     av_packet_unref(&_packet);
                     continue;
                 }

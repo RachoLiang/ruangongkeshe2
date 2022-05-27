@@ -146,7 +146,7 @@ signals:
     void readFinished();
     void gotVideo(QImage image);
     void gotVideoTime(qint64 time);
-    void playStateChanged(MainDecoder::PlayState state);
+    void sign_playStateChanged(MainDecoder::PlayState state);
 
 };
 
