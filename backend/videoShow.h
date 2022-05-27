@@ -47,6 +47,7 @@ public:
 
     Q_INVOKABLE bool isStop();      //判断当前是否处于Stop状态
     Q_INVOKABLE void stopPlay();    //停止当前播放的视频，清空缓存
+    Q_INVOKABLE bool isFinish();    //判断当前是否是正常完成视频播放
 
     //设置倍速播放
     Q_INVOKABLE void setSpeed(double speed);

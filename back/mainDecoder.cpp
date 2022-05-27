@@ -19,7 +19,7 @@ MainDecoder::MainDecoder() :
     seekType(AVSEEK_FLAG_BACKWARD),
     keyNum(0),
     contrast(1),
-    gotStop(true),
+    gotStop(false),
     brightness(0),
     saturation(1),
     cutPath("C:\\Users\\YYg\\Desktop\\picture")
@@ -190,9 +190,9 @@ void MainDecoder::decoderFile(QString file, QString type)
 {
 //    qDebug() << "Current state:" << playState;
     qDebug() << "File name:" << file << ", type:" << type;
-    if (playState != STOP) {
+    if (playState != STOP && playState != FINISH) {
         isStop = true;
-        while (playState != STOP) {
+        while (playState != STOP && playState != FINISH) {
             SDL_Delay(10);
         }
         SDL_Delay(100);
@@ -248,7 +248,7 @@ void MainDecoder::stopVideo()
 void MainDecoder::pauseVideo()
 {
     qDebug() << "leftbutton.Decoder::pauseVideo()";
-    if (playState == STOP) {
+    if (playState == STOP || playState == FINISH) {
         qDebug() << "leftbutton.Decoder::pauseVideo()...stop";
         return;
     }
@@ -529,6 +529,10 @@ int MainDecoder::videoThread(void *arg)
         } else {
             //到底如何得到一帧图片并渲染？ qt,
 //            qDebug()<<"调用了上下文";
+            if(decoder->pCodecCtx == nullptr){
+                qDebug()<<"图片渲染时上下文被释放";
+                break;
+            }
             QImage tmpImage(pFrame->data[0], decoder->pCodecCtx->width, decoder->pCodecCtx->height, QImage::Format_RGB32);
             /* deep copy, otherwise when tmpImage data change, this image cannot display */
             QImage image = tmpImage.copy();
@@ -574,7 +578,7 @@ int MainDecoder::videoThread(void *arg)
 
 void MainDecoder::run()
 {
-    AVCodec *pCodec;
+    AVCodec *pCodec = NULL;
 
     AVPacket pkt, *packet = &pkt;        // packet use in decoding
 
@@ -652,7 +656,10 @@ void MainDecoder::run()
         avcodec_parameters_to_context(pCodecCtx, pFormatCtx->streams[videoIndex]->codecpar);
 
         /* find video decoder */
-        if ((pCodec = (AVCodec*)avcodec_find_decoder(pCodecCtx->codec_id)) == NULL) {
+        if((AVCodec*)avcodec_find_decoder(pCodecCtx->codec_id) == NULL){
+            qDebug()<<"2空指针";
+        }
+        if (pCodecCtx == nullptr || (pCodec = (AVCodec*)avcodec_find_decoder(pCodecCtx->codec_id)) == NULL) {
             qDebug() << "Video decoder not found.";
             goto fail;
         }

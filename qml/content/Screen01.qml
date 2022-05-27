@@ -610,6 +610,20 @@ Rectangle {
                 nHeight: dpH(3200);
                 width: dpW(2000);
                 height: dpH(3200);
+                onPlayStateChanged: {
+                    //当前是stop状态或者finish状态，则自动播放下一首
+                    console.log("状态改变了")
+                    if(videoShow.isFinish()){
+                        console.log("视频finish才调用下一首播放")
+                        if(nowIsPlayingAudio){
+                            console.log("音频下一首")
+                            yinpinplaylist.autoPlayNextMedia()
+                        }else{
+                            console.log("视频下一首")
+                            shipinplaylist.autoPlayNextMedia()
+                        }
+                    }
+                }
             }
         }
         Image {
@@ -731,11 +745,13 @@ Rectangle {
             Image {
                 source: "images/M_right.png"
                 RoundButton {
+                    id: nextPlayBtn
                     anchors.fill: parent
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("下一集")
                     onClicked: {
+                        console.log("下一首被点击")
                         if(nowIsPlayingAudio){
                             yinpinplaylist.playNextMedia()
                         }
