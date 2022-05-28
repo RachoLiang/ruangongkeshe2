@@ -1,4 +1,4 @@
-#include "backend/PlayList.h"
+﻿#include "backend/PlayList.h"
 PlayList::PlayList(QObject *parent):QObject(parent)
 {
     qDebug()<<"构造playlist对象";
@@ -7,7 +7,7 @@ QString extractFileName(QString filePath)
 {
     int len=filePath.length();
     int pos=len-1;
-    while(pos>0&&filePath[pos-1]!='/')pos--;
+    while(pos>0&&filePath[pos-1]!='/'&&filePath[pos-1]!='\\')pos--;
     return filePath.mid(pos);
 }
 QString changePathFormat(QString filePath) //     把"file:///C:/a.mp4" 转换成 "C:\\a.mp4"
@@ -293,6 +293,71 @@ void PlayList::changePlayMode()
     emit changePlayModeButtonIcon(iconName);
 
 }
+QString PlayList::getMediaInfo(int index,QString mediaType,QString key){
+    QString mediaPath = fileList[index].filePath;
+
+    //todo 判断数据库中是否有相应的信息，有就直接从数据库中取，不用再解析
+
+    if(mediaType == "video"){
+        Video* video = getVideoInfo(mediaPath);
+        if(key == "fileName"){
+            return extractFileName(mediaPath);
+        }
+        if(key == "fileType"){
+            return video->getMediaType();
+        }
+        if(key == "path"){
+            return video->getFilePath();
+        }
+        if(key == "totalTime"){
+            return QString("%1").arg(video->getDuration());
+        }
+        if(key == "videoBitRate"){
+            return video->getVideoBitRate();
+        }
+        if(key == "videoFrameRate"){
+            return video->getVideoFrameRate();
+        }
+        if(key == "resolvingPower"){
+            return video->getResolvingPower();
+        }
+        if(key == "audioBitRate"){
+            return video->getAudioBitRate();
+        }
+        if(key == "numberOfChannels"){
+            return QString("%1").arg(video->getNumberOfChannels());
+        }
+        if(key == "sample_rate"){
+            return video->getSampleRate();
+        }
+    }else if(mediaType == "music"){
+        Audio *audio = getAudioInfo(mediaPath);
+        if(key == "fileName"){
+            return extractFileName(mediaPath);
+        }
+        if(key == "fileType"){
+            return audio->getMediaType();
+        }
+        if(key == "path"){
+            return audio->getFilePath();
+        }
+        if(key == "totalTime"){
+            return QString("%1").arg(audio->getDuration());
+        }
+        if(key == "audioBitRate"){
+            return audio->getAudioBitRate();
+        }
+        if(key == "numberOfChannels"){
+            return QString("%1").arg(audio->getNumberOfChannels());
+        }
+        if(key == "sample_rate"){
+            return audio->getSampleRate();
+        }
+    }else{
+        return "";
+    }
+}
+
 /*
  * enum PlayBackMode
 {

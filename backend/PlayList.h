@@ -1,4 +1,4 @@
-#ifndef PLAYLIST_H
+﻿#ifndef PLAYLIST_H
 #define PLAYLIST_H
 
 #include "vedio.h"
@@ -12,6 +12,7 @@
 #include <random>
 #include "mySql.h"
 #include "PlayListNode.h"
+#include "utils.h"
 
 enum PlayBackMode
 {
@@ -62,6 +63,7 @@ public:
     Q_INVOKABLE void saveToDataBase();  //保存当前现场，包括当前播放的媒体和时刻位置
     Q_INVOKABLE void init(int);   //需要在qml的ListView组件准备好之后，才能init，不然发射了信号也没人接收
     Q_INVOKABLE void showFileList();
+    Q_INVOKABLE QString getMediaInfo(int index,QString type,QString key);
 
 signals: //信号只需要定义，不需要实现
     void addAudioFileInGUI(QString audioPath);
