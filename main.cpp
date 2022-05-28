@@ -10,6 +10,8 @@
 
 #include "backend/videoDecoder.h"
 
+#include "backend/mySql.h"
+
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +32,5 @@ int main(int argc, char *argv[])
     engine.load(url);
 
     //Video *video = getVideoInfo("C:\\Users\\xgy\\Desktop\\mp3_test\\test1.mp4");
-
-    return app.exec();
+   return app.exec();
 }

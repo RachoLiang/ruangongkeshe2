@@ -35,6 +35,8 @@ public:
     * setXXX()
     */
 
+    const int getId() const;
+    void setId(const int id);
     const QString getFilePath() const;
     void setFilePath(const QString &newFilePath);
     const QString getFileName() const;
@@ -72,6 +74,7 @@ protected:
 private:
     bool isvalid;   //是否有效
     //资源信息
+    int id; //用于数据库索引
     QString filePath;  //文件路径
     QString fileName;  //文件名
     QString type;   //music|video
@@ -86,7 +89,7 @@ private:
     QImage albumImage;  //专辑图片
     QString lyrics ;    //歌词
     //缓存信息
-    int position;   //上次播放的进度|当前播放的进度
+    double position;   //上次播放的进度|当前播放的进度
     QDateTime modificationTime;  //上次修改时间
 
 };

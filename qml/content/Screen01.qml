@@ -34,6 +34,7 @@ Rectangle {
     function dpX(numbers){
         return (dpW(numbers)+dpH(numbers))/2;
     }
+
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
         onAddAudioFileInGUI:function(audioPath)

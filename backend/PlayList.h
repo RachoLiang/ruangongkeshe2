@@ -45,8 +45,12 @@ private:
     int dequeSize;
     int playMode;     //播放模式（程序启动时默认为只播放当前）
     int nowIndex;     //当前播放的视频序号
+    mySql* sql;
+    Video* tmpVideo;
+    Audio* tmpAudio;
 public:
     explicit PlayList(QObject *parent=nullptr);
+    ~PlayList();
     //void setPlayMode(int);
     //int findNextNodeID();
     //int findLastNodeID();
