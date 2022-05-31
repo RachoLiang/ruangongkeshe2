@@ -328,7 +328,7 @@ void PlayList::changePlayMode()
     emit changePlayModeButtonIcon(iconName);
 
 }
-QString PlayList::getMediaInfo(int index,QString mediaType,QString key){
+QVariantMap PlayList::getMediaInfo(int index,QString mediaType){
     QString mediaPath = fileList[index].filePath;
     if(mediaType == "video"){
         Video* video = NULL;
@@ -337,36 +337,18 @@ QString PlayList::getMediaInfo(int index,QString mediaType,QString key){
         }else{
             video = getVideoInfo(mediaPath);  //不存在就调用getVideoInfo解析文件获取信息
         }
-        if(key == "fileName"){
-            return extractFileName(mediaPath);
-        }
-        if(key == "fileType"){
-            return video->getMediaType();
-        }
-        if(key == "path"){
-            return video->getFilePath();
-        }
-        if(key == "totalTime"){
-            return QString("%1").arg(video->getDuration());
-        }
-        if(key == "videoBitRate"){
-            return video->getVideoBitRate();
-        }
-        if(key == "videoFrameRate"){
-            return video->getVideoFrameRate();
-        }
-        if(key == "resolvingPower"){
-            return video->getResolvingPower();
-        }
-        if(key == "audioBitRate"){
-            return video->getAudioBitRate();
-        }
-        if(key == "numberOfChannels"){
-            return QString("%1").arg(video->getNumberOfChannels());
-        }
-        if(key == "sample_rate"){
-            return video->getSampleRate();
-        }
+        QVariantMap map;
+        map.insert("fileName",extractFileName(mediaPath));
+        map.insert("fileType",video->getMediaType());
+        map.insert("path",video->getFilePath());
+        map.insert("totalTime",QString("%1").arg(video->getDuration()));
+        map.insert("videoBitRate",video->getVideoBitRate());
+        map.insert("videoFrameRate",video->getVideoFrameRate());
+        map.insert("resolvingPower",video->getResolvingPower());
+        map.insert("audioBitRate",video->getAudioBitRate());
+        map.insert("numberOfChannels",QString("%1").arg(video->getNumberOfChannels()));
+        map.insert("sample_rate",video->getSampleRate());
+        return map;
     }else if(mediaType == "music"){
         Audio* audio = NULL;
         if(sql->selectAudioByPath(mediaPath) != NULL){  //判断数据库中是否存在
@@ -374,30 +356,23 @@ QString PlayList::getMediaInfo(int index,QString mediaType,QString key){
         }else{
             audio = getAudioInfo(mediaPath);  //不存在就调用getAudioInfo解析文件获取信息
         }
-        if(key == "fileName"){
-            return extractFileName(mediaPath);
-        }
-        if(key == "fileType"){
-            return audio->getMediaType();
-        }
-        if(key == "path"){
-            return audio->getFilePath();
-        }
-        if(key == "totalTime"){
-            return QString("%1").arg(audio->getDuration());
-        }
-        if(key == "audioBitRate"){
-            return audio->getAudioBitRate();
-        }
-        if(key == "numberOfChannels"){
-            return QString("%1").arg(audio->getNumberOfChannels());
-        }
-        if(key == "sample_rate"){
-            return audio->getSampleRate();
-        }
+        QVariantMap map;
+        map.insert("fileName",extractFileName(mediaPath));
+        map.insert("fileType",audio->getMediaType());
+        map.insert("path",audio->getFilePath());
+        map.insert("totalTime",QString("%1").arg(audio->getDuration()));
+        map.insert("audioBitRate",audio->getAudioBitRate());
+        map.insert("numberOfChannels",QString("%1").arg(audio->getNumberOfChannels()));
+        map.insert("sample_rate",audio->getSampleRate());
+        return map;
     }else{
-        return "";
+        QVariantMap map;
+        return map;
     }
+}
+
+int PlayList::getNowIndex(){
+    return this->nowIndex;
 }
 
 /*
