@@ -13,7 +13,7 @@ import QtQuick.Layouts 1.15
 Window {
     width: 260
     height: 380
-    property var infoMap
+    property var infoMap: ({})
 
     ColumnLayout {
         anchors.fill: parent
