@@ -1,4 +1,4 @@
-
+﻿
 
 /*
 This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
@@ -13,13 +13,16 @@ import QtQuick.Layouts 1.15
 Window {
     width: 260
     height: 380
+    property var infoMap
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
         anchors.rightMargin: 12
         anchors.leftMargin: 12
         Text {
-            text: '名称.mp3'
+            //text: '名称.mp3'
+            text: (infoMap["fileName"]===undefined?"未识别文件名":infoMap["fileName"])
             font.pixelSize: 18
         }
         Rectangle {
@@ -36,26 +39,31 @@ Window {
 
         Text {
             Layout.leftMargin: 12
-            text: '文件类型：\t mp3'
+            text: '文件类型：\t '+(infoMap["fileType"]===undefined?"未识别文件类型":infoMap["fileType"])
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '文件大小：\t 200.01MB'
+            text: '文件位置：\t '+(infoMap["path"]===undefined?"未识别文件路径":infoMap["path"])
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '文件位置：\t C:/Desktop/test'
+            text: '时长：\t ' + (infoMap["totalTime"]===undefined?"未识别时长":infoMap["totalTime"]) + "s"
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '文件码率：\t 500fp'
+            text: '视频分辨率：\t '+ (infoMap["resolvingPower"]===undefined?"未识别视频分辨率":infoMap["resolvingPower"])
+        }
+
+        Text {
+            Layout.leftMargin: 12
+            text: '视频码率：\t '+ (infoMap["videoBitRate"]===undefined?"未识别视频码率":infoMap["videoBitRate"])
         }
         Text {
             Layout.leftMargin: 12
-            text: '文件时长：\t 3分15秒'
+            text: '视频帧率：\t '+ (infoMap["videoFrameRate"]===undefined?"未识别视频帧率":infoMap["videoFrameRate"])
         }
         //        Repeater {
         //            model: 5
@@ -75,14 +83,19 @@ Window {
             font.pixelSize: 12
             font.styleName: "Bold"
         }
-
-        Repeater {
-            model: 3
-            Text {
-                Layout.leftMargin: 12
-                text: '文件类型：\tmp3'
-            }
+        Text {
+            Layout.leftMargin: 12
+            text: '音频码率：\t '+(infoMap["audioBitRate"]===undefined?"未识别音频码率":infoMap["audioBitRate"])
         }
+        Text {
+            Layout.leftMargin: 12
+            text: '音频声道数：\t '+(infoMap["numberOfChannels"]===undefined?"未识别音频声道数":infoMap["numberOfChannels"])
+        }
+        Text {
+            Layout.leftMargin: 12
+            text: '音频采样率：\t '+(infoMap["sample_rate"]===undefined?"未识别音频采样率":infoMap["sample_rate"])
+        }
+
     }
 }
 

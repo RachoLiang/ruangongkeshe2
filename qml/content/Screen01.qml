@@ -34,6 +34,7 @@ Rectangle {
     function dpX(numbers){
         return (dpW(numbers)+dpH(numbers))/2;
     }
+
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
         onAddAudioFileInGUI:function(audioPath)
@@ -310,6 +311,7 @@ Rectangle {
                                     MenuItem {
                                         text: '详细信息'
                                         onTriggered: {
+                                            subWindow.infoMap = yinpinplaylist.getMediaInfo(index,"music")
                                             subWindow.show()
                                         }
                                     }
@@ -501,6 +503,7 @@ Rectangle {
                                     MenuItem {
                                         text: '详细信息'
                                         onTriggered: {
+                                            subWindow3.infoMap = shipinplaylist.getMediaInfo(index,"video")
                                             subWindow3.show()
                                         }
                                     }
@@ -566,6 +569,11 @@ Rectangle {
             MenuItem {
                 text: '详细信息'
                 onTriggered: {
+                    if(nowIsPlayingAudio){
+                        subWindow6.infoMap = yinpinplaylist.getMediaInfo(yinpinplaylist.getNowIndex(),"music")
+                    }else{
+                        subWindow6.infoMap = shipinplaylist.getMediaInfo(shipinplaylist.getNowIndex(),"video")
+                    }
                     subWindow6.show()
                 }
             }
@@ -610,6 +618,20 @@ Rectangle {
                 nHeight: dpH(3200);
                 width: dpW(2000);
                 height: dpH(3200);
+                onPlayStateChanged: {
+                    //当前是stop状态或者finish状态，则自动播放下一首
+                    console.log("状态改变了")
+                    if(videoShow.isFinish()){
+                        console.log("视频finish才调用下一首播放")
+                        if(nowIsPlayingAudio){
+                            console.log("音频下一首")
+                            yinpinplaylist.autoPlayNextMedia()
+                        }else{
+                            console.log("视频下一首")
+                            shipinplaylist.autoPlayNextMedia()
+                        }
+                    }
+                }
             }
         }
         Image {
@@ -652,6 +674,11 @@ Rectangle {
                 MenuItem {
                     text: '详细信息'
                     onTriggered: {
+                        if(nowIsPlayingAudio){
+                            subWindow2.infoMap = yinpinplaylist.getMediaInfo(yinpinplaylist.getNowIndex(),"music")
+                        }else{
+                            subWindow2.infoMap = shipinplaylist.getMediaInfo(shipinplaylist.getNowIndex(),"video")
+                        }
                         subWindow2.show()
                     }
                 }
@@ -731,11 +758,13 @@ Rectangle {
             Image {
                 source: "images/M_right.png"
                 RoundButton {
+                    id: nextPlayBtn
                     anchors.fill: parent
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("下一集")
                     onClicked: {
+                        console.log("下一首被点击")
                         if(nowIsPlayingAudio){
                             yinpinplaylist.playNextMedia()
                         }
@@ -820,10 +849,10 @@ Rectangle {
                 }
                 onValueChanged: {
                     if(control.pressed){
-                        //缩略图显示
-                        thumbnailShow.getFrame(control.visualPosition);
                         //改变播放进度
                         videoShow.setProcess(control.visualPosition)
+                        //缩略图显示
+                        thumbnailShow.getFrame(control.position);
                     }
                 }
             }

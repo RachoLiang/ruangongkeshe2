@@ -1,13 +1,37 @@
-#include "backend/PlayList.h"
+﻿#include "backend/PlayList.h"
 PlayList::PlayList(QObject *parent):QObject(parent)
 {
-    qDebug()<<"构造playlist对象";
+    sql = new mySql();
+    tmpVideo = NULL;
+    tmpAudio = NULL;
+    if(sql->openDb()){   //打开数据库
+        if(!sql->isTableExist("audios")){
+            sql->createTableAudios();
+        }else{
+            qDebug()<<"audios表已存在";
+        }
+        if(!sql->isTableExist("videos")){
+            sql->createTableVideos();
+        }else{
+            qDebug()<<"videos表已存在";
+        }
+    }else{
+        qDebug()<<"数据库打开失败";
+    }
+    //qDebug()<<"构造playlist对象";
 }
+PlayList::~PlayList(){
+    //关闭数据库
+    sql->closeDb();
+    delete sql;
+    sql = NULL;
+}
+
 QString extractFileName(QString filePath)
 {
     int len=filePath.length();
     int pos=len-1;
-    while(pos>0&&filePath[pos-1]!='/')pos--;
+    while(pos>0&&filePath[pos-1]!='/'&&filePath[pos-1]!='\\')pos--;
     return filePath.mid(pos);
 }
 QString changePathFormat(QString filePath) //     把"file:///C:/a.mp4" 转换成 "C:\\a.mp4"
@@ -64,27 +88,34 @@ void PlayList::addFile(QString filePath)
     u.mediaType=1;
     fileList.push_back(u);
     qDebug()<<"playlist对象调用addFile："<<changedPath;
-//    mySql sql;
-//    if(sql.openDb())  //每次用户导入一个新的媒体，就在数据库中同步插入这个媒体信息
-//    {
-//        if(!sql.isTableExist("records"))
-//        {
-//            sql.createTable();
-//        }
-//        Record record;record.path=filePath;
-//        sql.insertData(record);
-//        sql.closeDb();
-//    }
     /*
      * 发射信号给qml，在界面列表中加入该媒体
      */
-    if(isVideo==false)
+    if(isVideo==false) //音频
     {
-        emit addAudioFileInGUI(extractFileName(filePath));
+        //或许详细信息，插入数据库
+        Audio* audio = getAudioInfo(changedPath);
+        bool flag = sql->insertAudio(audio);
+        delete audio;
+        audio = NULL;
+        if(flag){
+            emit addAudioFileInGUI(extractFileName(filePath));
+        }else{
+            qDebug()<<"插入失败，重复的插入";
+        }
     }
-    else
+    else  //视频
     {
-        emit addVideoFileInGUI(extractFileName(filePath));
+        //获取详细信息，插入数据库
+        Video *video = getVideoInfo(changedPath);
+        bool flag = sql->insertVideo(video);
+        delete video;
+        video = NULL;
+        if(flag){
+            emit addVideoFileInGUI(extractFileName(filePath));
+        }else{
+            qDebug()<<"插入失败，重复的插入";
+        }
     }
 }
 void PlayList::saveToDataBase()  //已经不需要把表清空再写入，程序关闭时只需要保存播放的媒体和位置即可
@@ -120,28 +151,32 @@ void PlayList::init(int PlayListType)
      * 从数据库中读取数据，恢复出上次的fileList并同步nowIndex
      * 如果数据库中还存了上次的播放模式等信息，也可以考虑恢复
      */
-//    mySql sql;
-//    if(sql.openDb())
-//    {
-//        if(sql.isTableExist("records")) //如果有之前存的数据
-//        {
-//            qDebug()<<"恢复上次的播放列表";
-//            sql.selectAllTofileList(fileList); //读取数据，恢复出fileList
-//            //在后台恢复其他数据
-//        }
-//        sql.closeDb();
-//    }
-//    int len=fileList.size();
-//    if(len!=0)
-//    {
-//        qDebug()<<"在界面恢复播放列表";
-//        for(int idx=0;idx<len;idx++)
-//        {
-//            QString p=extractFileName(fileList[idx].filePath);
-//            //qDebug()<<"界面恢复："<<p;
-//            //emit addFileInGUI(p);
-//        }
-//    }
+    if(PlayListType == 1){
+        sql->selectAllAudioTofileList(fileList); //读取数据，恢复出fileList
+        int len=fileList.size();
+        if(len!=0)
+        {
+            qDebug()<<"在界面恢复音频列表";
+            for(int idx=0;idx<len;idx++)
+            {
+                QString p=extractFileName(fileList[idx].filePath);
+                emit addAudioFileInGUI(p);
+            }
+        }
+
+    }else if(PlayListType == 2){
+        sql->selectAllVideoTofileList(fileList);
+        int len=fileList.size();
+        if(len!=0)
+        {
+            qDebug()<<"在界面恢复视频列表";
+            for(int idx=0;idx<len;idx++)
+            {
+                QString p=extractFileName(fileList[idx].filePath);
+                emit addVideoFileInGUI(p);
+            }
+        }
+    }
 }
 void PlayList::showFileList()
 {
@@ -293,6 +328,53 @@ void PlayList::changePlayMode()
     emit changePlayModeButtonIcon(iconName);
 
 }
+QVariantMap PlayList::getMediaInfo(int index,QString mediaType){
+    QString mediaPath = fileList[index].filePath;
+    if(mediaType == "video"){
+        Video* video = NULL;
+        if(sql->selectVideoByPath(mediaPath) != NULL){  //判断数据库中是否存在
+            video = sql->selectVideoByPath(mediaPath);
+        }else{
+            video = getVideoInfo(mediaPath);  //不存在就调用getVideoInfo解析文件获取信息
+        }
+        QVariantMap map;
+        map.insert("fileName",extractFileName(mediaPath));
+        map.insert("fileType",video->getMediaType());
+        map.insert("path",video->getFilePath());
+        map.insert("totalTime",QString("%1").arg(video->getDuration()));
+        map.insert("videoBitRate",video->getVideoBitRate());
+        map.insert("videoFrameRate",video->getVideoFrameRate());
+        map.insert("resolvingPower",video->getResolvingPower());
+        map.insert("audioBitRate",video->getAudioBitRate());
+        map.insert("numberOfChannels",QString("%1").arg(video->getNumberOfChannels()));
+        map.insert("sample_rate",video->getSampleRate());
+        return map;
+    }else if(mediaType == "music"){
+        Audio* audio = NULL;
+        if(sql->selectAudioByPath(mediaPath) != NULL){  //判断数据库中是否存在
+            audio = sql->selectAudioByPath(mediaPath);
+        }else{
+            audio = getAudioInfo(mediaPath);  //不存在就调用getAudioInfo解析文件获取信息
+        }
+        QVariantMap map;
+        map.insert("fileName",extractFileName(mediaPath));
+        map.insert("fileType",audio->getMediaType());
+        map.insert("path",audio->getFilePath());
+        map.insert("totalTime",QString("%1").arg(audio->getDuration()));
+        map.insert("audioBitRate",audio->getAudioBitRate());
+        map.insert("numberOfChannels",QString("%1").arg(audio->getNumberOfChannels()));
+        map.insert("sample_rate",audio->getSampleRate());
+        return map;
+    }else{
+        QVariantMap map;
+        return map;
+    }
+}
+
+int PlayList::getNowIndex(){
+    return this->nowIndex;
+}
+
 /*
  * enum PlayBackMode
 {

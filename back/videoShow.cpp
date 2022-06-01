@@ -160,13 +160,26 @@ void VideoShow::pause(){
 //Stop控制
 bool VideoShow::isStop(){
     if(maindecoder){
-        if(maindecoder->getPlayState() == MainDecoder::STOP){
+        if(maindecoder->getPlayState() == MainDecoder::STOP ||maindecoder->getPlayState() == MainDecoder::FINISH){
             return true;
         }else{
             return false;
         }
     }else{
         return true;
+    }
+}
+
+//Finish控制
+bool VideoShow::isFinish(){
+    if (maindecoder){
+        if(maindecoder->getPlayState() == MainDecoder::FINISH){
+            return true;
+        }else {
+            return false;
+        }
+    }else {
+        return false;
     }
 }
 
@@ -348,8 +361,11 @@ void VideoShow::slot_setPlayState(MainDecoder::PlayState playState){
 //播放
 void VideoShow::show(QString path, QString type){
     //清空上次播放的缓存
-    maindecoder->stopVideo();
-    qDebug()<<"stop之后";
+    if(maindecoder->getPlayState() != MainDecoder::STOP && maindecoder->getPlayState() != MainDecoder::FINISH)
+    {
+        maindecoder->stopVideo();
+        qDebug()<<"videoShow的stop";
+    }
     sourPath = path;
     maindecoder->decoderFile(path,type);
     //暂时：启动进度条监测
