@@ -128,7 +128,7 @@ Audio* getAudioInfo(QString path){
     int m_audioStreamIndex = -1;
     int res;
 
-    if((res = avformat_open_input(&m_avFormatCtx,path.toLatin1().data(),0,NULL))<0){
+    if((res = avformat_open_input(&m_avFormatCtx,path.toStdString().c_str(),0,NULL))<0){
         qDebug()<<"getMediaInfo::open file fail";
         return NULL;
     }
