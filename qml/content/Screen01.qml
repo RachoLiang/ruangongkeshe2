@@ -269,6 +269,7 @@ Rectangle {
                                 {
                                     yinpinplaylist.setNowIndex(index)
                                     yinpinlistview.currentIndex=index
+                                    playbuttonimage.source="../content/images/pause.png"
                                     nowIsPlayingAudio=true
                                     console.log("点击第"+yinpinlistview.currentIndex+"个音频")
                                 }
@@ -457,6 +458,7 @@ Rectangle {
                                 {
                                     shipinplaylist.setNowIndex(index)
                                     shipinlistview.currentIndex=index
+                                    playbuttonimage.source="../content/images/pause.png"
                                     nowIsPlayingAudio=false
                                     console.log("点击第"+shipinlistview.currentIndex+"个视频")
 
@@ -724,19 +726,34 @@ Rectangle {
                 }
             }
             Image {
+                id:playbuttonimage
                 source: "../content/images/play.png"
                 RoundButton {
+                    id:playbutton
                     anchors.fill: parent
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("播放")
                     onClicked: {
                         //如果当前处于暂停状态，则播放一个视频
-                        if(videoShow.isStop()){
-                            console.log("Stop状态");
-                            videoShow.show("C:\\Users\\YYg\\Desktop\\test2.mp4","video");
-                        }else{
+                        if(videoShow.isStop())
+                        {
+                            console.log("Stop状态");  //很怪，只有程序刚启动，什么都没播放过时，点击播放按钮，才会进入这个if
+                        }
+                        else
+                        {
                             videoShow.pause();
+                            console.log("pause状态")
+                            if(videoShow.isPaused())
+                            {
+                                playbuttonimage.source="../content/images/play.png"
+                                playbutton.ToolTip.text=qsTr("播放")
+                            }
+                            else
+                            {
+                                playbuttonimage.source="../content/images/pause.png"
+                                playbutton.ToolTip.text=qsTr("暂停")
+                            }
                         }
                     }
                 }
