@@ -17,6 +17,7 @@ import ThumnailShow 1.0
 import playlistclass 1.0
 Rectangle {
     id: "window"
+    focus: true
     width: Constants.width
     height: Constants.height
     anchors.fill: parent
@@ -35,6 +36,25 @@ Rectangle {
         return (dpW(numbers)+dpH(numbers))/2;
     }
 
+    Keys.onPressed: {//所有快捷键操作
+        if ((event.key == Qt.Key_I) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + i
+            fileDialog.open()
+        }
+        else if((event.key == Qt.Key_Right) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + ->
+            nextPlayBtn.nextPlayBtnClicked()
+        }
+        else if((event.key == Qt.Key_Left) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + <-
+            lastPlayBtn.lastPlayBtnClicked()
+        }
+        else if((event.key == Qt.Key_Return)){
+            //本来应该是空格键，但尝试后发现，按下空格键，结果是触发了鼠标最近点击的按钮，暂时不知道怎么解决，所以用回车键代替
+            playbutton.playButtonActivate()
+        }
+    }
+
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
         onAddAudioFileInGUI:function(audioPath)
@@ -44,6 +64,7 @@ Rectangle {
         onShowAudio: function(audioPath)
         {
             videoShow.show(audioPath,"music");
+            playbuttonimage.source="../content/images/pause.png"
         }
         onChangePlayModeButtonIcon: function(iconName) //改变播放模式按钮图片
         {
@@ -68,6 +89,7 @@ Rectangle {
         onShowVideo:function(videoPath)
         {
             videoShow.show(videoPath,"video")
+            playbuttonimage.source="../content/images/pause.png"
         }
         onChangeCurrentPlayingIndex: function(index) //改变列表中的高亮条目
         {
@@ -624,6 +646,7 @@ Rectangle {
                     //当前是stop状态或者finish状态，则自动播放下一首
                     console.log("状态改变了")
                     if(videoShow.isFinish()){
+                        playbuttonimage.source="../content/images/play.png"
                         console.log("视频finish才调用下一首播放")
                         if(nowIsPlayingAudio){
                             console.log("音频下一首")
@@ -697,17 +720,23 @@ Rectangle {
             Image {
                 source: "images/M_left.png"
                 RoundButton {
+                    id:lastPlayBtn
                     anchors.fill: parent
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("上一集")
-                    onClicked: {
+                    function lastPlayBtnClicked()
+                    {
                         if(nowIsPlayingAudio){
                             yinpinplaylist.playLastMedia()
                         }
                         else{
                             shipinplaylist.playLastMedia()
                         }
+                    }
+
+                    onClicked: {
+                        lastPlayBtn.lastPlayBtnClicked()
                     }
                 }
             }
@@ -732,9 +761,11 @@ Rectangle {
                     id:playbutton
                     anchors.fill: parent
                     flat: true
+                    focus: false
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("播放")
-                    onClicked: {
+                    function playButtonActivate()
+                    {
                         //如果当前处于暂停状态，则播放一个视频
                         if(videoShow.isStop())
                         {
@@ -755,6 +786,9 @@ Rectangle {
                                 playbutton.ToolTip.text=qsTr("暂停")
                             }
                         }
+                    }
+                    onClicked: {
+                        playbutton.playButtonActivate()
                     }
                 }
             }
@@ -780,15 +814,19 @@ Rectangle {
                     flat: true
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("下一集")
-                    onClicked: {
-                        console.log("下一首被点击")
+                    function nextPlayBtnClicked()
+                    {
                         if(nowIsPlayingAudio){
                             yinpinplaylist.playNextMedia()
                         }
                         else{
                             shipinplaylist.playNextMedia()
                         }
+                    }
 
+                    onClicked: {
+                        console.log("下一首被点击")
+                        nextPlayBtn.nextPlayBtnClicked()
                     }
                 }
             }
