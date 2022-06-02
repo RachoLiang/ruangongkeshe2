@@ -2,8 +2,6 @@
 PlayList::PlayList(QObject *parent):QObject(parent)
 {
     sql = new mySql();
-    tmpVideo = NULL;
-    tmpAudio = NULL;
     if(sql->openDb()){   //打开数据库
         if(!sql->isTableExist("audios")){
             sql->createTableAudios();
@@ -219,6 +217,7 @@ void PlayList::setNowIndex(int index)
 //    SinglePlay=0,    //只播放当前
 //    SingleLoop=1,    //单曲循环
 //    SequentialPlay=2,//顺序播放
+
 //    Repeat=3,      //列表循环
 //    Shuffle=4     //随机播放
 //};
