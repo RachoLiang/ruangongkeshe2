@@ -34,6 +34,21 @@ QString extractFileName(QString filePath)
     while(pos>0&&filePath[pos-1]!='/'&&filePath[pos-1]!='\\')pos--;
     return filePath.mid(pos);
 }
+QString changeTimeFormat(int duration)
+{
+    int hours=duration/3600;
+    duration%=3600;
+    int minutes=duration/60;
+    int seconds=duration%60;
+    QString ret="";
+    if(hours<10)ret+="0";
+    ret+=std::to_string(hours).c_str();ret+=":";
+    if(minutes<10)ret+="0";
+    ret+=std::to_string(minutes).c_str();ret+=":";
+    if(seconds<10)ret+="0";
+    ret+=std::to_string(seconds).c_str();
+    return ret;
+}
 QString changePathFormat(QString filePath) //     把"file:///C:/a.mp4" 转换成 "C:\\a.mp4"
 {
     int len=filePath.length();
@@ -85,9 +100,6 @@ void PlayList::addFile(QString filePath)
     QString changedPath=changePathFormat(filePath);
     PlayListNode u;
     u.filePath=changedPath;
-    u.mediaType=1;
-    fileList.push_back(u);
-    qDebug()<<"playlist对象调用addFile："<<changedPath;
     /*
      * 发射信号给qml，在界面列表中加入该媒体
      */
@@ -96,10 +108,14 @@ void PlayList::addFile(QString filePath)
         //或许详细信息，插入数据库
         Audio* audio = getAudioInfo(changedPath);
         bool flag = sql->insertAudio(audio);
+        u.duration=audio->getDuration();
         delete audio;
         audio = NULL;
         if(flag){
-            emit addAudioFileInGUI(extractFileName(filePath));
+            u.mediaType=1;
+            fileList.push_back(u);
+            qDebug()<<"音频列表成功添加："<<changedPath;
+            emit addAudioFileInGUI(extractFileName(filePath),changeTimeFormat(u.duration));
         }else{
             qDebug()<<"插入失败，重复的插入";
         }
@@ -109,10 +125,14 @@ void PlayList::addFile(QString filePath)
         //获取详细信息，插入数据库
         Video *video = getVideoInfo(changedPath);
         bool flag = sql->insertVideo(video);
+        u.duration=video->getDuration();
         delete video;
         video = NULL;
         if(flag){
-            emit addVideoFileInGUI(extractFileName(filePath));
+            u.mediaType=2;
+            fileList.push_back(u);
+            qDebug()<<"视频列表成功添加："<<changedPath;
+            emit addVideoFileInGUI(extractFileName(filePath),changeTimeFormat(u.duration));
         }else{
             qDebug()<<"插入失败，重复的插入";
         }
@@ -159,8 +179,7 @@ void PlayList::init(int PlayListType)
             qDebug()<<"在界面恢复音频列表";
             for(int idx=0;idx<len;idx++)
             {
-                QString p=extractFileName(fileList[idx].filePath);
-                emit addAudioFileInGUI(p);
+                emit addAudioFileInGUI(extractFileName(fileList[idx].filePath),changeTimeFormat(fileList[idx].duration));
             }
         }
 
@@ -172,8 +191,7 @@ void PlayList::init(int PlayListType)
             qDebug()<<"在界面恢复视频列表";
             for(int idx=0;idx<len;idx++)
             {
-                QString p=extractFileName(fileList[idx].filePath);
-                emit addVideoFileInGUI(p);
+                emit addVideoFileInGUI(extractFileName(fileList[idx].filePath),changeTimeFormat(fileList[idx].duration));
             }
         }
     }

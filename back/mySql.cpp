@@ -306,7 +306,7 @@ QList<Video*> mySql::selectAllVideo(){
 void mySql::selectAllAudioTofileList(std::vector<PlayListNode> &fileList)
 {
     QSqlQuery sqlQuery(this->qdb);
-    sqlQuery.prepare("select path from audios order by id"); //只查询部分列
+    sqlQuery.prepare("select path,duration from audios order by id"); //只查询部分列
     if(!sqlQuery.exec())
     {
         qDebug()<<"fail to regenerate fileList."<<sqlQuery.lastError();
@@ -317,6 +317,8 @@ void mySql::selectAllAudioTofileList(std::vector<PlayListNode> &fileList)
         {
             PlayListNode u;
             u.filePath=sqlQuery.value(0).toString();
+            u.duration=sqlQuery.value(1).toInt();
+            u.mediaType=1;
             fileList.push_back(u);
         }
     }
@@ -325,7 +327,7 @@ void mySql::selectAllAudioTofileList(std::vector<PlayListNode> &fileList)
 void mySql::selectAllVideoTofileList(std::vector<PlayListNode> &fileList)
 {
     QSqlQuery sqlQuery(this->qdb);
-    sqlQuery.prepare("select path from videos order by id"); //只查询部分列
+    sqlQuery.prepare("select path,duration from videos order by id"); //只查询部分列
     if(!sqlQuery.exec())
     {
         qDebug()<<"fail to regenerate fileList."<<sqlQuery.lastError();
@@ -336,6 +338,8 @@ void mySql::selectAllVideoTofileList(std::vector<PlayListNode> &fileList)
         {
             PlayListNode u;
             u.filePath=sqlQuery.value(0).toString();
+            u.duration=sqlQuery.value(1).toInt();
+            u.mediaType=2;
             fileList.push_back(u);
         }
     }

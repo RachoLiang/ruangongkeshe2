@@ -57,9 +57,9 @@ Rectangle {
 
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
-        onAddAudioFileInGUI:function(audioPath)
+        onAddAudioFileInGUI:function(audioPath,audioDuration)
         {
-            yinpinmodel.append({yinpintext:audioPath})
+            yinpinmodel.append({yinpintext:audioPath,yinpinduration:audioDuration})
         }
         onShowAudio: function(audioPath)
         {
@@ -74,17 +74,12 @@ Rectangle {
         {
             yinpinlistview.currentIndex=index
         }
-
-//        onChangeCurrentPlayingIndex: function(index)  //改变列表中的高亮条目
-//        {
-//            filesListView.currentIndex=index
-//        }
     }
     PlayList{
         id:shipinplaylist;
-        onAddVideoFileInGUI:function(videoPath)
+        onAddVideoFileInGUI:function(videoPath,videoDuration)
         {
-            shipinmodel.append({shipintext:videoPath})
+            shipinmodel.append({shipintext:videoPath,shipinduration:videoDuration})
         }
         onShowVideo:function(videoPath)
         {
@@ -282,7 +277,7 @@ Rectangle {
                                 Text {
                                     color: "#b6b6b6"
                                     font.pixelSize: 11
-                                    text: 'Red Velvet'
+                                    text: yinpinduration
                                 }
                             }
                             MouseArea {
@@ -470,7 +465,7 @@ Rectangle {
                                 Text {
                                     color: "#b6b6b6"
                                     font.pixelSize: 11
-                                    text: '5:10:00'
+                                    text: shipinduration
                                 }
 
                             }
