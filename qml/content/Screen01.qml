@@ -333,6 +333,23 @@ Rectangle {
                                             subWindow.show()
                                         }
                                     }
+                                    MenuItem {
+                                        text: '删除'
+                                        function deleteYinPin(idx)
+                                        {
+                                            console.log("删除音频index="+idx)
+                                            yinpinmodel.remove(idx)
+                                            yinpinplaylist.removeFile(idx)
+                                            if(nowIsPlayingAudio&&yinpinlistview.currentIndex==idx&&videoShow.isPaused()==false)
+                                            {
+                                                yinpinplaylist.playNextMedia()
+                                            }
+                                        }
+
+                                        onTriggered: {
+                                            deleteYinPin(index)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -524,6 +541,23 @@ Rectangle {
                                         onTriggered: {
                                             subWindow3.infoMap = shipinplaylist.getMediaInfo(index,"video")
                                             subWindow3.show()
+                                        }
+                                    }
+                                    MenuItem{
+                                        text: '删除'
+                                        function deleteShiPin(idx)
+                                        {
+                                            console.log("删除视频index="+idx)
+                                            shipinmodel.remove(idx)
+                                            shipinplaylist.removeFile(idx)
+                                            //如果删除的正好是当前播放的，则视为删除后点击了下一首
+                                            if(nowIsPlayingAudio==false&&shipinlistview.currentIndex==idx&&videoShow.isPaused()==false)
+                                            {
+                                                shipinplaylist.playNextMedia()
+                                            }
+                                        }
+                                        onTriggered: {
+                                            deleteShiPin(index)
                                         }
                                     }
                                 }
