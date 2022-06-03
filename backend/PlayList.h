@@ -13,7 +13,7 @@
 #include "mySql.h"
 #include "PlayListNode.h"
 #include "utils.h"
-
+#include <string>
 enum PlayBackMode
 {
     SinglePlay=0,    //只播放当前
@@ -69,8 +69,8 @@ public:
     Q_INVOKABLE int getNowIndex();
 
 signals: //信号只需要定义，不需要实现
-    void addAudioFileInGUI(QString audioPath);
-    void addVideoFileInGUI(QString videoPath);
+    void addAudioFileInGUI(QString audioPath,QString audioDuration);
+    void addVideoFileInGUI(QString videoPath,QString videoDuration);
     void changeCurrentPlayingIndex(int index);
     void changePlayModeButtonIcon(QString iconName);
     void showVideo(QString videoPath);
