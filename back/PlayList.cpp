@@ -105,14 +105,15 @@ void PlayList::addFile(QString filePath)
     {
         //或许详细信息，插入数据库
         Audio* audio = getAudioInfo(changedPath);
-        bool flag = sql->insertAudio(audio);
+        bool flag = sql->insertAudio(audio);  //如果插入成功，会顺便查询分配给它的id
         u.duration=audio->getDuration();
+        u.id=audio->getId();
         delete audio;
         audio = NULL;
         if(flag){
             u.mediaType=1;
             fileList.push_back(u);
-            qDebug()<<"音频列表成功添加："<<changedPath;
+            qDebug()<<"音频列表成功添加："<<changedPath<<",数据表中id="<<u.id;
             emit addAudioFileInGUI(extractFileName(filePath),changeTimeFormat(u.duration));
         }else{
             qDebug()<<"插入失败，重复的插入";
@@ -124,6 +125,7 @@ void PlayList::addFile(QString filePath)
         Video *video = getVideoInfo(changedPath);
         bool flag = sql->insertVideo(video);
         u.duration=video->getDuration();
+        u.id=video->getId();
         delete video;
         video = NULL;
         if(flag){
@@ -451,5 +453,43 @@ void PlayList::autoPlayNextMedia()
     else
     {
         emit showVideo(mediaPath);
+    }
+}
+
+void PlayList::removeFile(int index)
+{
+    //在数据库中删除
+    int id=fileList[index].id;
+    qDebug()<<"在数据库中删除，id="<<id;
+    if(playListType==1)
+    {
+        sql->deleteAudio(id);
+    }
+    else
+    {
+        sql->deleteVideo(id);
+    }
+    //vector中也删除这个文件
+    fileList.erase(fileList.begin()+index);
+    if(nowIndex>=index)nowIndex--;
+    //随机播放模式的历史记录也要维护
+    int pos=0;
+    while(pos<dequeSize)
+    {
+        if(historyList[pos]<index)  //下标在index之前的，不需要变动
+        {
+            pos++;
+        }
+        else if(historyList[pos]==index) //历史记录中，这一个正好是被删除的文件
+        {
+            historyList.erase(historyList.begin()+pos);
+            if(dequePos>=pos)dequePos--;
+            dequeSize--;
+        }
+        else if(historyList[pos]>index)  //下标在index之后的，需要往前移一位
+        {
+            historyList[pos]--;
+            pos++;
+        }
     }
 }

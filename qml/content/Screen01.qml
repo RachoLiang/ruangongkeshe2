@@ -42,6 +42,10 @@ Rectangle {
             //本来应该是空格键，但尝试后发现，按下空格键，结果是触发了鼠标最近点击的按钮，暂时不知道怎么解决，所以用回车键代替
             playbutton.playButtonActivate()
         }
+        else if((event.key == Qt.Key_F) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + f
+            full_screen_MouseArea.full_screenClicked()
+        }
     }
 
     PlayList{
@@ -326,6 +330,23 @@ Rectangle {
                                             subWindow.show()
                                         }
                                     }
+                                    MenuItem {
+                                        text: '删除'
+                                        function deleteYinPin(idx)
+                                        {
+                                            console.log("删除音频index="+idx)
+                                            yinpinmodel.remove(idx)
+                                            yinpinplaylist.removeFile(idx)
+                                            if(nowIsPlayingAudio&&yinpinlistview.currentIndex==idx&&videoShow.isPaused()==false)
+                                            {
+                                                yinpinplaylist.playNextMedia()
+                                            }
+                                        }
+
+                                        onTriggered: {
+                                            deleteYinPin(index)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -517,6 +538,23 @@ Rectangle {
                                         onTriggered: {
                                             subWindow3.infoMap = shipinplaylist.getMediaInfo(index,"video")
                                             subWindow3.show()
+                                        }
+                                    }
+                                    MenuItem{
+                                        text: '删除'
+                                        function deleteShiPin(idx)
+                                        {
+                                            console.log("删除视频index="+idx)
+                                            shipinmodel.remove(idx)
+                                            shipinplaylist.removeFile(idx)
+                                            //如果删除的正好是当前播放的，则视为删除后点击了下一首
+                                            if(nowIsPlayingAudio==false&&shipinlistview.currentIndex==idx&&videoShow.isPaused()==false)
+                                            {
+                                                shipinplaylist.playNextMedia()
+                                            }
+                                        }
+                                        onTriggered: {
+                                            deleteShiPin(index)
                                         }
                                     }
                                 }
@@ -990,8 +1028,10 @@ Rectangle {
                         anchors.right: parent.right
                         anchors.rightMargin: 18
                         MouseArea {
+                            id:full_screen_MouseArea
                             anchors.fill: parent
-                            onClicked: {
+                            function full_screenClicked()
+                            {
                                 if(!isFullScreen){
                                     showFullScreen()
                                     if(leftList.open)
@@ -1012,6 +1052,9 @@ Rectangle {
                                 }
                                 basePic.visible = !basePic.visible
                                 videoShow.fullScreen = !videoShow.fullScreen
+                            }
+                            onClicked: {
+                                full_screenClicked()
                             }
                         }
                     }

@@ -61,7 +61,7 @@ public:
 
     //QString nowPlayingFilePath();
     Q_INVOKABLE void addFile(QString);   //用户导入一个媒体文件
-    //void deleteFile(QString);
+    Q_INVOKABLE void removeFile(int);    //用户删除一个媒体文件
     Q_INVOKABLE void saveToDataBase();  //保存当前现场，包括当前播放的媒体和时刻位置
     Q_INVOKABLE void init(int);   //需要在qml的ListView组件准备好之后，才能init，不然发射了信号也没人接收
     Q_INVOKABLE void showFileList();
