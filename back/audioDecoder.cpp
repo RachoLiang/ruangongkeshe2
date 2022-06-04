@@ -233,6 +233,8 @@ int AudioDecoder::init_atempo_filter(AVFilterGraph **pGraph, AVFilterContext **s
     x += temp1 + std::to_string(codecCtx->sample_fmt) + temp;
     x += temp2 + std::to_string(audioDstChannelLayout);
     qDebug()<<"src-拼接字符串："<<x.c_str();
+    //初始化采样位数
+    bitFormat = codecCtx->sample_fmt;
     //"sample_rate=48000:sample_fmt=s16p:channel_layous=stereo"
 
     //初始化AVFilterGraph
@@ -314,8 +316,10 @@ AudioDecoder::AudioDecoder(QObject *parent) :
     sendReturn(0),
     speed(1.0),
     speedChanged(true),
-    init_falg(false)
+    init_falg(false),
+    bitFormat(8)
 {
+
 }
 
 int AudioDecoder::openAudio(AVFormatContext *pFormatCtx, int index)
@@ -604,6 +608,27 @@ void AudioDecoder::audioCallback(void *userdata, quint8 *stream, int SDL_AudioBu
     }
 }
 
+//获取pcm的db值
+int AudioDecoder::getPcmDb(){
+    int size = audioBufIndex;
+    unsigned char* pcmData = audioBuf;
+    //参数校验
+    if(pcmData == NULL){
+        return 0;
+    }
+    if(size <= 0){
+        return 0;
+    }
+
+    int sumDb = 0;
+    //累加分贝值
+    for (int i = 0;i < size; i++){
+        sumDb += pcmData[i];
+    }
+    return sumDb/size;
+//    return (int)(20.0*log10(sumDb/size));
+}
+
 int AudioDecoder::decodeAudio()
 {
 
@@ -689,8 +714,7 @@ int AudioDecoder::decodeAudio()
 
         //记录播放时长
         nowTime = frame->best_effort_timestamp * av_q2d(stream->time_base) * AV_TIME_BASE;
-//        qDebug()<<"音频-播放时长："<<nowTime;
-//        qDebug()<<"总时长："<<totalTime;
+
 
     }
 
@@ -737,8 +761,6 @@ int AudioDecoder::decodeAudio()
 
 
     if (aCovertCtx) {
-        //qDebug()<<"进入重采样！！";
-//        qDebug()<<"我来了";
         const quint8 **in   = (const quint8 **)frame->extended_data;
         uint8_t *out[] = {audioBuf1};
 
@@ -765,6 +787,10 @@ int AudioDecoder::decodeAudio()
         audioBuf = frame->data[0];
         resampledDataSize = av_samples_get_buffer_size(NULL, frame->channels, frame->nb_samples, static_cast<AVSampleFormat>(frame->format), 1);
     }
+
+    //计算分贝值
+//    qDebug()<<"buf的size："<<audioBufSize;
+//    qDebug()<<"buf的indeX:"<<audioBufIndex;
 
     clock += static_cast<double>(resampledDataSize) / (audioDepth * codecCtx->channels * codecCtx->sample_rate);
 

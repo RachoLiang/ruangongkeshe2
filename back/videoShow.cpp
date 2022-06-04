@@ -38,15 +38,6 @@ QString VideoShow::getSourPath(){
     return sourPath;
 }
 
-////获取资源的媒体信息
-//Audio* VideoShow::getMediaObject(QString path){
-//    Audio* audio = nullptr;
-//    qDebug()<<"解析的路径:"<<path;
-//    getMeidaInfo(path,audio);
-//    qDebug()<<"解析完毕！";
-//    return audio;
-//}
-
 //构造函数
 VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     sourPath = path;
@@ -54,13 +45,24 @@ VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     m_playState = MainDecoder::STOP;
     m_leftTime = "00:00";
     m_rightTime = "00:00";
+    m_title = "";
+    m_album = "";
+    m_artist = "";
+    m_imagePath = "";
+
+    pointNum = 10;
+    shakeList = {0,0,0,0,0,0,0,0,0,0};
+    barList = {0,0,0,0,0,0,0,0,0,0};
     qDebug()<<"创建了VideoShow对象";
     maindecoder = new MainDecoder();
     maindecoder->setCurrentFile(path);
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage*)),this,SLOT(slot_getOneFrame(QImage*)));
     //连接maindecoder -- videoShow: 播放状态改变
-    connect(maindecoder,SIGNAL(sign_playStateChanged(MainDecoder::PlayState)),this,SLOT(slot_setPlayState(MainDecoder::PlayState)));
+    connect(maindecoder,SIGNAL(sign_playStateChanged(MainDecoder::PlayState)),this,SLOT(slot_setPlayState(MainDecoder::PlayState))
+            );
+    //专辑信息
+    connect(maindecoder,SIGNAL(sign_sendAlbumImage(QString)),this,SLOT(slot_getAlbumImage(QString)));
     //发信号给解析器解析视频
     maindecoder->decoderFile(path,"video");
 }
@@ -69,12 +71,20 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     //参数初始化
     lastVolume = 0;
     m_process = 0.0;
+    pointNum = 10;
+    shakeList = {0,0,0,0,0,0,0,0,0,0};
+    barList = {0,0,0,0,0,0,0,0,0,0};
     m_playState = MainDecoder::STOP;
+    m_title = "";
+    m_album = "";
+    m_artist = "";
+    m_imagePath = "";
 
     maindecoder = new MainDecoder();
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
     connect(maindecoder,SIGNAL(sign_playStateChanged(MainDecoder::PlayState)),this,SLOT(slot_setPlayState(MainDecoder::PlayState)));
+    connect(maindecoder,SIGNAL(sign_sendAlbumImage(QString)),this,SLOT(slot_getAlbumImage(QString)));
 }
 
 //析构函数
@@ -358,6 +368,20 @@ void VideoShow::slot_setPlayState(MainDecoder::PlayState playState){
     emit playStateChanged(playState);
 }
 
+//获取专辑图片路径
+void VideoShow::slot_getAlbumImage(QString imagePath){
+    setTitle(maindecoder->title);
+    setArtist(maindecoder->artist);
+    setAlbum(maindecoder->album);
+    imagePath = QString("file:///") + imagePath;
+    setImagePath(imagePath);
+    //发出信号
+    emit titleChanged(m_title);
+    emit albumChanged(m_album);
+    emit artistChanged(m_artist);
+    emit imagePathChanged(imagePath);
+}
+
 //播放
 void VideoShow::show(QString path, QString type){
     //清空上次播放的缓存
@@ -400,4 +424,77 @@ void VideoShow::setArgs(double contrast_per, double brightness_per, double satur
     maindecoder->setFilter(contrast,brightness,saturation);
 }
 
+//获取波形图数据
+QList<int> VideoShow::getBarList(){
+    if(maindecoder == nullptr){
+        return barList;
+    }
+    int nowPoint = maindecoder->getAudioDb();
+    //队头出列
+    barList.removeFirst();
+    //数据入列
+    barList.append(nowPoint);
+    return barList;
+}
 
+QList<int> VideoShow::getShakeList(){
+    if(maindecoder == nullptr){
+        return shakeList;
+    }
+    int nowPoint = maindecoder->getAudioDb();
+    //队头出列
+    shakeList.removeFirst();
+    //数据入列
+    shakeList.append(nowPoint);
+    return shakeList;
+}
+
+int VideoShow::getPointNum(){
+    return pointNum;
+}
+
+//专辑信息
+QString VideoShow::getTitle(){
+    return m_title;
+}
+
+QString VideoShow::getAlbum(){
+    return m_album;
+}
+
+QString VideoShow::getArtist(){
+    return m_artist;
+}
+
+QString VideoShow::getImagePath(){
+    return m_imagePath;
+}
+
+void VideoShow::setTitle(QString title){
+    m_title = title;
+}
+
+void VideoShow::setAlbum(QString album){
+    m_album = album;
+}
+
+void VideoShow::setArtist(QString artist){
+    m_artist = artist;
+}
+
+void VideoShow::setImagePath(QString imagePath){
+    m_imagePath = imagePath;
+}
+
+//清空专辑信息
+void VideoShow::clearAlbum(){
+    setTitle("");
+    setArtist("");
+    setAlbum("");
+    setImagePath("");
+    //发出信号
+    emit titleChanged(m_title);
+    emit albumChanged(m_album);
+    emit artistChanged(m_artist);
+    emit imagePathChanged("");
+}

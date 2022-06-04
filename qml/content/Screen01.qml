@@ -11,10 +11,13 @@ import QtQuick.Controls
 import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
+import QtCharts 2.13
 import LLM
 import VideoShow 1.0
 import ThumnailShow 1.0
 import playlistclass 1.0
+import Qt5Compat.GraphicalEffects
+
 Rectangle {
     id: "window"
     width: Constants.width
@@ -25,6 +28,7 @@ Rectangle {
     property real multiplierW: (window.width/360)*1000;
 
     property bool nowIsPlayingAudio: true    //记录当前正在播放的是音频还是视频，从而知道该操作哪个列表
+//    property bool albumCenter: true //记录是否显示album cd中间的圆心
     function dpH(numbers) {
        return numbers*multiplierH/10000;
     }
@@ -34,6 +38,10 @@ Rectangle {
     function dpX(numbers){
         return (dpW(numbers)+dpH(numbers))/2;
     }
+
+
+
+
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
         onAddAudioFileInGUI:function(audioPath)
@@ -42,6 +50,11 @@ Rectangle {
         }
         onShowAudio: function(audioPath)
         {
+            console.log("播放了音频！！！！！！！！！！")
+            if(!update_value.running){
+                update_value.start();
+            }
+
             videoShow.show(audioPath,"music");
         }
         onChangePlayModeButtonIcon: function(iconName) //改变播放模式按钮图片
@@ -66,6 +79,8 @@ Rectangle {
         }
         onShowVideo:function(videoPath)
         {
+            update_value.stop()
+            videoShow.clearAlbum()
             videoShow.show(videoPath,"video")
         }
         onChangeCurrentPlayingIndex: function(index) //改变列表中的高亮条目
@@ -291,19 +306,6 @@ Rectangle {
                                 }
                                 SubWindow {
                                     id: subWindow
-                                    //基本属性
-                                    fileName: yinpinplaylist.getMediaInfo(index,"music","fileName")
-                                    fileType: yinpinplaylist.getMediaInfo(index,"music","fileType")
-                                    path: yinpinplaylist.getMediaInfo(index,"music","path")
-                                    totalTime: yinpinplaylist.getMediaInfo(index,"music","totalTime")
-                                    //视频属性
-                                    videoBitRate: "非视频类型"
-                                    videoFrameRate: "非视频类型"
-                                    resolvingPower: "非视频类型"
-                                    //音频属性
-                                    audioBitRate: yinpinplaylist.getMediaInfo(index,"music","audioBitRate")
-                                    numberOfChannels: yinpinplaylist.getMediaInfo(index,"music","numberOfChannels")
-                                    sample_rate: yinpinplaylist.getMediaInfo(index,"music","sample_rate")
                                 }
                                 Setting1 {
                                     id: setting_for_music
@@ -323,6 +325,7 @@ Rectangle {
                                     MenuItem {
                                         text: '详细信息'
                                         onTriggered: {
+                                            subWindow.infoMap = yinpinplaylist.getMediaInfo(index,"music")
                                             subWindow.show()
                                         }
                                     }
@@ -492,19 +495,6 @@ Rectangle {
                                 }
                                 SubWindow {
                                     id: subWindow3
-                                    //基本属性
-                                    fileName: shipinplaylist.getMediaInfo(index,"video","fileName")
-                                    fileType: shipinplaylist.getMediaInfo(index,"video","fileType")
-                                    path: shipinplaylist.getMediaInfo(index,"video","path")
-                                    totalTime: shipinplaylist.getMediaInfo(index,"video","totalTime")
-                                    //视频属性
-                                    videoBitRate: shipinplaylist.getMediaInfo(index,"video","videoBitRate")
-                                    videoFrameRate: shipinplaylist.getMediaInfo(index,"video","videoFrameRate")
-                                    resolvingPower: shipinplaylist.getMediaInfo(index,"video","resolvingPower")
-                                    //音频属性
-                                    audioBitRate: shipinplaylist.getMediaInfo(index,"video","audioBitRate")
-                                    numberOfChannels: shipinplaylist.getMediaInfo(index,"video","numberOfChannels")
-                                    sample_rate: shipinplaylist.getMediaInfo(index,"video","sample_rate")
                                 }
                                 Setting1 {
                                     id: setting_for_video
@@ -527,6 +517,7 @@ Rectangle {
                                     MenuItem {
                                         text: '详细信息'
                                         onTriggered: {
+                                            subWindow3.infoMap = shipinplaylist.getMediaInfo(index,"video")
                                             subWindow3.show()
                                         }
                                     }
@@ -559,6 +550,8 @@ Rectangle {
                 }
 
             }
+
+
         }
     }
     Item {
@@ -592,6 +585,11 @@ Rectangle {
             MenuItem {
                 text: '详细信息'
                 onTriggered: {
+                    if(nowIsPlayingAudio){
+                        subWindow6.infoMap = yinpinplaylist.getMediaInfo(yinpinplaylist.getNowIndex(),"music")
+                    }else{
+                        subWindow6.infoMap = shipinplaylist.getMediaInfo(shipinplaylist.getNowIndex(),"video")
+                    }
                     subWindow6.show()
                 }
             }
@@ -620,15 +618,16 @@ Rectangle {
         }
         Rectangle{
             anchors.fill: parent
-            width: dpW(2000)
-            height: dpH(3200)
             border.width: 5
             border.color: "black"
-            radius: 10
+            radius: 5
+
             Image {
                 anchors.fill: parent
                 source: "images/basepic.png"
+//                fillMode: Image.PreserveAspectFit
             }
+
             VideoShow{
                 id: videoShow;
                 anchors.centerIn: parent;
@@ -636,6 +635,7 @@ Rectangle {
                 nHeight: dpH(3200);
                 width: dpW(2000);
                 height: dpH(3200);
+                visible: !nowIsPlayingAudio
                 onPlayStateChanged: {
                     //当前是stop状态或者finish状态，则自动播放下一首
                     console.log("状态改变了")
@@ -652,6 +652,294 @@ Rectangle {
                 }
             }
         }
+
+
+        RowLayout{
+            visible: nowIsPlayingAudio
+
+            y: main.y + 50
+            spacing: 50
+
+            Rectangle{
+                width: 150
+                height: 50
+                color: "transparent"
+            }
+
+            Rectangle{
+                id: albumMain
+                width: 400
+                height: 400
+                radius: width/2
+                color: "#666666"
+
+
+//                DropShadow {
+//                           anchors.fill: albumMain
+//                           horizontalOffset: 2
+//                           verticalOffset: 2
+//                           radius: 2.0
+//                           color: "#444444"
+//                           spread: 0.0
+//                           source: albumMain
+//                    }
+
+                Rectangle{
+                    width: 335
+                    height: 335
+                    radius: width/2
+                    color: "#444444"
+                    anchors.centerIn: parent
+                }
+
+                Rectangle{
+                    width: 70
+                    height: 70
+                    radius: width/2
+                    color: "#F5F5F5"
+                    anchors.centerIn: parent
+                    visible: true
+                }
+
+
+                //专辑封面
+                OpacityMask {
+                    id: album
+                    anchors.centerIn: parent
+
+                    width: 300
+                    height: 300
+                    source: albumImage
+                    maskSource: audioImage
+                    }
+
+                Image {
+                    id: albumImage
+                    width: 300
+                    height: 300
+                    visible: false
+                    fillMode:Image.PreserveAspectFit
+
+                    smooth: true
+                    source: "file:\\C:\\Users\\YYg\\Desktop\\picture\\yy.png"
+
+                }
+
+                Rectangle{
+                    id: audioImage
+                    visible: false
+                    width: 300
+                    height: 300
+                    radius: width/2
+
+                }
+
+            }
+
+            //音频波形图
+            Rectangle {
+                id: audioWave
+                width: 500
+                height: 400
+                radius: 20
+//                border.color: "whitesmoke"
+//                border.width: 1
+
+                color: "transparent"
+
+                DropShadow {
+                           anchors.fill: audioWave
+                           horizontalOffset: -5
+                           verticalOffset: -5
+                           radius: 12.0
+                           color: "#20000000"
+                           spread: 0.0
+                           source: audioWave
+                    }
+
+                ColumnLayout{
+                    spacing: 20
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.rightMargin: 40
+                    anchors.leftMargin: 40
+                    anchors.bottomMargin: 56
+
+                    GridLayout{
+                        rows: 2
+                        columns: 4
+                        columnSpacing: 20
+                        rowSpacing: 20
+
+                        Text {
+                            text: qsTr("专辑标题:")
+                            font.pixelSize: 30
+                            fontSizeMode: Text.Fit
+                            minimumPixelSize: 25
+
+                        }
+                        Text {
+                            id: albumTitle
+                            text: qsTr("线")
+                            color: "#0066FF"
+                            font.pixelSize: 30
+                            fontSizeMode: Text.Fit
+                            minimumPixelSize: 25
+                        }
+
+                        Text {
+                            text: qsTr("")
+                        }
+
+                        Text {
+                            text: qsTr("")
+                        }
+
+                        Text {
+                            text: qsTr("专辑名字：")
+                        }
+
+                        Text{
+                            id: albumName
+                            text: qsTr("线的专辑")
+                            color: "#0066FF"
+                        }
+
+                        Text {
+                            text: qsTr("专辑作者：")
+                        }
+
+                        Text {
+                            id: albumArtist
+                            text: qsTr("Amber")
+                            color: "#0066FF"
+                        }
+                    }
+
+                    GridLayout{
+
+//                        anchors.centerIn: parent
+                        columns: 2
+                        rows: 1
+                        visible: true
+
+                        FastBlur {
+                                  anchors.fill: main
+                                  source: main
+                                  radius: 32
+                              }
+
+
+                        ChartView{
+                            id:right_shake
+                            title: qsTr("音频波形图")
+                            Layout.minimumWidth:200
+                            Layout.minimumHeight:200
+                            antialiasing:true
+                            legend.visible:false
+                            backgroundColor: "transparent"
+
+                            ValueAxis{
+                                id:shake_value_X
+                                gridVisible:false
+                                visible:false
+                                min:0
+                                max:10
+                            }
+
+                            ValueAxis{
+                                id:shake_value_Y
+                                labelsVisible:false
+                                gridVisible:false
+                                visible:true
+                                min:0
+                                max:200
+                            }
+
+                            SplineSeries{
+                                id:line
+                                axisX:shake_value_X
+                                axisY:shake_value_Y
+                            }
+                        }
+
+    //                    FastBlur {
+    //                              anchors.fill: bug
+    //                              source: bug
+    //                              radius: 32
+    //                          }
+
+
+                        ChartView{
+                            id:right_bar
+                            title: qsTr("音频波形柱状图")
+                            Layout.minimumWidth:200
+                            Layout.minimumHeight:200
+                            antialiasing:true
+                            legend.visible:false
+                            backgroundColor: "transparent"
+
+                            BarCategoryAxis{
+                                id:right_bar_value_X
+                                gridVisible:false
+                                labelsVisible:false
+                                categories: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+                            }
+
+                            ValueAxis{
+                                id:right_bar_value_Y
+                                min:0
+                                max:200
+                                visible:false
+                            }
+
+                            BarSeries{
+                                axisX:right_bar_value_X
+                                axisY:right_bar_value_Y
+
+                                BarSet {
+                                    id:bar
+                                    color:"green"
+                                    label: "Bob";
+                                    values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
+                //定时器
+                Timer{
+                    id:update_value
+                    repeat:true
+                    running:true
+                    interval:40
+                    onTriggered:{
+                        //检测窗口是否处于活跃状态
+                        if(audioWave.visible == true){
+                            line.clear()
+
+                            //获取数据点
+                            var available_num = videoShow.getPointNum()
+                            var shake_value = videoShow.getShakeList()
+                            var bar_value = videoShow.getBarList()
+
+                            for(var i = 0; i < available_num; i = i + 1){
+                                line.append(i, shake_value[i])
+                            }
+
+                            for(var j = 0; j < available_num; j++){
+                                bar.replace(j, bar_value[j])
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Image {
             anchors.right: parent.right
             anchors.top: parent.top
@@ -692,6 +980,11 @@ Rectangle {
                 MenuItem {
                     text: '详细信息'
                     onTriggered: {
+                        if(nowIsPlayingAudio){
+                            subWindow2.infoMap = yinpinplaylist.getMediaInfo(yinpinplaylist.getNowIndex(),"music")
+                        }else{
+                            subWindow2.infoMap = shipinplaylist.getMediaInfo(shipinplaylist.getNowIndex(),"video")
+                        }
                         subWindow2.show()
                     }
                 }
@@ -862,10 +1155,10 @@ Rectangle {
                 }
                 onValueChanged: {
                     if(control.pressed){
-                        //缩略图显示
-                        thumbnailShow.getFrame(control.visualPosition);
                         //改变播放进度
                         videoShow.setProcess(control.visualPosition)
+                        //缩略图显示
+                        thumbnailShow.getFrame(control.position);
                     }
                 }
             }
@@ -890,6 +1183,28 @@ Rectangle {
                 property: "text"
                 value: videoShow.rightTime
             }
+            //绑定专辑信息
+            Binding{
+                target: albumTitle
+                property: "text"
+                value: videoShow.title
+            }
+            Binding{
+                target: albumName
+                property: "text"
+                value: videoShow.album
+            }
+            Binding{
+                target: albumArtist
+                property: "text"
+                value: videoShow.title
+            }
+            Binding{
+                target: albumImage
+                property: "source"
+                value: videoShow.imagePath
+            }
+
             Text {
                 id: rightTime
                 color: "#ffffff"

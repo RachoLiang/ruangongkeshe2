@@ -18,6 +18,11 @@ public:
     Q_PROPERTY(MainDecoder::PlayState playState MEMBER m_playState READ getmPlayState WRITE slot_setPlayState NOTIFY playStateChanged)
     Q_PROPERTY(QString leftTime MEMBER m_leftTime READ getLeftTime WRITE setLeftTime NOTIFY leftTimeChanged)
     Q_PROPERTY(QString rightTime MEMBER m_rightTime READ getRightTime WRITE setRightTime NOTIFY rightTimeChanged)
+    //专辑信息
+    Q_PROPERTY(QString title MEMBER m_title READ getTitle WRITE setTitle NOTIFY titleChanged)
+    Q_PROPERTY(QString album MEMBER m_album READ getAlbum WRITE setAlbum NOTIFY albumChanged)
+    Q_PROPERTY(QString arist MEMBER m_artist READ getArtist WRITE setArtist NOTIFY artistChanged)
+    Q_PROPERTY(QString imagePath MEMBER m_imagePath READ getImagePath WRITE setImagePath NOTIFY imagePathChanged)
 
     VideoShow();
     explicit VideoShow(QString path);
@@ -89,6 +94,24 @@ public:
 
     //调整播放参数，对比度，亮度，饱和度
     Q_INVOKABLE void setArgs(double contrast_per,double brightness_per,double saturation_per);
+
+    //获取填充好的波形图数据点
+    Q_INVOKABLE QList<int> getShakeList();
+    Q_INVOKABLE QList<int> getBarList();
+    Q_INVOKABLE int getPointNum();
+
+    //专辑信息
+    Q_INVOKABLE QString getTitle();
+    Q_INVOKABLE QString getAlbum();
+    Q_INVOKABLE QString getArtist();
+    Q_INVOKABLE QString getImagePath();
+
+    Q_INVOKABLE void setTitle(QString);
+    Q_INVOKABLE void setAlbum(QString);
+    Q_INVOKABLE void setArtist(QString);
+    Q_INVOKABLE void setImagePath(QString);
+
+    Q_INVOKABLE void clearAlbum();
     
 protected:
     //绘制图片
@@ -105,11 +128,23 @@ private:
     MainDecoder::PlayState m_playState; //播放状态，从后端获取
     QString m_leftTime;     //进度条左边时间："56:32"
     QString m_rightTime;    //进度条右边时间："60:00"
+    QList<int> shakeList;   //绘制波形折线图数据
+    QList<int> barList;     //绘制波形柱状图数据
+    int pointNum;   //波形图的点数，默认是10
+
+    //专辑信息
+    QString m_title;
+    QString m_album;
+    QString m_artist;
+    QString m_imagePath;
+
     
 public slots:
     //获取图片的信号槽
     void slot_getOneFrame(QImage image);
     void slot_setPlayState(MainDecoder::PlayState);
+    //获取专辑封面
+    void slot_getAlbumImage(QString imagePath);
 //    void slot_playStateChanged(MainDecoder::PlayState playstate);
 
 signals:
@@ -120,6 +155,11 @@ signals:
     void playStateChanged(const MainDecoder::PlayState);
     void leftTimeChanged(QString);
     void rightTimeChanged(QString);
+    //专辑信息
+    void titleChanged(QString);
+    void albumChanged(QString);
+    void artistChanged(QString);
+    void imagePathChanged(QString);
 };
 
 #endif // VIDEOSHOW_H

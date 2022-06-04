@@ -13,17 +13,7 @@ import QtQuick.Layouts 1.15
 Window {
     width: 260
     height: 380
-    property string fileName: "未知文件名"
-    property string fileType: "未知类型"
-    property string path: "未知路径"
-    property string totalTime: "未获取到具体时间"
-    property string videoBitRate: "0kbps"
-    property string videoFrameRate: "0fps"
-    property string resolvingPower: "未识别到分辨率"
-
-    property string audioBitRate: "0kbps"
-    property string numberOfChannels: "未获取到声道数"
-    property string sample_rate: "未识别到采样率"
+    property var infoMap: ({})
 
     ColumnLayout {
         anchors.fill: parent
@@ -32,7 +22,7 @@ Window {
         anchors.leftMargin: 12
         Text {
             //text: '名称.mp3'
-            text:fileName
+            text: (infoMap["fileName"]===undefined?"未识别文件名":infoMap["fileName"])
             font.pixelSize: 18
         }
         Rectangle {
@@ -49,31 +39,31 @@ Window {
 
         Text {
             Layout.leftMargin: 12
-            text: '文件类型：\t '+fileType
+            text: '文件类型：\t '+(infoMap["fileType"]===undefined?"未识别文件类型":infoMap["fileType"])
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '文件位置：\t '+path
+            text: '文件位置：\t '+(infoMap["path"]===undefined?"未识别文件路径":infoMap["path"])
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '时长：\t ' + totalTime + "s"
+            text: '时长：\t ' + (infoMap["totalTime"]===undefined?"未识别时长":infoMap["totalTime"]) + "s"
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '视频分辨率：\t '+ resolvingPower
+            text: '视频分辨率：\t '+ (infoMap["resolvingPower"]===undefined?"未识别视频分辨率":infoMap["resolvingPower"])
         }
 
         Text {
             Layout.leftMargin: 12
-            text: '视频码率：\t '+ videoBitRate
+            text: '视频码率：\t '+ (infoMap["videoBitRate"]===undefined?"未识别视频码率":infoMap["videoBitRate"])
         }
         Text {
             Layout.leftMargin: 12
-            text: '视频帧率：\t '+ videoFrameRate
+            text: '视频帧率：\t '+ (infoMap["videoFrameRate"]===undefined?"未识别视频帧率":infoMap["videoFrameRate"])
         }
         //        Repeater {
         //            model: 5
@@ -95,15 +85,15 @@ Window {
         }
         Text {
             Layout.leftMargin: 12
-            text: '音频码率：\t '+audioBitRate
+            text: '音频码率：\t '+(infoMap["audioBitRate"]===undefined?"未识别音频码率":infoMap["audioBitRate"])
         }
         Text {
             Layout.leftMargin: 12
-            text: '音频声道数：\t '+numberOfChannels
+            text: '音频声道数：\t '+(infoMap["numberOfChannels"]===undefined?"未识别音频声道数":infoMap["numberOfChannels"])
         }
         Text {
             Layout.leftMargin: 12
-            text: '音频采样率：\t '+sample_rate
+            text: '音频采样率：\t '+(infoMap["sample_rate"]===undefined?"未识别音频采样率":infoMap["sample_rate"])
         }
 
     }

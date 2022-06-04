@@ -5,6 +5,7 @@
 #include <QImage>
 #include <QDebug>
 #include "audioDecoder.h"
+#include "utils.h"
 
 extern "C"
 {
@@ -58,6 +59,7 @@ public:
     QString getCutPath();   //获取当前截图路径
     void setCutPath(QString cutPath);   //设置当前截图路径
     PlayState getPlayState();   //获取当前播放状态
+    int getAudioDb();   //获取当前音频的分贝值
 
 
     double contrast;
@@ -68,6 +70,14 @@ public:
     int initFilter();
 
     int keyNum;
+
+    //专辑信息
+    QString album;  //专辑名字
+    QString title;  //标题
+    QString artist; //作者
+    QImage albumImage;  //专辑图片
+    QString albumImagePath; //专辑封面图片
+
 
 private:
     void run();
@@ -134,7 +144,7 @@ private:
     AVFilterInOut *out;
     AVFilterInOut *in;
 
-    int seekType;
+    int seekType;   //找关键帧的方式
 
 public slots:
     void decoderFile(QString file, QString type);
@@ -147,6 +157,7 @@ signals:
     void gotVideo(QImage image);
     void gotVideoTime(qint64 time);
     void sign_playStateChanged(MainDecoder::PlayState state);
+    void sign_sendAlbumImage(QString imagePath);
 
 };
 

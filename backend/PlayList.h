@@ -45,8 +45,12 @@ private:
     int dequeSize;
     int playMode;     //播放模式（程序启动时默认为只播放当前）
     int nowIndex;     //当前播放的视频序号
+    mySql* sql;
+    Video* tmpVideo;
+    Audio* tmpAudio;
 public:
     explicit PlayList(QObject *parent=nullptr);
+    ~PlayList();
     //void setPlayMode(int);
     //int findNextNodeID();
     //int findLastNodeID();
@@ -63,7 +67,8 @@ public:
     Q_INVOKABLE void saveToDataBase();  //保存当前现场，包括当前播放的媒体和时刻位置
     Q_INVOKABLE void init(int);   //需要在qml的ListView组件准备好之后，才能init，不然发射了信号也没人接收
     Q_INVOKABLE void showFileList();
-    Q_INVOKABLE QString getMediaInfo(int index,QString type,QString key);
+    Q_INVOKABLE QVariantMap getMediaInfo(int index,QString type);
+    Q_INVOKABLE int getNowIndex();
 
 signals: //信号只需要定义，不需要实现
     void addAudioFileInGUI(QString audioPath);

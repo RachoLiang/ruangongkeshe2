@@ -10,6 +10,7 @@ Audio::Audio(QString audioPath){
     //加载文件
     //初始化媒体信息
     this->duration = this->player->duration();
+    this->position = 0;
 }
 
 //通过数据库信息初始化
@@ -132,6 +133,16 @@ bool Audio::onStop(){
 //获取player对象
 QMediaPlayer* Audio::getPlayer(){
     return this->player;
+}
+
+const int Audio::getId() const
+{
+    return id;
+}
+
+void Audio::setId(const int id)
+{
+    this->id = id;
 }
 
 const QString Audio::getFilePath() const
