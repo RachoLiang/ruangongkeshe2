@@ -42,6 +42,10 @@ Rectangle {
             //本来应该是空格键，但尝试后发现，按下空格键，结果是触发了鼠标最近点击的按钮，暂时不知道怎么解决，所以用回车键代替
             playbutton.playButtonActivate()
         }
+        else if((event.key == Qt.Key_F) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + f
+            full_screen_MouseArea.full_screenClicked()
+        }
     }
 
     PlayList{
@@ -988,8 +992,10 @@ Rectangle {
                         anchors.right: parent.right
                         anchors.rightMargin: 18
                         MouseArea {
+                            id:full_screen_MouseArea
                             anchors.fill: parent
-                            onClicked: {
+                            function full_screenClicked()
+                            {
                                 if(!isFullScreen){
                                     showFullScreen()
                                     if(leftList.open)
@@ -1010,6 +1016,9 @@ Rectangle {
                                 }
                                 basePic.visible = !basePic.visible
                                 videoShow.fullScreen = !videoShow.fullScreen
+                            }
+                            onClicked: {
+                                full_screenClicked()
                             }
                         }
                     }
