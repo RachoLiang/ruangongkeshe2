@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
@@ -32,8 +32,11 @@ import QtQuick.Window
 import LLM
 
 Window {
-    width: 1920
-    height: 1080
+    id:mainWin
+    property bool isFullScreen: false
+    width: 1000
+    height: 618
+
 
     visible: true
     title: "LLM"

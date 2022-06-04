@@ -19,24 +19,35 @@ import playlistclass 1.0
 import Qt5Compat.GraphicalEffects
 
 Rectangle {
-    id: "window"
+    id: overALLRectangle
+    focus: true
     width: Constants.width
     height: Constants.height
     anchors.fill: parent
 
-    property real multiplierH: (window.height/640)*1000;
-    property real multiplierW: (window.width/360)*1000;
-
     property bool nowIsPlayingAudio: true    //记录当前正在播放的是音频还是视频，从而知道该操作哪个列表
-//    property bool albumCenter: true //记录是否显示album cd中间的圆心
-    function dpH(numbers) {
-       return numbers*multiplierH/10000;
-    }
-    function dpW(numbers) {
-       return numbers*multiplierW/10000;
-    }
-    function dpX(numbers){
-        return (dpW(numbers)+dpH(numbers))/2;
+
+    Keys.onPressed: {//所有快捷键操作
+        if ((event.key == Qt.Key_I) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + i
+            fileDialog.open()
+        }
+        else if((event.key == Qt.Key_Right) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + ->
+            nextPlayBtn.nextPlayBtnClicked()
+        }
+        else if((event.key == Qt.Key_Left) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + <-
+            lastPlayBtn.lastPlayBtnClicked()
+        }
+        else if((event.key == Qt.Key_Return)){
+            //本来应该是空格键，但尝试后发现，按下空格键，结果是触发了鼠标最近点击的按钮，暂时不知道怎么解决，所以用回车键代替
+            playbutton.playButtonActivate()
+        }
+        else if((event.key == Qt.Key_F) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + f
+            full_screen_MouseArea.full_screenClicked()
+        }
     }
 
 
@@ -44,9 +55,9 @@ Rectangle {
 
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
-        onAddAudioFileInGUI:function(audioPath)
+        onAddAudioFileInGUI:function(audioPath,audioDuration)
         {
-            yinpinmodel.append({yinpintext:audioPath})
+            yinpinmodel.append({yinpintext:audioPath,yinpinduration:audioDuration})
         }
         onShowAudio: function(audioPath)
         {
@@ -56,6 +67,7 @@ Rectangle {
             }
 
             videoShow.show(audioPath,"music");
+            playbuttonimage.source="../content/images/pause.png"
         }
         onChangePlayModeButtonIcon: function(iconName) //改变播放模式按钮图片
         {
@@ -65,23 +77,20 @@ Rectangle {
         {
             yinpinlistview.currentIndex=index
         }
-
-//        onChangeCurrentPlayingIndex: function(index)  //改变列表中的高亮条目
-//        {
-//            filesListView.currentIndex=index
-//        }
     }
     PlayList{
         id:shipinplaylist;
-        onAddVideoFileInGUI:function(videoPath)
+        onAddVideoFileInGUI:function(videoPath,videoDuration)
         {
-            shipinmodel.append({shipintext:videoPath})
+            shipinmodel.append({shipintext:videoPath,shipinduration:videoDuration})
         }
         onShowVideo:function(videoPath)
         {
             update_value.stop()
             videoShow.clearAlbum()
             videoShow.show(videoPath,"video")
+            thumbnailShow.setPathAndStart(videoPath)
+            playbuttonimage.source="../content/images/pause.png"
         }
         onChangeCurrentPlayingIndex: function(index) //改变列表中的高亮条目
         {
@@ -90,6 +99,7 @@ Rectangle {
     }
 
     Image {
+        id:leftarrow
         visible: !leftList.open
         z: 2
         width: 40
@@ -105,6 +115,7 @@ Rectangle {
             anchors.fill: parent
             onClicked: {
                 leftList.open = true
+                leftarrow.visible = false
             }
         }
     }
@@ -113,7 +124,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: open ? 358 : 0
+        width: open ? parent.width/4 : 0
         color: '#F8F8F8'
         property bool open: true
         Behavior on width {
@@ -152,7 +163,7 @@ Rectangle {
                         id: fileDialog
                         title: "导入音频或者视频文件"
                         nameFilters: [ "视频文件 (*.ts *.mp4 *.avi *.flv *.mkv *.3gp)",
-                            "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra)"]
+                            "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra *.flac)"]
                         acceptLabel: "确定"
                         rejectLabel: "取消"
                         fileMode: FileDialog.OpenFile
@@ -179,6 +190,7 @@ Rectangle {
                         anchors.fill: parent
                         onClicked: {
                             leftList.open = false
+                            leftarrow.visible = true
                         }
                     }
                 }
@@ -274,7 +286,7 @@ Rectangle {
                                 Text {
                                     color: "#b6b6b6"
                                     font.pixelSize: 11
-                                    text: 'Red Velvet'
+                                    text: yinpinduration
                                 }
                             }
                             MouseArea {
@@ -283,6 +295,7 @@ Rectangle {
                                 {
                                     yinpinplaylist.setNowIndex(index)
                                     yinpinlistview.currentIndex=index
+                                    playbuttonimage.source="../content/images/pause.png"
                                     nowIsPlayingAudio=true
                                     console.log("点击第"+yinpinlistview.currentIndex+"个音频")
                                 }
@@ -315,11 +328,22 @@ Rectangle {
                                     id: contextMenu
                                     MenuItem {
                                         text: '置顶'
+                                        function toppingYinpin(idx)
+                                        {
+                                            console.log("置顶音频,index="+idx)
+                                            yinpinmodel.move(idx,0,1)
+                                            yinpinplaylist.toppingFile(idx)
+                                            overALLRectangle.forceActiveFocus()
+                                        }
+                                        onTriggered: {
+                                            toppingYinpin(index)
+                                        }
                                     }
                                     MenuItem {
                                         text: '设置'
                                         onTriggered: {
                                             setting_for_music.show()
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                     MenuItem {
@@ -327,6 +351,25 @@ Rectangle {
                                         onTriggered: {
                                             subWindow.infoMap = yinpinplaylist.getMediaInfo(index,"music")
                                             subWindow.show()
+                                            overALLRectangle.forceActiveFocus()
+                                        }
+                                    }
+                                    MenuItem {
+                                        text: '删除'
+                                        function deleteYinPin(idx)
+                                        {
+                                            console.log("删除音频index="+idx)
+                                            yinpinmodel.remove(idx)
+                                            yinpinplaylist.removeFile(idx)
+                                            if(nowIsPlayingAudio&&yinpinlistview.currentIndex==idx&&videoShow.isPaused()==false)
+                                            {
+                                                yinpinplaylist.playNextMedia()
+                                            }
+                                            overALLRectangle.forceActiveFocus()
+                                        }
+
+                                        onTriggered: {
+                                            deleteYinPin(index)
                                         }
                                     }
                                 }
@@ -461,7 +504,7 @@ Rectangle {
                                 Text {
                                     color: "#b6b6b6"
                                     font.pixelSize: 11
-                                    text: '5:10:00'
+                                    text: shipinduration
                                 }
 
                             }
@@ -471,6 +514,7 @@ Rectangle {
                                 {
                                     shipinplaylist.setNowIndex(index)
                                     shipinlistview.currentIndex=index
+                                    playbuttonimage.source="../content/images/pause.png"
                                     nowIsPlayingAudio=false
                                     console.log("点击第"+shipinlistview.currentIndex+"个视频")
 
@@ -504,11 +548,22 @@ Rectangle {
                                     id: contextMenu3
                                     MenuItem {
                                         text: '置顶'
+                                        function toppingShipin(idx)
+                                        {
+                                            console.log("置顶视频,index="+idx)
+                                            shipinmodel.move(idx,0,1)
+                                            shipinplaylist.toppingFile(idx)
+                                            overALLRectangle.forceActiveFocus()
+                                        }
+                                        onTriggered: {
+                                            toppingShipin(index)
+                                        }
                                     }
                                     MenuItem {
                                         text: '设置'
                                         onTriggered: {
                                             setting_for_video.show()
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                     MenuItem {
@@ -519,6 +574,25 @@ Rectangle {
                                         onTriggered: {
                                             subWindow3.infoMap = shipinplaylist.getMediaInfo(index,"video")
                                             subWindow3.show()
+                                            overALLRectangle.forceActiveFocus()
+                                        }
+                                    }
+                                    MenuItem{
+                                        text: '删除'
+                                        function deleteShiPin(idx)
+                                        {
+                                            console.log("删除视频index="+idx)
+                                            shipinmodel.remove(idx)
+                                            shipinplaylist.removeFile(idx)
+                                            //如果删除的正好是当前播放的，则视为删除后点击了下一首
+                                            if(nowIsPlayingAudio==false&&shipinlistview.currentIndex==idx&&videoShow.isPaused()==false)
+                                            {
+                                                shipinplaylist.playNextMedia()
+                                            }
+                                            overALLRectangle.forceActiveFocus()
+                                        }
+                                        onTriggered: {
+                                            deleteShiPin(index)
                                         }
                                     }
                                 }
@@ -617,35 +691,49 @@ Rectangle {
             }
         }
         Rectangle{
+            id:show
             anchors.fill: parent
+//            anchors.top:parent.top
+//            anchors.left: parent.left
+//            anchors.right: parent.right
+//            anchors.bottom: controls.top
+
             border.width: 5
             border.color: "black"
-            radius: 5
+            color: "black"
+            radius: 10
 
             Image {
+                id:basePic
                 anchors.fill: parent
                 source: "images/basepic.png"
 //                fillMode: Image.PreserveAspectFit
             }
 
             VideoShow{
-                id: videoShow;
-                anchors.centerIn: parent;
-                nWidth: dpW(2000);
-                nHeight: dpH(3200);
-                width: dpW(2000);
-                height: dpH(3200);
                 visible: !nowIsPlayingAudio
+                id: videoShow;
+                anchors.centerIn: parent
+                //anchors.bottom: slider.top
+                //anchors.fill: parent
+                //自适应大小 16x9
+                nWidth: (parent.width/16)>(parent.height/9)?parent.height/9*16:parent.width
+                nHeight: (parent.width/16)<(parent.height/9)?parent.width/16*9:parent.height
+                width: (parent.width/16)>(parent.height/9)?parent.height/9*16:parent.width
+                height: (parent.width/16)<(parent.height/9)?parent.width/16*9:parent.height
+
+                property bool fullScreen: true
                 onPlayStateChanged: {
                     //当前是stop状态或者finish状态，则自动播放下一首
                     console.log("状态改变了")
                     if(videoShow.isFinish()){
+                        playbuttonimage.source="../content/images/play.png"
                         console.log("视频finish才调用下一首播放")
                         if(nowIsPlayingAudio){
-                            console.log("音频下一首")
+                            console.log("自动音频下一首")
                             yinpinplaylist.autoPlayNextMedia()
                         }else{
-                            console.log("视频下一首")
+                            console.log("自动视频下一首")
                             shipinplaylist.autoPlayNextMedia()
                         }
                     }
@@ -660,11 +748,11 @@ Rectangle {
             y: main.y + 50
             spacing: 50
 
-            Rectangle{
-                width: 150
-                height: 50
-                color: "transparent"
-            }
+//            Rectangle{
+//                width: 150
+//                height: 50
+//                color: "transparent"
+//            }
 
             Rectangle{
                 id: albumMain
@@ -940,12 +1028,607 @@ Rectangle {
             }
         }
 
+//        Image {
+//            anchors.right: parent.right
+//            anchors.top: parent.top
+//            source: "images/more1.png"
+//            anchors.rightMargin: 65
+//            anchors.topMargin: 66
+//            MouseArea {
+//                anchors.fill: parent
+//                acceptedButtons: Qt.LeftButton | Qt.RightButton
+//                onClicked: {
+//                    if (mouse.button === Qt.LeftButton)
+//                        contextMenu2.popup()
+//                }
+//                onPressAndHold: {
+//                    if (mouse.source === Qt.MouseEventNotSynthesized)
+//                        contextMenu2.popup()
+//                }
+//            }
+//            Setting1 {
+//                id: setting_for_rup
+//            }
+
+//            SubWindow {
+//                id: subWindow2
+//            }
+
+//            Menu {
+//                id: contextMenu2
+//                MenuItem {
+//                    text: '置顶'
+//                }
+//                MenuItem {
+//                    text: '设置'
+//                    onTriggered: {
+//                        setting_for_rup.show()
+//                    }
+//                }
+//                MenuItem {
+//                    text: '详细信息'
+//                    onTriggered: {
+//                        if(nowIsPlayingAudio){
+//                            subWindow2.infoMap = yinpinplaylist.getMediaInfo(yinpinplaylist.getNowIndex(),"music")
+//                        }else{
+//                            subWindow2.infoMap = shipinplaylist.getMediaInfo(shipinplaylist.getNowIndex(),"video")
+//                        }
+//                        subWindow2.show()
+//                    }
+//                }
+//            }
+//        }
+
+//        RowLayout {
+//            anchors.left: parent.left
+//            anchors.right: parent.right
+//            anchors.bottom: parent.bottom
+//            anchors.rightMargin: 40
+//            anchors.leftMargin: 40
+//            anchors.bottomMargin: 56
+//            Image {
+//                source: "images/M_left.png"
+//                RoundButton {
+            Item {
+                id: controls
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height:80
+                opacity: open?1:0
+
+                property bool open: false
+                MouseArea{
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onEntered: {
+                        if(timer.running){
+                            timer.stop()
+                        }
+                        controls.open = true
+                    }
+                    onExited: {
+                        if(!playbutton.hovered&&!lastPlayBtn.hovered&&!lastFrameButton.hovered&&!nextPlayBtn.hovered&&!nextFrameButton.hovered&&!playModeBtn.hovered){
+                             timer.start()
+                            //controls.open=false
+                        }
+                    }
+                }
+
+                Timer{
+                    id:timer
+                    interval: 3000
+                    repeat: false
+                    onTriggered: {
+                        controls.open = false
+                    }
+                }
+
+                RowLayout{
+                    id: slider
+                    anchors.left:parent.left
+                    anchors.right: parent.right
+                    anchors.top:parent.top
+                    anchors.topMargin: 10
+                    Text {
+                        id: lefTime
+                        color: "#ffffff"
+                        text: '00:00'
+                        anchors.verticalCenter: parent.verticalCenter
+                        Layout.leftMargin: 30
+                        font.pixelSize: 20
+                    }
+                    //            Slider {
+                    //                height: 6
+                    //                Layout.rightMargin: 30
+                    //                Layout.leftMargin: 30
+                    //                Layout.fillWidth: true
+                    //                value: 0.5
+                    //            }
+                    ///// 自定义美化样式，请同学们自己放开注释
+                    Slider {
+                        id: control
+                        value: 0.0
+                        anchors.centerIn: parent
+                        //                width: 200
+                        //                height: 20
+                        //height: 10
+                        Layout.rightMargin: 10
+                        Layout.leftMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                        Layout.fillWidth: true
+
+
+                        MouseArea{
+                            id:control_area
+                            anchors.fill: parent
+                            hoverEnabled: true
+
+                            onPositionChanged: {
+                                if(timer.running){
+                                    timer.stop()
+                                }
+                                if(!nowIsPlayingAudio){
+                                    yulan.visible = true
+                                    yulan.x = (mouseX/control.availableWidth)*(control.availableWidth - yulan.implicitWidth)
+                                    thumbnailShow.getFrame(mouseX/control.availableWidth)
+                                }
+                            }
+                            onExited: {
+                                yulan.visible = false
+                            }
+                            propagateComposedEvents :true
+                            //释放鼠标事件的覆盖，让slider接收事件
+                            onClicked: mouse.accepted=false
+                            onPressed: mouse.accepted=false
+                            onPressAndHold: mouse.accepted=false
+
+                        }
+
+                        background: Rectangle {
+                            id: rect1
+                            width: control.availableWidth
+                            anchors.verticalCenter: parent.verticalCenter
+                            radius: 7
+                            color: "gray"
+                            height: 5
+
+                            Rectangle {
+                                id: rect2
+                                width: control.visualPosition * rect1.width
+                                height: rect1.height
+                                color: "steelblue"
+                                radius: 7
+                            }
+                        }
+
+                        handle: Rectangle {
+
+                            id: handle111
+                            x: control.visualPosition * (control.availableWidth - implicitWidth)
+                            anchors.verticalCenter: parent.verticalCenter
+                            implicitWidth: 24
+                            implicitHeight: 24
+                            radius: 12
+                            border.color: "steelblue"
+                            border.width: 2
+                            color: control.pressed ? "steelblue" : "white"
+                        }
+
+                        Rectangle {
+                            visible: false
+
+                            id: yulan
+                            width: 150
+                            height: 100
+                            x: handle111.x
+                            y: handle111.y - 110
+
+                            ThumbnailShow{
+                                id: thumbnailShow;
+                                anchors.centerIn: parent;
+                                nWidth: 150;
+                                nHeight: 100;
+                                width: 150;
+                                height: 100;
+                            }
+                        }
+                        onValueChanged: {
+                            if(control.pressed){
+                                //改变播放进度
+                                videoShow.setProcess(control.visualPosition)
+                            }
+                        }
+                    }
+
+                    //绑定进度条属性
+                    Binding{
+                        target: control
+                        property: "value"
+                        value: videoShow.process
+                    }
+
+                    //绑定进度条播放时间
+                    Binding{
+                        target: lefTime
+                        property: "text"
+                        value: videoShow.leftTime
+                    }
+
+                    //绑定播放总时长
+                    Binding{
+                        target: rightTime
+                        property: "text"
+                        value: videoShow.rightTime
+                    }
+
+                    //绑定专辑信息
+                    Binding{
+                        target: albumTitle
+                        property: "text"
+                        value: videoShow.title
+                    }
+                    Binding{
+                        target: albumName
+                        property: "text"
+                        value: videoShow.album
+                    }
+                    Binding{
+                        target: albumArtist
+                        property: "text"
+                        value: videoShow.title
+                    }
+                    Binding{
+                        target: albumImage
+                        property: "source"
+                        value: videoShow.imagePath
+                    }
+
+                    Text {
+                        id: rightTime
+                        color: "#ffffff"
+                        text: "00:00"
+                        anchors.verticalCenter: parent.verticalCenter
+                        font.pixelSize: 20
+                        Layout.rightMargin: 30
+                    }
+                }
+
+                RowLayout {
+                    id:control_buttons
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top:slider.bottom
+
+                    Image {
+                        source: "images/M_left.png"
+                        anchors.right: lastFrame.left
+                        anchors.rightMargin: 10
+
+                        Layout.preferredHeight: 30
+                        Layout.preferredWidth: 30
+                        RoundButton {
+                            id:lastPlayBtn
+                            //anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("上一集")
+                            function lastPlayBtnClicked()
+                            {
+                                if(nowIsPlayingAudio){
+                                    yinpinplaylist.playLastMedia()
+                                }
+                                else{
+                                    shipinplaylist.playLastMedia()
+                                }
+                            }
+
+                            onClicked: {
+                                lastPlayBtn.lastPlayBtnClicked()
+                            }
+                        }
+                    }
+                    Image {
+                        id:lastFrame
+                        Layout.preferredHeight: 40
+                        Layout.preferredWidth: 40
+                        anchors.right: playbuttonimage.left
+                        anchors.rightMargin: 10
+                        source: "../content/images/13.png"
+                        RoundButton {
+                            id:lastFrameButton
+                            anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("上一帧")
+                            onClicked: {
+                                videoShow.seekSlow()
+                            }
+                        }
+                    }
+                    Image {
+                        id:playbuttonimage
+                        source: "../content/images/play.png"
+                        anchors.centerIn: parent
+                        Layout.preferredHeight: 20
+                        Layout.preferredWidth: 20
+                        RoundButton {
+                            id:playbutton
+                            anchors.fill: parent
+                            flat: true
+                            focus: false
+
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("播放")
+                            function playButtonActivate()
+                            {
+                                //如果当前处于暂停状态，则播放一个视频
+                                if(videoShow.isStop())
+                                {
+                                    console.log("Stop状态");  //很怪，只有程序刚启动，什么都没播放过时，点击播放按钮，才会进入这个if
+                                }
+                                else
+                                {
+                                    videoShow.pause();
+                                    console.log("pause状态")
+                                    if(videoShow.isPaused())
+                                    {
+                                        playbuttonimage.source="../content/images/play.png"
+                                        playbutton.ToolTip.text=qsTr("播放")
+                                    }
+                                    else
+                                    {
+                                        playbuttonimage.source="../content/images/pause.png"
+                                        playbutton.ToolTip.text=qsTr("暂停")
+                                    }
+                                }
+                            }
+                            onClicked: {
+                                playbutton.playButtonActivate()
+                            }
+                        }
+                    }
+                    Image {
+                        id:nextFrame
+                        Layout.preferredHeight: 40
+                        Layout.preferredWidth: 40
+                        anchors.left: playbuttonimage.right
+                        anchors.leftMargin: 10
+                        source: "../content/images/12.png"
+                        RoundButton {
+                            id:nextFrameButton
+                            anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("下一帧")
+                            onClicked: {
+                                videoShow.seekFast()
+                            }
+                        }
+                    }
+                    Image {
+                        id:nextPlay
+                        source: "images/M_right.png"
+                        Layout.preferredHeight: 30
+                        Layout.preferredWidth: 30
+                        anchors.left:nextFrame.right
+                        anchors.leftMargin: 10
+                        RoundButton {
+                            id: nextPlayBtn
+                            //anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("下一集")
+                            function nextPlayBtnClicked()
+                            {
+                                if(nowIsPlayingAudio){
+                                    yinpinplaylist.playNextMedia()
+                                }
+                                else{
+                                    shipinplaylist.playNextMedia()
+                                }
+                            }
+
+                            onClicked: {
+                                console.log("下一首被点击")
+                                nextPlayBtn.nextPlayBtnClicked()
+                            }
+                        }
+                    }
+                    Image {
+                        id:full_screen
+                        Layout.preferredHeight: 25
+                        Layout.preferredWidth: 25
+                        source: "images/full_screen(1).png"
+    //                    Layout.rightMargin: 12
+                        anchors.right: parent.right
+                        anchors.rightMargin: 18
+                        MouseArea {
+                            id:full_screen_MouseArea
+                            anchors.fill: parent
+                            function full_screenClicked()
+                            {
+                                if(!isFullScreen){
+                                    showFullScreen()
+                                    if(leftList.open)
+                                    {
+                                       leftList.open = false
+                                       leftarrow.visible = false
+                                    }else{
+                                       leftarrow.visible = false
+                                    }
+
+                                    mainWin.isFullScreen = true
+                                }else{
+                                    showNormal()
+                                    if(!leftList.open){
+                                        leftList.open = true
+                                    }
+                                    mainWin.isFullScreen = false
+                                }
+                                basePic.visible = !basePic.visible
+                                videoShow.fullScreen = !videoShow.fullScreen
+                            }
+                            onClicked: {
+                                full_screenClicked()
+                            }
+                        }
+                    }
+                    Image {
+                        id:playmodeimage
+                        source: "images/singlePlay.png"
+                        anchors.left:nextPlay.right
+                        anchors.leftMargin: 25
+                        Layout.preferredHeight: 35
+                        Layout.preferredWidth: 35
+                        RoundButton {
+                            id:playModeBtn
+                            anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("改变播放模式")
+                            onClicked: {
+                                yinpinplaylist.changePlayMode()
+                                shipinplaylist.changePlayMode()
+                            }
+                        }
+                    }
+                    Image {
+                        id:voice_button
+                        Layout.preferredHeight: 35
+                        Layout.preferredWidth: 35
+                        source: "images/11.png"
+                        anchors.left: parent.left
+                        anchors.leftMargin: 12
+                        Slider {
+                            visible: false
+                            id: voice
+                            y: -130
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            value: 0.5
+                            rotation: 270
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                voice.visible = !voice.visible
+                            }
+                        }
+                    }
+                    Image {
+                        id:speedImage
+                        source: "images/speed100.png"
+                        Layout.preferredHeight: 30
+                        Layout.preferredWidth: 30
+                        //anchors.verticalCenter: parent.verticalCenter
+                        anchors.left:voice_button.right
+                        anchors.leftMargin: 12
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                speedBox.visible = true
+                            }
+                        }
+
+                        Item {
+                            visible: false
+                            id: speedBox
+                            y: -146
+                            width: 76
+                            height: 143
+                            anchors.horizontalCenterOffset: 0
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            Column {
+                                id: column
+                                anchors.fill: parent
+                                anchors.topMargin: -10
+                                Text {
+                                    color: "#676767"
+
+                                    text: '1.00'
+                                    font.pixelSize: 24
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(1.00)
+                                            speedImage.source="images/speed100.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "#676767"
+
+                                    text: '1.25'
+                                    font.pixelSize: 24
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(1.25)
+                                            speedImage.source="images/speed125.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "#676767"
+
+                                    text: '1.50'
+                                    font.pixelSize: 24
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(1.50)
+                                            speedImage.source="images/speed150.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "#676767"
+
+                                    text: '1.75'
+                                    font.pixelSize: 24
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(1.75)
+                                            speedImage.source="images/speed175.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "#676767"
+                                    text: '2.00'
+                                    font.pixelSize: 24
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(2.00)
+                                            speedImage.source="images/speed200.png"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         Image {
             anchors.right: parent.right
             anchors.top: parent.top
             source: "images/more1.png"
-            anchors.rightMargin: 65
-            anchors.topMargin: 66
+            anchors.rightMargin: 50
+            anchors.topMargin: 40
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -975,6 +1658,7 @@ Rectangle {
                     text: '设置'
                     onTriggered: {
                         setting_for_rup.show()
+                        overALLRectangle.forceActiveFocus()
                     }
                 }
                 MenuItem {
@@ -986,379 +1670,12 @@ Rectangle {
                             subWindow2.infoMap = shipinplaylist.getMediaInfo(shipinplaylist.getNowIndex(),"video")
                         }
                         subWindow2.show()
-                    }
-                }
-            }
-        }
-
-        RowLayout {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.rightMargin: 40
-            anchors.leftMargin: 40
-            anchors.bottomMargin: 56
-            Image {
-                source: "images/M_left.png"
-                RoundButton {
-                    anchors.fill: parent
-                    flat: true
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("上一集")
-                    onClicked: {
-                        if(nowIsPlayingAudio){
-                            yinpinplaylist.playLastMedia()
-                        }
-                        else{
-                            shipinplaylist.playLastMedia()
-                        }
-                    }
-                }
-            }
-            Image {
-                Layout.preferredHeight: 80
-                Layout.preferredWidth: 80
-                source: "../content/images/13.png"
-                RoundButton {
-                    anchors.fill: parent
-                    flat: true
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("上一帧")
-                    onClicked: {
-                        videoShow.seekSlow()
-                    }
-                }
-            }
-            Image {
-                source: "../content/images/play.png"
-                RoundButton {
-                    anchors.fill: parent
-                    flat: true
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("播放")
-                    onClicked: {
-                        //如果当前处于暂停状态，则播放一个视频
-                        if(videoShow.isStop()){
-                            console.log("Stop状态");
-                            videoShow.show("C:\\Users\\YYg\\Desktop\\test2.mp4","video");
-                        }else{
-                            videoShow.pause();
-                        }
-                    }
-                }
-            }
-            Image {
-                Layout.preferredHeight: 80
-                Layout.preferredWidth: 80
-                source: "../content/images/12.png"
-                RoundButton {
-                    anchors.fill: parent
-                    flat: true
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("下一帧")
-                    onClicked: {
-                        videoShow.seekFast()
-                    }
-                }
-            }
-            Image {
-                source: "images/M_right.png"
-                RoundButton {
-                    id: nextPlayBtn
-                    anchors.fill: parent
-                    flat: true
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("下一集")
-                    onClicked: {
-                        console.log("下一首被点击")
-                        if(nowIsPlayingAudio){
-                            yinpinplaylist.playNextMedia()
-                        }
-                        else{
-                            shipinplaylist.playNextMedia()
-                        }
-
-                    }
-                }
-            }
-            Text {
-                id: lefTime
-                color: "#ffffff"
-                text: '00:00'
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 30
-            }
-            //            Slider {
-            //                height: 6
-            //                Layout.rightMargin: 30
-            //                Layout.leftMargin: 30
-            //                Layout.fillWidth: true
-            //                value: 0.5
-            //            }
-            ///// 自定义美化样式，请同学们自己放开注释
-            Slider {
-                id: control
-                value: 0.0
-                //                anchors.centerIn: parent
-                //                width: 200
-                //                height: 20
-                height: 20
-                Layout.rightMargin: 30
-                Layout.leftMargin: 60
-                Layout.fillWidth: true
-                background: Rectangle {
-                    id: rect1
-                    width: control.availableWidth
-                    height: 20
-                    radius: 7
-                    color: "orange"
-
-                    Rectangle {
-                        id: rect2
-                        width: control.visualPosition * rect1.width
-                        height: rect1.height
-                        color: "yellow"
-                        radius: 7
-                    }
-                }
-
-                handle: Rectangle {
-
-                    id: handle111
-                    x: control.visualPosition * (control.availableWidth - implicitWidth)
-                    y: control.availableHeight / 2 - implicitHeight / 2
-                    implicitWidth: 20
-                    implicitHeight: 26
-                    radius: 13
-                    color: control.pressed ? "green" : "white"
-                    border.color: "black"
-                }
-
-                Rectangle {
-                    visible: control.pressed
-
-                    id: yulan
-                    width: 150
-                    height: 100
-                    x: handle111.x
-                    y: handle111.y - 110
-
-                    ThumbnailShow{
-                        id: thumbnailShow;
-                        anchors.centerIn: parent;
-                        nWidth: 150;
-                        nHeight: 100;
-                        width: 150;
-                        height: 100;
-                    }
-
-                }
-                onValueChanged: {
-                    if(control.pressed){
-                        //改变播放进度
-                        videoShow.setProcess(control.visualPosition)
-                        //缩略图显示
-                        thumbnailShow.getFrame(control.position);
-                    }
-                }
-            }
-
-            //绑定进度条属性
-            Binding{
-                target: control
-                property: "value"
-                value: videoShow.process
-            }
-
-            //绑定进度条播放时间
-            Binding{
-                target: lefTime
-                property: "text"
-                value: videoShow.leftTime
-            }
-
-            //绑定播放总时长
-            Binding{
-                target: rightTime
-                property: "text"
-                value: videoShow.rightTime
-            }
-            //绑定专辑信息
-            Binding{
-                target: albumTitle
-                property: "text"
-                value: videoShow.title
-            }
-            Binding{
-                target: albumName
-                property: "text"
-                value: videoShow.album
-            }
-            Binding{
-                target: albumArtist
-                property: "text"
-                value: videoShow.title
-            }
-            Binding{
-                target: albumImage
-                property: "source"
-                value: videoShow.imagePath
-            }
-
-            Text {
-                id: rightTime
-                color: "#ffffff"
-                text: "00:00"
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 30
-                Layout.rightMargin: 30
-            }
-            Image {
-                Layout.preferredHeight: 60
-                Layout.preferredWidth: 60
-                source: "images/full_screen(1).png"
-                Layout.rightMargin: 12
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-
-                    }
-                }
-            }
-            Image {
-                id:playmodeimage
-                source: "images/singlePlay.png"
-                RoundButton {
-                    anchors.fill: parent
-                    flat: true
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("改变播放模式")
-                    onClicked: {
-                        yinpinplaylist.changePlayMode()
-                        shipinplaylist.changePlayMode()
-                    }
-                }
-            }
-            Image {
-                Layout.preferredHeight: 60
-                Layout.preferredWidth: 60
-                source: "images/11.png"
-                Layout.rightMargin: 12
-                Slider {
-                    visible: false
-                    id: voice
-                    y: -130
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    value: 0.5
-                    rotation: 270
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        voice.visible = !voice.visible
-                    }
-                }
-            }
-            Text {
-                color: "#ffffff"
-                text: '倍速'
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 30
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        speedBox.visible = true
-                    }
-                }
-
-                Item {
-                    visible: false
-                    id: speedBox
-                    y: -146
-                    width: 76
-                    height: 143
-                    anchors.horizontalCenterOffset: 0
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Column {
-                        id: column
-                        anchors.fill: parent
-                        anchors.topMargin: -10
-                        Text {
-                            color: "#676767"
-
-                            text: '1.00'
-                            font.pixelSize: 24
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    speedBox.visible = false
-                                    videoShow.setSpeed(1.00)
-                                }
-                            }
-                        }
-                        Text {
-                            color: "#676767"
-
-                            text: '1.25'
-                            font.pixelSize: 24
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    speedBox.visible = false
-                                    videoShow.setSpeed(1.25)
-                                }
-                            }
-                        }
-                        Text {
-                            color: "#676767"
-
-                            text: '1.50'
-                            font.pixelSize: 24
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    speedBox.visible = false
-                                    videoShow.setSpeed(1.50)
-                                }
-                            }
-                        }
-                        Text {
-                            color: "#676767"
-
-                            text: '1.75'
-                            font.pixelSize: 24
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    speedBox.visible = false
-                                    videoShow.setSpeed(1.75)
-                                }
-                            }
-                        }
-                        Text {
-                            color: "#676767"
-                            text: '2.00'
-                            font.pixelSize: 24
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    speedBox.visible = false
-                                    videoShow.setSpeed(2.00)
-                                }
-                            }
-                        }
+                        overALLRectangle.forceActiveFocus()
                     }
                 }
             }
         }
     }
-}
 
 /*##^##
 Designer {

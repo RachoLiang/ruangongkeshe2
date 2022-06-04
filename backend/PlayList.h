@@ -13,7 +13,7 @@
 #include "mySql.h"
 #include "PlayListNode.h"
 #include "utils.h"
-
+#include <string>
 enum PlayBackMode
 {
     SinglePlay=0,    //只播放当前
@@ -46,8 +46,6 @@ private:
     int playMode;     //播放模式（程序启动时默认为只播放当前）
     int nowIndex;     //当前播放的视频序号
     mySql* sql;
-    Video* tmpVideo;
-    Audio* tmpAudio;
 public:
     explicit PlayList(QObject *parent=nullptr);
     ~PlayList();
@@ -63,16 +61,17 @@ public:
 
     //QString nowPlayingFilePath();
     Q_INVOKABLE void addFile(QString);   //用户导入一个媒体文件
-    //void deleteFile(QString);
+    Q_INVOKABLE void removeFile(int);    //用户删除一个媒体文件
+    Q_INVOKABLE void toppingFile(int);   //用户置顶一个媒体文件
     Q_INVOKABLE void saveToDataBase();  //保存当前现场，包括当前播放的媒体和时刻位置
     Q_INVOKABLE void init(int);   //需要在qml的ListView组件准备好之后，才能init，不然发射了信号也没人接收
     Q_INVOKABLE void showFileList();
-    Q_INVOKABLE QVariantMap getMediaInfo(int index,QString type);
+    Q_INVOKABLE QVariantMap getMediaInfo(int index,QString type); //获取文件详细信息
     Q_INVOKABLE int getNowIndex();
 
 signals: //信号只需要定义，不需要实现
-    void addAudioFileInGUI(QString audioPath);
-    void addVideoFileInGUI(QString videoPath);
+    void addAudioFileInGUI(QString audioPath,QString audioDuration);
+    void addVideoFileInGUI(QString videoPath,QString videoDuration);
     void changeCurrentPlayingIndex(int index);
     void changePlayModeButtonIcon(QString iconName);
     void showVideo(QString videoPath);

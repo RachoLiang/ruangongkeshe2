@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QDebug>
 #include <QImage>
+#include <QMutex>
 
 extern "C"
 {
@@ -22,6 +23,8 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
+#include "SDL2/SDL.h"
+
 
 class VideoDecoder:public QThread{
     Q_OBJECT
@@ -32,14 +35,19 @@ public:
 
     //flags
     bool isGetFrame; //判读是否读帧
+    bool stop; //判断是否结束循环等待
+    bool stopFinish; //判断退出成功
 
     QString currentFile;
     int videoIndex;
     qint64 total_time;
     qint64 pos;  //解封装解码的位置，即缩略图的位置
 
+    QMutex m_lock;
+
     void start_thread(); //用于开启线程
     void getFrame(double p); //用于设置flag和位置,参数是播放比例
+    void setPathAndStart(QString path);
 
 private:
     int seekType;

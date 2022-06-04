@@ -3,15 +3,12 @@
 VideoDecoder::VideoDecoder(){
     this->isGetFrame = false;
     this->filterGraph = NULL;
+    this->stop = true;
+    this->stopFinish = true;
 }
 
 VideoDecoder::~VideoDecoder(){
 
-}
-
-
-void VideoDecoder::start_thread(){
-    this->start(); //开启线程
 }
 
 void VideoDecoder::getFrame(double p){
@@ -109,7 +106,29 @@ out:
     return ret;
 }
 
+void VideoDecoder::setPathAndStart(QString path){
+    if(!this->stop){
+        this->stop = true;
+    }
+    while(!stopFinish){
+        SDL_Delay(10);
+    }
+    isGetFrame = false;
+    videoIndex = -1;
+
+    total_time = 0;
+    pos = -1;
+
+    currentFile = path;
+    SDL_Delay(100);
+    this->start(); //重新启动线程
+}
+
+
 void VideoDecoder::run(){
+    qDebug()<<">>>>>>>>>>>>>>"<<currentFile;
+    stop = false;
+    stopFinish = false;
     AVCodec *pCodec;
 
     AVPacket pkt, *packet = &pkt;        // packet use in decoding
@@ -177,15 +196,21 @@ void VideoDecoder::run(){
 
     //循环判断是否读帧
     while(true){
+        if(stop)//在每次循环判断是否可以运行，如果不行就退出循环
+        {
+            qDebug()<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,EXit";
+            this->stopFinish = true;
+            return;
+        }
         if(!isGetFrame){
             //qDebug()<<"no";
             continue;
-        }
+        }       
         isGetFrame = false;
 
         //解析指定位置的帧
         AVRational avRational = av_get_time_base_q();
-        qDebug()<<pos;
+        //qDebug()<<pos;
         int pos_mili = pos * AV_TIME_BASE;
         qint64 pos_int64 = av_rescale_q(pos_mili,avRational,pFormatCtx->streams[videoIndex]->time_base);
         if(av_seek_frame(pFormatCtx,videoIndex,pos_int64,AVSEEK_FLAG_BACKWARD)<0){
@@ -229,7 +254,7 @@ void VideoDecoder::run(){
 
                 // raw yuv
                 ret = avcodec_receive_frame(pCodecCtx, pFrame);
-                qDebug()<<"ret:"<<ret;
+                //qDebug()<<"ret:"<<ret;
 
                 if ((ret < 0) && (ret != AVERROR_EOF)) {
                     qDebug() << "Video frame decode failed, error code: " << ret;
@@ -258,7 +283,7 @@ void VideoDecoder::run(){
                 } else {
                     QImage tmpImage(pFrame->data[0], pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
                     QImage image = tmpImage.copy();
-                    qDebug()<<"获取到图片";
+                    //qDebug()<<"获取到图片";
                     //image.save(QString("C:\\Users\\xgy\\Desktop\\mp3_test\\frame\\frame%1.png").arg(pos));
                     emit sign_sendOneFrame(image);
                 }
