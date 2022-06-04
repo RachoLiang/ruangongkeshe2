@@ -24,7 +24,7 @@ public:
     int getHeight();
 
     //设置video路径并开启线程
-    void setPathAndStart(QString path);
+    Q_INVOKABLE void setPathAndStart(QString path);
     Q_INVOKABLE void getFrame(double percent);
 
 protected:

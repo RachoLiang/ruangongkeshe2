@@ -493,3 +493,21 @@ void PlayList::removeFile(int index)
         }
     }
 }
+void PlayList::toppingFile(int index)
+{
+    //vector中把index位置的元素移动到vector的首部
+    PlayListNode u=fileList[index];
+    fileList.erase(fileList.begin()+index);
+    fileList.insert(fileList.begin(),u);
+    //维护nowIndex
+    if(nowIndex==index)nowIndex=0;
+    else if(nowIndex<index)nowIndex++;
+    //维护historyList
+    int pos=0;
+    while(pos<dequeSize)
+    {
+        if(historyList[pos]==index)historyList[pos]=0;
+        else if(historyList[pos]<index)historyList[pos]++;
+        pos++;
+    }
+}

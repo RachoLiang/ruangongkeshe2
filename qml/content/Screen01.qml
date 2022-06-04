@@ -18,6 +18,7 @@ import playlistclass 1.0
 import Qt5Compat.GraphicalEffects
 
 Rectangle {
+    id: overALLRectangle
     focus: true
     width: Constants.width
     height: Constants.height
@@ -77,6 +78,7 @@ Rectangle {
         onShowVideo:function(videoPath)
         {
             videoShow.show(videoPath,"video")
+            thumbnailShow.setPathAndStart(videoPath)
             playbuttonimage.source="../content/images/pause.png"
         }
         onChangeCurrentPlayingIndex: function(index) //改变列表中的高亮条目
@@ -111,7 +113,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: open ? 358 : 0
+        width: open ? parent.width/4 : 0
         color: '#F8F8F8'
         property bool open: true
         Behavior on width {
@@ -315,19 +317,22 @@ Rectangle {
                                     id: contextMenu
                                     MenuItem {
                                         text: '置顶'
-//                                        function toppingYinpin(idx)
-//                                        {
-//                                            console.log("置顶音频,index="+idx)
-//                                            yinpinmodel.move(idx,0,1)
-//                                        }
-//                                        onTriggered: {
-//                                            toppingYinpin(index)
-//                                        }
+                                        function toppingYinpin(idx)
+                                        {
+                                            console.log("置顶音频,index="+idx)
+                                            yinpinmodel.move(idx,0,1)
+                                            yinpinplaylist.toppingFile(idx)
+                                            overALLRectangle.forceActiveFocus()
+                                        }
+                                        onTriggered: {
+                                            toppingYinpin(index)
+                                        }
                                     }
                                     MenuItem {
                                         text: '设置'
                                         onTriggered: {
                                             setting_for_music.show()
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                     MenuItem {
@@ -335,6 +340,7 @@ Rectangle {
                                         onTriggered: {
                                             subWindow.infoMap = yinpinplaylist.getMediaInfo(index,"music")
                                             subWindow.show()
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                     MenuItem {
@@ -348,6 +354,7 @@ Rectangle {
                                             {
                                                 yinpinplaylist.playNextMedia()
                                             }
+                                            overALLRectangle.forceActiveFocus()
                                         }
 
                                         onTriggered: {
@@ -530,11 +537,22 @@ Rectangle {
                                     id: contextMenu3
                                     MenuItem {
                                         text: '置顶'
+                                        function toppingShipin(idx)
+                                        {
+                                            console.log("置顶视频,index="+idx)
+                                            shipinmodel.move(idx,0,1)
+                                            shipinplaylist.toppingFile(idx)
+                                            overALLRectangle.forceActiveFocus()
+                                        }
+                                        onTriggered: {
+                                            toppingShipin(index)
+                                        }
                                     }
                                     MenuItem {
                                         text: '设置'
                                         onTriggered: {
                                             setting_for_video.show()
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                     MenuItem {
@@ -545,6 +563,7 @@ Rectangle {
                                         onTriggered: {
                                             subWindow3.infoMap = shipinplaylist.getMediaInfo(index,"video")
                                             subWindow3.show()
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                     MenuItem{
@@ -559,6 +578,7 @@ Rectangle {
                                             {
                                                 shipinplaylist.playNextMedia()
                                             }
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                         onTriggered: {
                                             deleteShiPin(index)
@@ -694,10 +714,10 @@ Rectangle {
                         playbuttonimage.source="../content/images/play.png"
                         console.log("视频finish才调用下一首播放")
                         if(nowIsPlayingAudio){
-                            console.log("音频下一首")
+                            console.log("自动音频下一首")
                             yinpinplaylist.autoPlayNextMedia()
                         }else{
-                            console.log("视频下一首")
+                            console.log("自动视频下一首")
                             shipinplaylist.autoPlayNextMedia()
                         }
                     }
@@ -708,7 +728,7 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
-                height:70
+                height:80
                 opacity: open?1:0
 
                 property bool open: false
@@ -722,7 +742,10 @@ Rectangle {
                         controls.open = true
                     }
                     onExited: {
-                        timer.start()
+                        if(!playbutton.hovered&&!lastPlayBtn.hovered&&!lastFrameButton.hovered&&!nextPlayBtn.hovered&&!nextFrameButton.hovered&&!playModeBtn.hovered){
+                             timer.start()
+                            //controls.open=false
+                        }
                     }
                 }
 
@@ -740,6 +763,7 @@ Rectangle {
                     anchors.left:parent.left
                     anchors.right: parent.right
                     anchors.top:parent.top
+                    anchors.topMargin: 10
                     Text {
                         id: lefTime
                         color: "#ffffff"
@@ -759,7 +783,7 @@ Rectangle {
                     Slider {
                         id: control
                         value: 0.0
-                                        anchors.centerIn: parent
+                        anchors.centerIn: parent
                         //                width: 200
                         //                height: 20
                         //height: 10
@@ -767,18 +791,47 @@ Rectangle {
                         Layout.leftMargin: 10
                         anchors.verticalCenter: parent.verticalCenter
                         Layout.fillWidth: true
+
+
+                        MouseArea{
+                            id:control_area
+                            anchors.fill: parent
+                            hoverEnabled: true
+
+                            onPositionChanged: {
+                                if(timer.running){
+                                    timer.stop()
+                                }
+                                if(!nowIsPlayingAudio){
+                                    yulan.visible = true
+                                    yulan.x = (mouseX/control.availableWidth)*(control.availableWidth - yulan.implicitWidth)
+                                    thumbnailShow.getFrame(mouseX/control.availableWidth)
+                                }
+                            }
+                            onExited: {
+                                yulan.visible = false
+                            }
+                            propagateComposedEvents :true
+                            //释放鼠标事件的覆盖，让slider接收事件
+                            onClicked: mouse.accepted=false
+                            onPressed: mouse.accepted=false
+                            onPressAndHold: mouse.accepted=false
+
+                        }
+
                         background: Rectangle {
                             id: rect1
                             width: control.availableWidth
+                            anchors.verticalCenter: parent.verticalCenter
                             radius: 7
-                            color: "white"
-                            opacity: 0.5
+                            color: "gray"
+                            height: 5
 
                             Rectangle {
                                 id: rect2
                                 width: control.visualPosition * rect1.width
                                 height: rect1.height
-                                color: "blue"
+                                color: "steelblue"
                                 radius: 7
                             }
                         }
@@ -787,16 +840,17 @@ Rectangle {
 
                             id: handle111
                             x: control.visualPosition * (control.availableWidth - implicitWidth)
-                            //y: control.availableHeight / 2 - implicitHeight / 2
-                            implicitWidth: 10
-                            implicitHeight: 12
-                            radius: 13
-                            color: control.pressed ? "green" : "white"
-                            border.color: "black"
+                            anchors.verticalCenter: parent.verticalCenter
+                            implicitWidth: 24
+                            implicitHeight: 24
+                            radius: 12
+                            border.color: "steelblue"
+                            border.width: 2
+                            color: control.pressed ? "steelblue" : "white"
                         }
 
                         Rectangle {
-                            visible: control.pressed
+                            visible: false
 
                             id: yulan
                             width: 150
@@ -818,8 +872,6 @@ Rectangle {
                             if(control.pressed){
                                 //改变播放进度
                                 videoShow.setProcess(control.visualPosition)
-                                //缩略图显示
-                                thumbnailShow.getFrame(control.position);
                             }
                         }
                     }
@@ -895,6 +947,7 @@ Rectangle {
                         anchors.rightMargin: 10
                         source: "../content/images/13.png"
                         RoundButton {
+                            id:lastFrameButton
                             anchors.fill: parent
                             flat: true
                             ToolTip.visible: hovered
@@ -915,6 +968,7 @@ Rectangle {
                             anchors.fill: parent
                             flat: true
                             focus: false
+
                             ToolTip.visible: hovered
                             ToolTip.text: qsTr("播放")
                             function playButtonActivate()
@@ -953,6 +1007,7 @@ Rectangle {
                         anchors.leftMargin: 10
                         source: "../content/images/12.png"
                         RoundButton {
+                            id:nextFrameButton
                             anchors.fill: parent
                             flat: true
                             ToolTip.visible: hovered
@@ -1038,6 +1093,7 @@ Rectangle {
                         Layout.preferredHeight: 35
                         Layout.preferredWidth: 35
                         RoundButton {
+                            id:playModeBtn
                             anchors.fill: parent
                             flat: true
                             ToolTip.visible: hovered
@@ -1183,8 +1239,8 @@ Rectangle {
             anchors.right: parent.right
             anchors.top: parent.top
             source: "images/more1.png"
-            anchors.rightMargin: 65
-            anchors.topMargin: 66
+            anchors.rightMargin: 50
+            anchors.topMargin: 40
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -1214,6 +1270,7 @@ Rectangle {
                     text: '设置'
                     onTriggered: {
                         setting_for_rup.show()
+                        overALLRectangle.forceActiveFocus()
                     }
                 }
                 MenuItem {
@@ -1225,6 +1282,7 @@ Rectangle {
                             subWindow2.infoMap = shipinplaylist.getMediaInfo(shipinplaylist.getNowIndex(),"video")
                         }
                         subWindow2.show()
+                        overALLRectangle.forceActiveFocus()
                     }
                 }
             }
