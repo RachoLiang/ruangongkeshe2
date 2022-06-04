@@ -34,8 +34,9 @@ import LLM
 Window {
     id:mainWin
     property bool isFullScreen: false
-    width: 1300
-    height: 700
+    width: 1000
+    height: 618
+
 
     visible: true
     title: "LLM"

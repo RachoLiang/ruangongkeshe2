@@ -68,10 +68,10 @@ QString changePathFormat(QString filePath) //     把"file:///C:/a.mp4" 转换�
 }
 /*
  *                         nameFilters: [ "视频文件 (*.ts *.mp4 *.avi *.flv *.mkv *.3gp)",
-                            "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra)"]
+                            "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra *.flac)"]
 */
 QString AllVideoType[]={"ts","mp4","avi","flv","mkv","3gp"};
-QString AllAudioType[]={"mp3","ogg","wav","wma","ape","ra"};
+QString AllAudioType[]={"mp3","ogg","wav","wma","ape","ra","flac"};
 bool isVideoFile(QString filePath)
 {
     int len=filePath.length();

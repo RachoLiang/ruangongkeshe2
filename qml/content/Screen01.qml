@@ -150,7 +150,7 @@ Rectangle {
                         id: fileDialog
                         title: "导入音频或者视频文件"
                         nameFilters: [ "视频文件 (*.ts *.mp4 *.avi *.flv *.mkv *.3gp)",
-                            "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra)"]
+                            "音频文件 (*.mp3 *.ogg *.wav *.wma *.ape *.ra *.flac)"]
                         acceptLabel: "确定"
                         rejectLabel: "取消"
                         fileMode: FileDialog.OpenFile
@@ -315,6 +315,14 @@ Rectangle {
                                     id: contextMenu
                                     MenuItem {
                                         text: '置顶'
+//                                        function toppingYinpin(idx)
+//                                        {
+//                                            console.log("置顶音频,index="+idx)
+//                                            yinpinmodel.move(idx,0,1)
+//                                        }
+//                                        onTriggered: {
+//                                            toppingYinpin(index)
+//                                        }
                                     }
                                     MenuItem {
                                         text: '设置'
@@ -1064,7 +1072,8 @@ Rectangle {
                         }
                     }
                     Image {
-                        source: "images/speed.png"
+                        id:speedImage
+                        source: "images/speed100.png"
                         Layout.preferredHeight: 30
                         Layout.preferredWidth: 30
                         //anchors.verticalCenter: parent.verticalCenter
@@ -1100,6 +1109,7 @@ Rectangle {
                                         onClicked: {
                                             speedBox.visible = false
                                             videoShow.setSpeed(1.00)
+                                            speedImage.source="images/speed100.png"
                                         }
                                     }
                                 }
@@ -1114,6 +1124,7 @@ Rectangle {
                                         onClicked: {
                                             speedBox.visible = false
                                             videoShow.setSpeed(1.25)
+                                            speedImage.source="images/speed125.png"
                                         }
                                     }
                                 }
@@ -1128,6 +1139,7 @@ Rectangle {
                                         onClicked: {
                                             speedBox.visible = false
                                             videoShow.setSpeed(1.50)
+                                            speedImage.source="images/speed150.png"
                                         }
                                     }
                                 }
@@ -1142,6 +1154,7 @@ Rectangle {
                                         onClicked: {
                                             speedBox.visible = false
                                             videoShow.setSpeed(1.75)
+                                            speedImage.source="images/speed175.png"
                                         }
                                     }
                                 }
@@ -1155,6 +1168,7 @@ Rectangle {
                                         onClicked: {
                                             speedBox.visible = false
                                             videoShow.setSpeed(2.00)
+                                            speedImage.source="images/speed200.png"
                                         }
                                     }
                                 }
