@@ -57,6 +57,9 @@ VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     qDebug()<<"创建了VideoShow对象";
     maindecoder = new MainDecoder();
     maindecoder->setCurrentFile(path);
+    reversedecoder = nullptr;
+    isReverse = false;
+    updateProgressThread = nullptr;
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage*)),this,SLOT(slot_getOneFrame(QImage*)));
     //连接maindecoder -- videoShow: 播放状态改变
@@ -70,7 +73,9 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     lastVolume = 0;
     m_process = 0.0;
     m_playState = MainDecoder::STOP;
-
+    isReverse = false;
+    reversedecoder = nullptr;
+    updateProgressThread = nullptr;
     maindecoder = new MainDecoder();
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
@@ -143,29 +148,44 @@ void VideoShow::silence(){
 }
 
 //暂停控制
-bool VideoShow::isPaused(){
-    if(maindecoder){
+bool VideoShow::isPaused() {
+    if (!isReverse && maindecoder) {
         return maindecoder->pauseState();
-    }else {
-       return true;
+    }
+    else if (isReverse && reversedecoder)
+    {
+        return reversedecoder->getState() == ReverseDecoder::PAUSE;
+    }
+    else {
+        return true;
     }
 }
 
-void VideoShow::pause(){
-    if(maindecoder){
+void VideoShow::pause() {
+    if (!isReverse && maindecoder) {
         maindecoder->pauseVideo();
+    }
+    else if (isReverse && reversedecoder)
+    {
+        reversedecoder->pause();
     }
 }
 
 //Stop控制
-bool VideoShow::isStop(){
-    if(maindecoder){
-        if(maindecoder->getPlayState() == MainDecoder::STOP ||maindecoder->getPlayState() == MainDecoder::FINISH){
+bool VideoShow::isStop() {
+    if (!isReverse && maindecoder) {
+        if (maindecoder->getPlayState() == MainDecoder::STOP || maindecoder->getPlayState() == MainDecoder::FINISH) {
             return true;
-        }else{
+        }
+        else {
             return false;
         }
-    }else{
+    }
+    else if (isReverse && reversedecoder)
+    {
+        return reversedecoder->getState() == ReverseDecoder::STOP;
+    }
+    else {
         return true;
     }
 }
@@ -219,22 +239,34 @@ void VideoShow::seekSlow(){
 }
 
 //调节播放进度
-void VideoShow::setProcess(double process){
-    if(maindecoder){
+void VideoShow::setProcess(double process) {
+    if (!isReverse && maindecoder) {
         maindecoder->seekProgress(process);
+    }
+    else if (isReverse && reversedecoder)
+    {
+        reversedecoder->seekBySlider(process);
     }
 }
 
 //获取进度条信息
-qint64 VideoShow::getNowProcess(){
-    if(maindecoder){
+qint64 VideoShow::getNowProcess() {
+    if (!isReverse && maindecoder) {
         return maindecoder->getNowTime();
+    }
+    else if (isReverse && reversedecoder)
+    {
+        return reversedecoder->getCurrTime();
     }
 }
 
-qint64 VideoShow::getTotalProcess(){
-    if(maindecoder){
+qint64 VideoShow::getTotalProcess() {
+    if (!isReverse && maindecoder) {
         return maindecoder->getTotalTime();
+    }
+    else if (isReverse && reversedecoder)
+    {
+        return reversedecoder->getTotalTime();
     }
 }
 
@@ -277,7 +309,7 @@ int VideoShow::updateProcess(void *arg){
     //进入循环
     while (true){
         MainDecoder::PlayState state = videoShow->getPlayState();
-        if(state == MainDecoder::STOP){
+        if ((!videoShow->isReverse && state == MainDecoder::STOP) || (videoShow->isReverse && videoShow->reversedecoder->getState() == ReverseDecoder::STOP)) {
             qDebug()<<"当前状态是Stop";
             //重置参数
             videoShow->setLeftTime("00:00");
@@ -288,14 +320,14 @@ int VideoShow::updateProcess(void *arg){
         }
 
         //当Pause状态时，暂停更新
-        if(state == MainDecoder::PAUSE){
+        if ((!videoShow->isReverse && state == MainDecoder::PAUSE) || (videoShow->isReverse && videoShow->reversedecoder->getState() == ReverseDecoder::PAUSE)) {
 //            qDebug()<<"当前状态是暂停";
             SDL_Delay(100);
             continue;
         }
 
         //播放状态
-        if(state == MainDecoder::PLAYING){
+        if ((!videoShow->isReverse && state == MainDecoder::PLAYING) || (videoShow->isReverse && videoShow->reversedecoder->getState() == ReverseDecoder::PLAYING)) {
             double nowtime = videoShow->getNowProcess();
 //            if(nowtime - last_time >  * 1000 * 1000){
 //                SDL_Delay(50);
@@ -359,17 +391,32 @@ void VideoShow::slot_setPlayState(MainDecoder::PlayState playState){
 }
 
 //播放
-void VideoShow::show(QString path, QString type){
+void VideoShow::show(QString path, QString type) {
+    //设置为正放模式
+    if (isReverse)
+        isReverse = false;
+
+    //释放倒放模块的资源
+    if (reversedecoder)
+    {
+        reversedecoder->stop();
+        while (!(reversedecoder->isRunFinished() && reversedecoder->isPlayThreadFinished()))    //所有线程退出再delete
+            ;
+        delete reversedecoder;
+        reversedecoder = nullptr;
+    }
+
     //清空上次播放的缓存
-    if(maindecoder->getPlayState() != MainDecoder::STOP && maindecoder->getPlayState() != MainDecoder::FINISH)
+    if (maindecoder->getPlayState() != MainDecoder::STOP && maindecoder->getPlayState() != MainDecoder::FINISH)
     {
         maindecoder->stopVideo();
-        qDebug()<<"videoShow的stop";
+        qDebug() << "videoShow的stop";
     }
     sourPath = path;
-    maindecoder->decoderFile(path,type);
+    maindecoder->decoderFile(path, type);
     //暂时：启动进度条监测
-    SDL_CreateThread(&VideoShow::updateProcess, "update_process", this);
+    if (!updateProgressThread)
+        updateProgressThread = SDL_CreateThread(&VideoShow::updateProcess, "update_process", this);
 }
 
 //截图功能
@@ -400,4 +447,24 @@ void VideoShow::setArgs(double contrast_per, double brightness_per, double satur
     maindecoder->setFilter(contrast,brightness,saturation);
 }
 
+//启动倒放模块
+void VideoShow::reverse(QString filename)
+{
+    isReverse = false;      //先设置成false，否则控制进度条的线程会因为reversedecoder被设置成nullptr而报错
 
+    //清除上一次倒放的资源
+    if (reversedecoder)
+    {
+        reversedecoder->stop();
+        while (!(reversedecoder->isRunFinished() && reversedecoder->isPlayThreadFinished()))    //所有线程退出再delete
+            ;
+        delete reversedecoder;
+        reversedecoder = nullptr;
+    }
+    stopPlay();
+    reversedecoder = new ReverseDecoder(filename);
+    isReverse = true;       //当新的reversedecoder准备好后再设置成true
+    connect(reversedecoder, &ReverseDecoder::sendOneFrame, this, &VideoShow::slot_getOneFrame);
+    if (!updateProgressThread)
+        updateProgressThread = SDL_CreateThread(&VideoShow::updateProcess, "update_process", this);
+}

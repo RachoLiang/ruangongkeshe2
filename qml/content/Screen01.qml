@@ -557,6 +557,11 @@ Rectangle {
                                     }
                                     MenuItem {
                                         text: '倒放'
+                                        onClicked:{
+                                            shipinlistview.currentIndex=index
+                                            playbuttonimage.source="../content/images/pause.png"
+                                            videoShow.reverse(shipinplaylist.getFilename(index))
+                                        }
                                     }
                                     MenuItem {
                                         text: '详细信息'
