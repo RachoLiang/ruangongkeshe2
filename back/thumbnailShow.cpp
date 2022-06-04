@@ -5,7 +5,7 @@
 ThumbnailShow::ThumbnailShow(){
     this->videoDecoder = new VideoDecoder();
     connect(videoDecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
-    setPathAndStart("C:\\Users\\xgy\\Desktop\\mp3_test\\test2.mp4");
+    //setPathAndStart("C:\\Users\\xgy\\Desktop\\mp3_test\\test2.mp4");
 }
 
 ThumbnailShow::~ThumbnailShow(){
@@ -26,8 +26,10 @@ void ThumbnailShow::paint(QPainter * painter){
 }
 
 void ThumbnailShow::setPathAndStart(QString path){
-    videoDecoder->currentFile = path;
-    videoDecoder->start_thread();
+    //清空图片
+    image =  QImage(100,100,QImage::Format_RGB32);
+    update();
+    videoDecoder->setPathAndStart(path);
 }
 
 void ThumbnailShow::getFrame(double percent){
