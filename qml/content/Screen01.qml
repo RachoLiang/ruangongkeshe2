@@ -1651,16 +1651,28 @@ Rectangle {
                 id: contextMenu2
                 MenuItem {
                     text: '置顶'
+                    function toppingyinpin(idx)
+                    {
+                        console.log("置顶音频,index="+idx)
+                        yinpinmodel.move(idx,0,1)
+                        yinpinplaylist.toppingFile(idx)
+                        overALLRectangle.forceActiveFocus()
+                    }
+                    function toppingshipin(idx)
+                    {
+                        console.log("置顶视频,index="+idx)
+                        shipinmodel.move(idx,0,1)
+                        shipinplaylist.toppingFile(idx)
+                        overALLRectangle.forceActiveFocus()
+                    }
                     onTriggered: {
                         if(nowIsPlayingAudio)
                         {
-                            //console.log("zzzzzzzz"+yinpinlistview.currentIndex)
-                            toppingYinpin(yinpinlistview.currentIndex)
+                            toppingyinpin(yinpinlistview.currentIndex)
                         }
                         else
                         {
-                            //console.log("ssssssss"+shipinlistview.currentIndex)
-                            toppingShipin(shipinlistview.currentIndex)
+                            toppingshipin(shipinlistview.currentIndex)
                         }
                     }
                 }
