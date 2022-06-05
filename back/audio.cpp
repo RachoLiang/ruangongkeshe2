@@ -28,11 +28,11 @@ Audio::Audio(QString audioPath,QString fileName,int duration,int position,QDateT
     this->isvalid = isValid() ? isvalid : false;
 }
 
-void Audio::setAudioOutput(QAudioOutput* output){
-    if(this->player != nullptr){
-        this->player->setAudioOutput(output);
-    }
-}
+//void Audio::setAudioOutput(QAudioOutput* output){
+//    if(this->player != nullptr){
+//        this->player->setAudioOutput(output);
+//    }
+//}
 
 void Audio::setPosition(int value){
     if(value < 0){

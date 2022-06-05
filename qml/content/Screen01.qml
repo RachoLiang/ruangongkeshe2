@@ -572,6 +572,7 @@ Rectangle {
                                             shipinlistview.currentIndex=index
                                             playbuttonimage.source="../content/images/pause.png"
                                             videoShow.reverse(shipinplaylist.getFilename(index))
+                                            nowIsPlayingAudio=false
                                         }
                                     }
                                     MenuItem {
@@ -1479,6 +1480,11 @@ Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
                             value: 0.5
                             rotation: 270
+                            onValueChanged: {
+                                //修改音量
+                                console.log("当前音量：",value * 100)
+                                videoShow.setVolume(value * 100)
+                            }
                         }
 
                         MouseArea {

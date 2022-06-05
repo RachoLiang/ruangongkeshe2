@@ -23,6 +23,7 @@ ReverseDecoder::ReverseDecoder(QString file)
     RGB_buffer = nullptr;
     seekStart = seekEnd = currTime = duration = -1;
     seekEvent = afterSeek = false;
+    interval = 1 / 30;
     decodeFinished = false;
     runFinished = playThreadFinished = true;
     init();
@@ -368,7 +369,8 @@ int ReverseDecoder::playThread(void* arg)
         //获取两帧之间的时间间隔
         if (decoder->playList.size() > 2)
         {
-            decoder->interval = decoder->playList[0].timestamp - decoder->playList[1].timestamp;
+            if (decoder->playList[0].timestamp - decoder->playList[1].timestamp > 0)
+                decoder->interval = decoder->playList[0].timestamp - decoder->playList[1].timestamp;
         }
         SDL_UnlockMutex(decoder->playListMutex);
 

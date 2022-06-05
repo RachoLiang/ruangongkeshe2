@@ -16,7 +16,7 @@ public:
     Audio() {}
     Audio(QString audioPath);   //通过文件路径导入资源
     Audio(QString audioPath,QString fileName,int duration,int position,QDateTime modificationTime,bool isvalid);  //通过数据库信息导入资源
-    void setAudioOutput(QAudioOutput* ouput);
+//    void setAudioOutput(QAudioOutput* ouput);
     bool onPlay();               //切换视频的播放状态:播放-》暂停|暂停-》播放
     bool onStop();  //停止播放
     void adjustVolume(int);     //调节音量

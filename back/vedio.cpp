@@ -1,11 +1,11 @@
 ﻿#include "backend/vedio.h"
 
 
-void Video::setVideoOutput(QVideoWidget* output){
-    if(this->player != nullptr){
-        this->player->setVideoOutput(output);
-    }
-}
+//void Video::setVideoOutput(QVideoWidget* output){
+//    if(this->player != nullptr){
+//        this->player->setVideoOutput(output);
+//    }
+//}
 
 QString Video::getVideoBitRate() const
 {
