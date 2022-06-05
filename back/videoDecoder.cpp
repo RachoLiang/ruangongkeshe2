@@ -126,7 +126,7 @@ void VideoDecoder::setPathAndStart(QString path){
 
 
 void VideoDecoder::run(){
-    qDebug()<<">>>>>>>>>>>>>>"<<currentFile;
+    //qDebug()<<">>>>>>>>>>>>>>"<<currentFile;
     stop = false;
     stopFinish = false;
     AVCodec *pCodec;
@@ -199,8 +199,13 @@ void VideoDecoder::run(){
     while(true){
         if(stop)//在每次循环判断是否可以运行，如果不行就退出循环
         {
-            qDebug()<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,EXit";
+            //qDebug()<<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,EXit";
             this->stopFinish = true;
+            avcodec_close(pCodecCtx);
+            avcodec_free_context(&pCodecCtx);
+
+            avformat_close_input(&pFormatCtx);
+            avformat_free_context(pFormatCtx);
             return;
         }
         if(!isGetFrame){
@@ -223,79 +228,86 @@ void VideoDecoder::run(){
             //
             if(av_read_frame(pFormatCtx,packet)<0){
                 qDebug()<<"read frame fail";
-                break;
-            }
-
-            if(packet->stream_index == videoIndex){
-                //开始解码
-                AVFrame *pFrame = av_frame_alloc();
-                int ret;
-                AVPacket _packet = *packet;
-
-                /* flush codec buffer while received flush packet */
-                if (!strcmp((char *)_packet.data, "FLUSH")) {
-                    qDebug() << "Seek video";
-                    avcodec_flush_buffers(pCodecCtx);
-                    av_packet_unref(&_packet);
-                    continue;
-                }
-
-                ret = avcodec_send_packet(pCodecCtx, &_packet);
-                if ((ret < 0) && (ret != AVERROR(EAGAIN)) && (ret != AVERROR_EOF)) {
-                    qDebug() << "Video send to decoder failed, error code: " << ret;
-                    av_packet_unref(&_packet);
-                    continue;
-                }
-                double packet_time = _packet.pts * av_q2d(pFormatCtx->streams[videoIndex]->time_base);
-                //qDebug()<<"packet time"<<packet_time;
-                if(packet_time < pos){
-//                    qDebug()<<"比原位置小 "<<packet_time<<pos;
-                    continue;
-                }
-
-                // raw yuv
-                ret = avcodec_receive_frame(pCodecCtx, pFrame);
-                //qDebug()<<"ret:"<<ret;
-
-                if ((ret < 0) && (ret != AVERROR_EOF)) {
-                    qDebug() << "Video frame decode failed, error code: " << ret;
-                    av_packet_unref(&_packet);
-                    continue;
-                }
-
-                   //使用frame_time判断
-//                double frame_time = pFrame->best_effort_timestamp * av_q2d(pFormatCtx->streams[videoIndex]->time_base);
-//                qDebug()<<"frame_time"<<frame_time;
-//                if(fabs(frame_time - pos)>1){
-//                    qDebug()<<"与原位置相差过大 "<<frame_time<<pos;
-//                    continue;
-//                }
-
-                if (av_buffersrc_add_frame(filterSrcCxt, pFrame) < 0) {
-                    qDebug() << "gggav buffersrc add frame failed.";
-                    av_packet_unref(&_packet);
-                    continue;
-                }
-
-                if (av_buffersink_get_frame(filterSinkCxt, pFrame) < 0) {
-                    qDebug() << "av buffersrc get frame failed.";
-                    av_packet_unref(&_packet);
-                    continue;
-                } else {
-                    QImage tmpImage(pFrame->data[0], pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
-                    QImage image = tmpImage.copy();
-                    //qDebug()<<"获取到图片";
-                    //image.save(QString("C:\\Users\\xgy\\Desktop\\mp3_test\\frame\\frame%1.png").arg(pos));
-                    emit sign_sendOneFrame(image);
-                }
-                //free
-                av_frame_unref(pFrame);
-                av_packet_unref(&_packet);
-                av_frame_free(&pFrame);
+                av_packet_unref(packet);
+                //av_packet_free(&packet);
                 break;
             }else{
-//                qDebug()<<"非视频流packet";
-                av_packet_unref(packet);
+                if(packet->stream_index == videoIndex){
+                    //开始解码
+                    AVFrame *pFrame = av_frame_alloc();
+                    int ret;
+//                    AVPacket _packet = *packet;
+
+                    /* flush codec buffer while received flush packet */
+                    if (!strcmp((char *)packet->data, "FLUSH")) {
+                        qDebug() << "Seek video";
+                        avcodec_flush_buffers(pCodecCtx);
+                        av_packet_unref(packet);
+                        av_frame_unref(pFrame);
+                        av_frame_free(&pFrame);
+                        continue;
+                    }
+
+                    ret = avcodec_send_packet(pCodecCtx, packet);
+                    if ((ret < 0) && (ret != AVERROR(EAGAIN)) && (ret != AVERROR_EOF)) {
+                        qDebug() << "Video send to decoder failed, error code: " << ret;
+                        av_packet_unref(packet);
+                        av_frame_unref(pFrame);
+                        av_frame_free(&pFrame);
+                        continue;
+                    }
+                    double packet_time = packet->pts * av_q2d(pFormatCtx->streams[videoIndex]->time_base);
+                    //qDebug()<<"packet time"<<packet_time;
+                    if(packet_time < pos){
+    //                    qDebug()<<"比原位置小 "<<packet_time<<pos;
+                        av_packet_unref(packet);
+                        av_frame_unref(pFrame);
+                        av_frame_free(&pFrame);
+                        continue;
+                    }
+
+                    // raw yuv
+                    ret = avcodec_receive_frame(pCodecCtx, pFrame);
+                    //qDebug()<<"ret:"<<ret;
+
+                    if ((ret < 0) && (ret != AVERROR_EOF)) {
+                        qDebug() << "Video frame decode failed, error code: " << ret;
+                        av_packet_unref(packet);
+                        av_frame_unref(pFrame);
+                        av_frame_free(&pFrame);
+                        continue;
+                    }
+
+                    if (av_buffersrc_add_frame(filterSrcCxt, pFrame) < 0) {
+                        qDebug() << "av buffersrc add frame failed.";
+                        av_packet_unref(packet);
+                        av_frame_unref(pFrame);
+                        av_frame_free(&pFrame);
+                        continue;
+                    }
+
+                    if (av_buffersink_get_frame(filterSinkCxt, pFrame) < 0) {
+                        qDebug() << "av buffersrc get frame failed.";
+                        av_packet_unref(packet);
+                        av_frame_unref(pFrame);
+                        av_frame_free(&pFrame);
+                        continue;
+                    } else {
+                        QImage tmpImage(pFrame->data[0], pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
+                        QImage image = tmpImage.copy();
+                       //qDebug()<<"获取到图片";
+                        //image.save(QString("C:\\Users\\xgy\\Desktop\\mp3_test\\frame\\frame%1.png").arg(pos));
+                        emit sign_sendOneFrame(image);
+                    }
+                    //free
+                    av_frame_unref(pFrame);
+                    av_packet_unref(packet);
+                    av_frame_free(&pFrame);
+                    break;
+                }else{
+    //                qDebug()<<"非视频流packet";
+                    av_packet_unref(packet);
+                }
             }
         }
     }
