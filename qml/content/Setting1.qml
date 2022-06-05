@@ -12,12 +12,13 @@ import QtQuick.Layouts 1.15
 
 Window {
 
-    width: 260
-    height: 380
+    width: 300
+    height: 400
     opacity: 1
+    title: "设置"
     ColumnLayout {
         anchors.fill: parent
-        spacing: 0
+        spacing: 10
         anchors.rightMargin: 12
         anchors.leftMargin: 12
         Text {
@@ -36,7 +37,7 @@ Window {
             font.styleName: "Bold"
         }
         RowLayout {
-
+            spacing: 10
             Text {
                 id: liangdu
                 text: qsTr("亮   度")
@@ -54,7 +55,7 @@ Window {
 
             Text {
                 anchors.left: slider_liangdu.right
-                anchors.leftMargin: 5
+                anchors.leftMargin: 11
                 id: liangduzhi
                 text: qsTr("50")
             }
@@ -62,8 +63,8 @@ Window {
             Image {
                 Layout.preferredHeight: 15
                 Layout.preferredWidth: 15
-                anchors.left: liangduzhi.right
-                anchors.leftMargin: 10
+                //anchors.left: liangduzhi.right
+                Layout.leftMargin: 30
                 fillMode:Image.PreserveAspectFit
                 source: "../content/images/reset.png"
                 RoundButton {
@@ -79,6 +80,7 @@ Window {
 
         }
         RowLayout {
+            spacing: 10
             Text {
                 id: duibidu
                 text: qsTr("对比度")
@@ -104,7 +106,7 @@ Window {
                 Layout.preferredHeight: 15
                 Layout.preferredWidth: 15
                 anchors.left: liangduzhi.right
-                anchors.leftMargin: 10
+                Layout.leftMargin: 30
                 fillMode:Image.PreserveAspectFit
                 source: "../content/images/reset.png"
                 RoundButton {
@@ -119,6 +121,7 @@ Window {
             }
         }
         RowLayout {
+            spacing:10
             Text {
                 id: baohedu
                 text: qsTr("饱和度")
@@ -143,8 +146,8 @@ Window {
             Image {
                 Layout.preferredHeight: 15
                 Layout.preferredWidth: 15
-                anchors.left: liangduzhi.right
-                anchors.leftMargin: 10
+                //anchors.left: liangduzhi.right
+                Layout.leftMargin: 30
                 fillMode:Image.PreserveAspectFit
                 source: "../content/images/reset.png"
                 RoundButton {
@@ -158,45 +161,45 @@ Window {
                 }
             }
         }
-        RowLayout {
-            Text {
-                id: sexiang
-                text: qsTr("色   相")
-            }
+//        RowLayout {
+//            Text {
+//                id: sexiang
+//                text: qsTr("色   相")
+//            }
 
-            Slider {
-                id: slider_sexiang
-                value: 0.5
-                onValueChanged: {
-                    sexiangzhi.text = Math.ceil(value * 100)
-                }
-            }
+//            Slider {
+//                id: slider_sexiang
+//                value: 0.5
+//                onValueChanged: {
+//                    sexiangzhi.text = Math.ceil(value * 100)
+//                }
+//            }
 
-            Text {
-                anchors.left: slider_liangdu.right
-                anchors.leftMargin: 5
-                id: sexiangzhi
-                text: qsTr("50")
-            }
+//            Text {
+//                anchors.left: slider_liangdu.right
+//                anchors.leftMargin: 5
+//                id: sexiangzhi
+//                text: qsTr("50")
+//            }
 
-            Image {
-                Layout.preferredHeight: 15
-                Layout.preferredWidth: 15
-                anchors.left: liangduzhi.right
-                anchors.leftMargin: 10
-                fillMode:Image.PreserveAspectFit
-                source: "../content/images/reset.png"
-                RoundButton {
-                    anchors.fill: parent
-                    flat: true
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("重置")
-                    onClicked: {
-                        slider_sexiang.value = 0.5
-                    }
-                }
-            }
-        }
+//            Image {
+//                Layout.preferredHeight: 15
+//                Layout.preferredWidth: 15
+//                anchors.left: liangduzhi.right
+//                anchors.leftMargin: 10
+//                fillMode:Image.PreserveAspectFit
+//                source: "../content/images/reset.png"
+//                RoundButton {
+//                    anchors.fill: parent
+//                    flat: true
+//                    ToolTip.visible: hovered
+//                    ToolTip.text: qsTr("重置")
+//                    onClicked: {
+//                        slider_sexiang.value = 0.5
+//                    }
+//                }
+//            }
+//        }
         Rectangle {
             color: "#b4b4b4"
             Layout.preferredHeight: 2

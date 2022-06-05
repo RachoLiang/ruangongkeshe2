@@ -11,8 +11,9 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 Window {
-    width: 260
-    height: 380
+    width: 450
+    height: 400
+    title:"详细信息"
     property var infoMap: ({})
 
     ColumnLayout {

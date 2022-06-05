@@ -1513,7 +1513,8 @@ Rectangle {
                         Slider {
                             visible: false
                             id: voice
-                            y: -130
+                            y: -80
+                            height: 10
                             anchors.horizontalCenter: parent.horizontalCenter
                             value: 0.5
                             rotation: 270
@@ -1522,6 +1523,49 @@ Rectangle {
                                 console.log("当前音量：",value * 100)
                                 videoShow.setVolume(value * 100)
                                 overALLRectangle.forceActiveFocus()
+                            }
+                            MouseArea{
+                                anchors.fill:parent
+                                hoverEnabled: true
+                                onPositionChanged: {
+                                    if(timer.running){
+                                        timer.stop()
+                                    }
+                                }
+                                onExited: {
+                                    timer.start()
+                                    //voice.visible = false
+                                }
+                                propagateComposedEvents :true
+                                //释放鼠标事件的覆盖，让slider接收事件
+                                onClicked: mouse.accepted=false
+                                onPressed: mouse.accepted=false
+                                onPressAndHold: mouse.accepted=false
+                            }
+                            background: Rectangle{
+                                width:voice.availableWidth
+                                height:voice.availableHeight
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                color:"gray"
+                                radius: 4
+                                //rotation: 270
+
+                                Rectangle{
+                                    width:voice.visualPosition * parent.width
+                                    height: voice.availableHeight
+                                    color: "steelblue"
+                                    radius: 4
+                                }
+                            }
+                            handle: Rectangle{
+                                x:voice.visualPosition * (voice.availableWidth - implicitHeight)
+                                anchors.verticalCenter: parent.verticalCenter
+                                implicitWidth: 20
+                                implicitHeight: 20
+                                radius:10
+                                border.color: "steelblue"
+                                border.width: 4
+                                color: voice.pressed?"steelblue":"white"
                             }
                         }
 
@@ -1543,59 +1587,75 @@ Rectangle {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                speedBox.visible = true
+                                speedBox.visible = !speedBox.visible
                             }
                         }
 
-                        Item {
+                        Rectangle {
                             visible: false
                             id: speedBox
-                            y: -146
-                            width: 76
-                            height: 143
+                            y: -250
+                            width: 65
+                            height: 220
+                            color: "grey"
+                            radius: 5
                             anchors.horizontalCenterOffset: 0
                             anchors.horizontalCenter: parent.horizontalCenter
                             Column {
                                 id: column
                                 anchors.fill: parent
-                                anchors.topMargin: -10
+                                anchors.topMargin: 10
+                                spacing: 10
                                 Text {
-                                    color: "#676767"
+                                    color: "white"
 
-                                    text: '1.00'
-                                    font.pixelSize: 24
+                                    text: '8.0x'
+                                    font.pixelSize: 15
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: {
                                             speedBox.visible = false
-                                            videoShow.setSpeed(1.00)
-                                            speedImage.source="images/speed100.png"
-                                            overALLRectangle.forceActiveFocus()
+                                            videoShow.setSpeed(8.00)
+                                            speedImage.source="images/speed800.png"
                                         }
                                     }
                                 }
                                 Text {
-                                    color: "#676767"
+                                    color: "white"
 
-                                    text: '1.25'
-                                    font.pixelSize: 24
+                                    text: '4.0x'
+                                    font.pixelSize: 15
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: {
                                             speedBox.visible = false
-                                            videoShow.setSpeed(1.25)
-                                            speedImage.source="images/speed125.png"
-                                            overALLRectangle.forceActiveFocus()
+                                            videoShow.setSpeed(4.00)
+                                            speedImage.source="images/speed400.png"
                                         }
                                     }
                                 }
                                 Text {
-                                    color: "#676767"
+                                    color: "white"
 
-                                    text: '1.50'
-                                    font.pixelSize: 24
+                                    text: '2.0x'
+                                    font.pixelSize: 15
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(2.00)
+                                            speedImage.source="images/speed200.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "white"
+
+                                    text: '1.5x'
+                                    font.pixelSize: 15
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     MouseArea {
                                         anchors.fill: parent
@@ -1608,33 +1668,44 @@ Rectangle {
                                     }
                                 }
                                 Text {
-                                    color: "#676767"
-
-                                    text: '1.75'
-                                    font.pixelSize: 24
+                                    color: "white"
+                                    text: '1.0x'
+                                    font.pixelSize: 15
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: {
                                             speedBox.visible = false
-                                            videoShow.setSpeed(1.75)
-                                            speedImage.source="images/speed175.png"
-                                            overALLRectangle.forceActiveFocus()
+                                            videoShow.setSpeed(1.00)
+                                            speedImage.source="images/speed100.png"
                                         }
                                     }
                                 }
                                 Text {
-                                    color: "#676767"
-                                    text: '2.00'
-                                    font.pixelSize: 24
+                                    color: "white"
+                                    text: '0.75x'
+                                    font.pixelSize: 15
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: {
                                             speedBox.visible = false
-                                            videoShow.setSpeed(2.00)
-                                            speedImage.source="images/speed200.png"
-                                            overALLRectangle.forceActiveFocus()
+                                            videoShow.setSpeed(0.75)
+                                            speedImage.source="images/speed075.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "white"
+                                    text: '0.5x'
+                                    font.pixelSize: 15
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(0.50)
+                                            speedImage.source="images/speed050.png"
                                         }
                                     }
                                 }
