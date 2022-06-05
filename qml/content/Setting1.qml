@@ -48,14 +48,31 @@ Window {
                 onValueChanged: {
                     //console.log(slider_liangdu.visualPosition);
                     videoShow.setArgs(-1,slider_liangdu.visualPosition,-1);
+                    liangduzhi.text = value
                 }
             }
 
-//            Text {
-//                id: liangduzhi
-//                text: qsTr(0.5)
-//            }
+            Text {
+                id: liangduzhi
+                text: qsTr(0.5)
+            }
 
+            Image {
+                Layout.preferredHeight: 40
+                Layout.preferredWidth: 40
+                anchors.left: liangduzhi.right
+                anchors.leftMargin: 10
+                source: "../content/images/reset.png"
+                RoundButton {
+                    anchors.fill: parent
+                    flat: true
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("重置")
+                    onClicked: {
+                        slider_liangdu.value = 0.5
+                    }
+                }
+            }
 
         }
         RowLayout {
