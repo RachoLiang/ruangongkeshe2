@@ -31,14 +31,13 @@ class PlayList : public QObject
 {
     Q_OBJECT
 private:
-    int playListType; //为1表示音频列表，2表示视频列表
+    int playListType;         //为1表示音频列表，2表示视频列表
     /* 基于vector的fileList
      * 保存整个音视频列表（歌单）
      * 在程序启动时，从数据库中读取数据恢复此vector
-     * 其余时候，仅在用户导入/剔除一个媒体时，这个vector才会修改
+     * 其余时候，仅在用户导入，删除，置顶一个媒体时，这个vector才会修改
     */
     std::vector<PlayListNode>fileList;
-
     /* 基于deque的historyList，其中的元素是随机播放时选取的fileList中的下标
      * 仅用于随机播放模式下，“上一首/下一首”就是在此deque中左右移动的过程
      * 变更播放模式，将清空此deque

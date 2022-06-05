@@ -885,7 +885,6 @@ seek:
                     SDL_Delay(10);
                     break;
                 }
-                qint64 x = packet->pts * av_q2d(pFormatCtx->streams[seekIndex]->time_base) * AV_TIME_BASE;
             }
 
 
