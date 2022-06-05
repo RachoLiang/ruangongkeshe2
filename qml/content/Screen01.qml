@@ -40,6 +40,14 @@ Rectangle {
             //ctrl + <-
             lastPlayBtn.lastPlayBtnClicked()
         }
+        else if((event.key == Qt.Key_Down) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + 下
+            voice.decrease()
+        }
+        else if((event.key == Qt.Key_Up) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + 上
+            voice.increase()
+        }
         else if((event.key == Qt.Key_Return)){
             //本来应该是空格键，但尝试后发现，按下空格键，结果是触发了鼠标最近点击的按钮，暂时不知道怎么解决，所以用回车键代替
             playbutton.playButtonActivate()
@@ -64,7 +72,7 @@ Rectangle {
             if(!update_value.running){
                 update_value.start();
             }
-
+            videoShow.clearAlbum()
             videoShow.show(audioPath,"music");
             playbuttonimage.source="../content/images/pause.png"
         }
@@ -326,6 +334,7 @@ Rectangle {
                                 Menu {
                                     id: contextMenu
                                     MenuItem {
+                                        id:yinpinMenuItem
                                         text: '置顶'
                                         function toppingYinpin(idx)
                                         {
@@ -336,6 +345,7 @@ Rectangle {
                                         }
                                         onTriggered: {
                                             toppingYinpin(index)
+
                                         }
                                     }
                                     MenuItem {
@@ -546,6 +556,7 @@ Rectangle {
                                 Menu {
                                     id: contextMenu3
                                     MenuItem {
+                                        id:shipinMenuItem
                                         text: '置顶'
                                         function toppingShipin(idx)
                                         {
@@ -778,6 +789,23 @@ Rectangle {
                 radius: width/2
                 color: "#666666"
 
+                transform: Rotation{
+                    //设置图像原点
+                    origin.x: albumMain.width/2
+                    origin.y: albumMain.height/2
+                    axis{
+                        x: 0
+                        y: 0    //设置围绕y轴旋转
+                        z: 1
+                    }
+                    NumberAnimation on angle{   //定义角度上的动画
+                        from: 0
+                        to: 360
+                        duration: 20000
+                        loops: Animation.Infinite
+                    }
+                }
+
 
 //                DropShadow {
 //                           anchors.fill: albumMain
@@ -814,7 +842,7 @@ Rectangle {
                     id: album
                     anchors.centerIn: parent
 
-                    width: middle.width-10
+                    width: middle.width-30
                     height: width
                     source: albumImage
                     maskSource: audioImage
@@ -992,7 +1020,7 @@ Rectangle {
 
                         ChartView{
                             id:right_bar
-                            title: qsTr("音频波形柱状图")
+                            title: qsTr("")
                             titleFont.pixelSize: 18
                             Layout.minimumWidth:200
                             Layout.minimumHeight:200
@@ -1210,6 +1238,7 @@ Rectangle {
                                 //改变播放进度
                                 videoShow.setProcess(control.visualPosition)
                             }
+                            overALLRectangle.forceActiveFocus()
                         }
                     }
 
@@ -1315,6 +1344,7 @@ Rectangle {
                             ToolTip.text: qsTr("上一帧")
                             onClicked: {
                                 videoShow.seekSlow()
+                                overALLRectangle.forceActiveFocus()
                             }
                         }
                     }
@@ -1375,6 +1405,7 @@ Rectangle {
                             ToolTip.text: qsTr("下一帧")
                             onClicked: {
                                 videoShow.seekFast()
+                                overALLRectangle.forceActiveFocus()
                             }
                         }
                     }
@@ -1465,6 +1496,26 @@ Rectangle {
                             }
                         }
                     }
+
+                    Image {
+                        id: cutOff
+                        source: "images/cut.png"
+                        anchors.left:playmodeimage.right
+                        anchors.leftMargin: 60
+                        Layout.preferredHeight: 35
+                        Layout.preferredWidth: 35
+                        RoundButton {
+                            id:cutBtn
+                            anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("截图")
+                            onClicked: {
+                                videoShow.cutOff()
+                            }
+                        }
+                    }
+
                     Image {
                         id:voice_button
                         Layout.preferredHeight: 35
@@ -1475,7 +1526,8 @@ Rectangle {
                         Slider {
                             visible: false
                             id: voice
-                            y: -130
+                            y: -80
+                            height: 10
                             anchors.horizontalCenter: parent.horizontalCenter
                             value: 0.5
                             rotation: 270
@@ -1483,6 +1535,50 @@ Rectangle {
                                 //修改音量
                                 console.log("当前音量：",value * 100)
                                 videoShow.setVolume(value * 100)
+                                overALLRectangle.forceActiveFocus()
+                            }
+                            MouseArea{
+                                anchors.fill:parent
+                                hoverEnabled: true
+                                onPositionChanged: {
+                                    if(timer.running){
+                                        timer.stop()
+                                    }
+                                }
+                                onExited: {
+                                    timer.start()
+                                    //voice.visible = false
+                                }
+                                propagateComposedEvents :true
+                                //释放鼠标事件的覆盖，让slider接收事件
+                                onClicked: mouse.accepted=false
+                                onPressed: mouse.accepted=false
+                                onPressAndHold: mouse.accepted=false
+                            }
+                            background: Rectangle{
+                                width:voice.availableWidth
+                                height:voice.availableHeight
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                color:"gray"
+                                radius: 4
+                                //rotation: 270
+
+                                Rectangle{
+                                    width:voice.visualPosition * parent.width
+                                    height: voice.availableHeight
+                                    color: "steelblue"
+                                    radius: 4
+                                }
+                            }
+                            handle: Rectangle{
+                                x:voice.visualPosition * (voice.availableWidth - implicitHeight)
+                                anchors.verticalCenter: parent.verticalCenter
+                                implicitWidth: 20
+                                implicitHeight: 20
+                                radius:10
+                                border.color: "steelblue"
+                                border.width: 4
+                                color: voice.pressed?"steelblue":"white"
                             }
                         }
 
@@ -1504,27 +1600,90 @@ Rectangle {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                speedBox.visible = true
+                                speedBox.visible = !speedBox.visible
                             }
                         }
 
-                        Item {
+                        Rectangle {
                             visible: false
                             id: speedBox
-                            y: -146
-                            width: 76
-                            height: 143
+                            y: -250
+                            width: 65
+                            height: 220
+                            color: "grey"
+                            radius: 5
                             anchors.horizontalCenterOffset: 0
                             anchors.horizontalCenter: parent.horizontalCenter
                             Column {
                                 id: column
                                 anchors.fill: parent
-                                anchors.topMargin: -10
+                                anchors.topMargin: 10
+                                spacing: 10
                                 Text {
-                                    color: "#676767"
+                                    color: "white"
 
-                                    text: '1.00'
-                                    font.pixelSize: 24
+                                    text: '8.0x'
+                                    font.pixelSize: 15
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(8.00)
+                                            speedImage.source="images/speed800.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "white"
+
+                                    text: '4.0x'
+                                    font.pixelSize: 15
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(4.00)
+                                            speedImage.source="images/speed400.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "white"
+
+                                    text: '2.0x'
+                                    font.pixelSize: 15
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(2.00)
+                                            speedImage.source="images/speed200.png"
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "white"
+
+                                    text: '1.5x'
+                                    font.pixelSize: 15
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            speedBox.visible = false
+                                            videoShow.setSpeed(1.50)
+                                            speedImage.source="images/speed150.png"
+                                            overALLRectangle.forceActiveFocus()
+                                        }
+                                    }
+                                }
+                                Text {
+                                    color: "white"
+                                    text: '1.0x'
+                                    font.pixelSize: 15
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     MouseArea {
                                         anchors.fill: parent
@@ -1536,61 +1695,30 @@ Rectangle {
                                     }
                                 }
                                 Text {
-                                    color: "#676767"
-
-                                    text: '1.25'
-                                    font.pixelSize: 24
+                                    color: "white"
+                                    text: '0.75x'
+                                    font.pixelSize: 15
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: {
                                             speedBox.visible = false
-                                            videoShow.setSpeed(1.25)
-                                            speedImage.source="images/speed125.png"
+                                            videoShow.setSpeed(0.75)
+                                            speedImage.source="images/speed075.png"
                                         }
                                     }
                                 }
                                 Text {
-                                    color: "#676767"
-
-                                    text: '1.50'
-                                    font.pixelSize: 24
+                                    color: "white"
+                                    text: '0.5x'
+                                    font.pixelSize: 15
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: {
                                             speedBox.visible = false
-                                            videoShow.setSpeed(1.50)
-                                            speedImage.source="images/speed150.png"
-                                        }
-                                    }
-                                }
-                                Text {
-                                    color: "#676767"
-
-                                    text: '1.75'
-                                    font.pixelSize: 24
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: {
-                                            speedBox.visible = false
-                                            videoShow.setSpeed(1.75)
-                                            speedImage.source="images/speed175.png"
-                                        }
-                                    }
-                                }
-                                Text {
-                                    color: "#676767"
-                                    text: '2.00'
-                                    font.pixelSize: 24
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: {
-                                            speedBox.visible = false
-                                            videoShow.setSpeed(2.00)
-                                            speedImage.source="images/speed200.png"
+                                            videoShow.setSpeed(0.50)
+                                            speedImage.source="images/speed050.png"
                                         }
                                     }
                                 }
@@ -1630,6 +1758,30 @@ Rectangle {
                 id: contextMenu2
                 MenuItem {
                     text: '置顶'
+                    function toppingyinpin(idx)
+                    {
+                        console.log("置顶音频,index="+idx)
+                        yinpinmodel.move(idx,0,1)
+                        yinpinplaylist.toppingFile(idx)
+                        overALLRectangle.forceActiveFocus()
+                    }
+                    function toppingshipin(idx)
+                    {
+                        console.log("置顶视频,index="+idx)
+                        shipinmodel.move(idx,0,1)
+                        shipinplaylist.toppingFile(idx)
+                        overALLRectangle.forceActiveFocus()
+                    }
+                    onTriggered: {
+                        if(nowIsPlayingAudio)
+                        {
+                            toppingyinpin(yinpinlistview.currentIndex)
+                        }
+                        else
+                        {
+                            toppingshipin(shipinlistview.currentIndex)
+                        }
+                    }
                 }
                 MenuItem {
                     text: '设置'
