@@ -26,6 +26,9 @@ extern "C"
 //从文件路径中获取文件名字
 QString getNameFromPath(QString path);
 
+//提取路径前缀
+QString getPathByName(QString name);
+
 //从文件路径中提取相关的媒体信息
 
 //获取带有时间戳的文件名字

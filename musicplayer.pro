@@ -7,6 +7,7 @@ QT += sql
 
 SOURCES += \
     back/PlayList.cpp \
+    back/ReverseDecoder.cpp \
     back/audio.cpp \
     back/audioDecoder.cpp \
     back/avPacketQueue.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
 HEADERS += \
     backend/PlayList.h \
     backend/PlayListNode.h \
+    backend/ReverseDecoder.h \
     backend/audio.h \
     backend/audioDecoder.h \
     backend/avPacketQueue.h \

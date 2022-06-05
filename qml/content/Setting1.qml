@@ -48,8 +48,35 @@ Window {
                 onValueChanged: {
                     //console.log(slider_liangdu.visualPosition);
                     videoShow.setArgs(-1,slider_liangdu.visualPosition,-1);
+                    liangduzhi.text = Math.ceil(value * 100)
                 }
             }
+
+            Text {
+                anchors.left: slider_liangdu.right
+                anchors.leftMargin: 5
+                id: liangduzhi
+                text: qsTr("50")
+            }
+
+            Image {
+                Layout.preferredHeight: 15
+                Layout.preferredWidth: 15
+                anchors.left: liangduzhi.right
+                anchors.leftMargin: 10
+                fillMode:Image.PreserveAspectFit
+                source: "../content/images/reset.png"
+                RoundButton {
+                    anchors.fill: parent
+                    flat: true
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("重置")
+                    onClicked: {
+                        slider_liangdu.value = 0.5
+                    }
+                }
+            }
+
         }
         RowLayout {
             Text {
@@ -62,6 +89,32 @@ Window {
                 value: 0.5
                 onValueChanged: {
                     videoShow.setArgs(slider_duibidu.visualPosition,-1,-1);
+                    duibiduzhi.text = Math.ceil(value * 100)
+                }
+            }
+
+            Text {
+                anchors.left: slider_liangdu.right
+                anchors.leftMargin: 5
+                id: duibiduzhi
+                text: qsTr("50")
+            }
+
+            Image {
+                Layout.preferredHeight: 15
+                Layout.preferredWidth: 15
+                anchors.left: liangduzhi.right
+                anchors.leftMargin: 10
+                fillMode:Image.PreserveAspectFit
+                source: "../content/images/reset.png"
+                RoundButton {
+                    anchors.fill: parent
+                    flat: true
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("重置")
+                    onClicked: {
+                        slider_duibidu.value = 0.5
+                    }
                 }
             }
         }
@@ -76,6 +129,32 @@ Window {
                 value: 0.33
                 onValueChanged: {
                     videoShow.setArgs(-1,-1,slider_baohedu.visualPosition);
+                    baoheduzhi.text = Math.ceil(value * 100)
+                }
+            }
+
+            Text {
+                anchors.left: slider_liangdu.right
+                anchors.leftMargin: 5
+                id: baoheduzhi
+                text: qsTr("33")
+            }
+
+            Image {
+                Layout.preferredHeight: 15
+                Layout.preferredWidth: 15
+                anchors.left: liangduzhi.right
+                anchors.leftMargin: 10
+                fillMode:Image.PreserveAspectFit
+                source: "../content/images/reset.png"
+                RoundButton {
+                    anchors.fill: parent
+                    flat: true
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("重置")
+                    onClicked: {
+                        slider_baohedu.value = 0.33
+                    }
                 }
             }
         }
@@ -88,6 +167,34 @@ Window {
             Slider {
                 id: slider_sexiang
                 value: 0.5
+                onValueChanged: {
+                    sexiangzhi.text = Math.ceil(value * 100)
+                }
+            }
+
+            Text {
+                anchors.left: slider_liangdu.right
+                anchors.leftMargin: 5
+                id: sexiangzhi
+                text: qsTr("50")
+            }
+
+            Image {
+                Layout.preferredHeight: 15
+                Layout.preferredWidth: 15
+                anchors.left: liangduzhi.right
+                anchors.leftMargin: 10
+                fillMode:Image.PreserveAspectFit
+                source: "../content/images/reset.png"
+                RoundButton {
+                    anchors.fill: parent
+                    flat: true
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("重置")
+                    onClicked: {
+                        slider_sexiang.value = 0.5
+                    }
+                }
             }
         }
         Rectangle {

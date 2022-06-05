@@ -69,6 +69,8 @@ public:
     Q_INVOKABLE QVariantMap getMediaInfo(int index,QString type); //获取文件详细信息
     Q_INVOKABLE int getNowIndex();
 
+    Q_INVOKABLE QString getFilename(int);   //通过index获取filename，用于倒放模块
+
 signals: //信号只需要定义，不需要实现
     void addAudioFileInGUI(QString audioPath,QString audioDuration);
     void addVideoFileInGUI(QString videoPath,QString videoDuration);

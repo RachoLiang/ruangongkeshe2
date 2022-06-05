@@ -1,4 +1,5 @@
 ﻿#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QSettings>
 #include <QIcon>
@@ -12,11 +13,11 @@
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     qmlRegisterType<PlayList>("playlistclass",1,0,"PlayList");
     qmlRegisterType<VideoShow>("VideoShow",1,0,"VideoShow");
-    qmlRegisterType<ThumbnailShow>("ThumnailShow",1,0,"ThumbnailShow");
+    qmlRegisterType<ThumbnailShow>("ThumnailShow",1,0,"ThumbnailShow"); 
 
     QQmlApplicationEngine engine;
     engine.addImportPath("qrc:/musicplayer/qml/imports");

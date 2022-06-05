@@ -394,6 +394,11 @@ int PlayList::getNowIndex(){
     return this->nowIndex;
 }
 
+Q_INVOKABLE QString PlayList::getFilename(int index)
+{
+    return fileList[index].filePath;
+}
+
 /*
  * enum PlayBackMode
 {

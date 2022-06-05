@@ -11,6 +11,7 @@ import QtQuick.Controls
 import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
+import QtCharts 2.13
 import LLM
 import VideoShow 1.0
 import ThumnailShow 1.0
@@ -39,6 +40,14 @@ Rectangle {
             //ctrl + <-
             lastPlayBtn.lastPlayBtnClicked()
         }
+        else if((event.key == Qt.Key_Down) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + 下
+            voice.decrease()
+        }
+        else if((event.key == Qt.Key_Up) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + 上
+            voice.increase()
+        }
         else if((event.key == Qt.Key_Return)){
             //本来应该是空格键，但尝试后发现，按下空格键，结果是触发了鼠标最近点击的按钮，暂时不知道怎么解决，所以用回车键代替
             playbutton.playButtonActivate()
@@ -49,6 +58,9 @@ Rectangle {
         }
     }
 
+
+
+
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
         onAddAudioFileInGUI:function(audioPath,audioDuration)
@@ -57,6 +69,11 @@ Rectangle {
         }
         onShowAudio: function(audioPath)
         {
+            console.log("播放了音频！！！！！！！！！！")
+            if(!update_value.running){
+                update_value.start();
+            }
+
             videoShow.show(audioPath,"music");
             playbuttonimage.source="../content/images/pause.png"
         }
@@ -77,6 +94,8 @@ Rectangle {
         }
         onShowVideo:function(videoPath)
         {
+            update_value.stop()
+            videoShow.clearAlbum()
             videoShow.show(videoPath,"video")
             thumbnailShow.setPathAndStart(videoPath)
             playbuttonimage.source="../content/images/pause.png"
@@ -316,6 +335,7 @@ Rectangle {
                                 Menu {
                                     id: contextMenu
                                     MenuItem {
+                                        id:yinpinMenuItem
                                         text: '置顶'
                                         function toppingYinpin(idx)
                                         {
@@ -326,6 +346,7 @@ Rectangle {
                                         }
                                         onTriggered: {
                                             toppingYinpin(index)
+
                                         }
                                     }
                                     MenuItem {
@@ -536,6 +557,7 @@ Rectangle {
                                 Menu {
                                     id: contextMenu3
                                     MenuItem {
+                                        id:shipinMenuItem
                                         text: '置顶'
                                         function toppingShipin(idx)
                                         {
@@ -557,6 +579,12 @@ Rectangle {
                                     }
                                     MenuItem {
                                         text: '倒放'
+                                        onClicked:{
+                                            shipinlistview.currentIndex=index
+                                            playbuttonimage.source="../content/images/pause.png"
+                                            videoShow.reverse(shipinplaylist.getFilename(index))
+                                            nowIsPlayingAudio=false
+                                        }
                                     }
                                     MenuItem {
                                         text: '详细信息'
@@ -613,6 +641,8 @@ Rectangle {
                 }
 
             }
+
+
         }
     }
     Item {
@@ -694,8 +724,11 @@ Rectangle {
                 id:basePic
                 anchors.fill: parent
                 source: "images/basepic.png"
+//                fillMode: Image.PreserveAspectFit
             }
+
             VideoShow{
+                visible: !nowIsPlayingAudio
                 id: videoShow;
                 anchors.centerIn: parent
                 //anchors.bottom: slider.top
@@ -723,6 +756,356 @@ Rectangle {
                     }
                 }
             }
+        }
+
+
+        RowLayout{
+            visible: nowIsPlayingAudio
+
+            y: main.y + 50
+            spacing: 50
+
+//            Rectangle{
+//                width: 150
+//                height: 50
+//                color: "transparent"
+//            }
+
+            Rectangle{
+                id: albumMain
+                width: 400
+                height: 400
+                radius: width/2
+                color: "#666666"
+
+
+//                DropShadow {
+//                           anchors.fill: albumMain
+//                           horizontalOffset: 2
+//                           verticalOffset: 2
+//                           radius: 2.0
+//                           color: "#444444"
+//                           spread: 0.0
+//                           source: albumMain
+//                    }
+
+                Rectangle{
+                    width: 335
+                    height: 335
+                    radius: width/2
+                    color: "#444444"
+                    anchors.centerIn: parent
+                }
+
+                Rectangle{
+                    width: 70
+                    height: 70
+                    radius: width/2
+                    color: "#F5F5F5"
+                    anchors.centerIn: parent
+                    visible: true
+                }
+
+
+                //专辑封面
+                OpacityMask {
+                    id: album
+                    anchors.centerIn: parent
+
+                    width: 300
+                    height: 300
+                    source: albumImage
+                    maskSource: audioImage
+                    }
+
+                Image {
+                    id: albumImage
+                    width: 300
+                    height: 300
+                    visible: false
+                    fillMode:Image.PreserveAspectFit
+
+                    smooth: true
+                    source: "file:\\C:\\Users\\YYg\\Desktop\\picture\\yy.png"
+
+                }
+
+                Rectangle{
+                    id: audioImage
+                    visible: false
+                    width: 300
+                    height: 300
+                    radius: width/2
+
+                }
+
+            }
+
+            //音频波形图
+            Rectangle {
+                id: audioWave
+                width: 500
+                height: 400
+                radius: 20
+//                border.color: "whitesmoke"
+//                border.width: 1
+
+                color: "transparent"
+
+                DropShadow {
+                           anchors.fill: audioWave
+                           horizontalOffset: -5
+                           verticalOffset: -5
+                           radius: 12.0
+                           color: "#20000000"
+                           spread: 0.0
+                           source: audioWave
+                    }
+
+                ColumnLayout{
+                    spacing: 20
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.rightMargin: 40
+                    anchors.leftMargin: 40
+                    anchors.bottomMargin: 56
+
+                    GridLayout{
+                        rows: 2
+                        columns: 4
+                        columnSpacing: 20
+                        rowSpacing: 20
+
+                        Text {
+                            text: qsTr("专辑标题:")
+                            font.pixelSize: 30
+                            fontSizeMode: Text.Fit
+                            minimumPixelSize: 25
+
+                        }
+                        Text {
+                            id: albumTitle
+                            text: qsTr("线")
+                            color: "#0066FF"
+                            font.pixelSize: 30
+                            fontSizeMode: Text.Fit
+                            minimumPixelSize: 25
+                        }
+
+                        Text {
+                            text: qsTr("")
+                        }
+
+                        Text {
+                            text: qsTr("")
+                        }
+
+                        Text {
+                            text: qsTr("专辑名字：")
+                        }
+
+                        Text{
+                            id: albumName
+                            text: qsTr("线的专辑")
+                            color: "#0066FF"
+                        }
+
+                        Text {
+                            text: qsTr("专辑作者：")
+                        }
+
+                        Text {
+                            id: albumArtist
+                            text: qsTr("Amber")
+                            color: "#0066FF"
+                        }
+                    }
+
+                    GridLayout{
+
+//                        anchors.centerIn: parent
+                        columns: 2
+                        rows: 1
+                        visible: true
+
+                        FastBlur {
+                                  anchors.fill: main
+                                  source: main
+                                  radius: 32
+                              }
+
+
+                        ChartView{
+                            id:right_shake
+                            title: qsTr("音频波形图")
+                            Layout.minimumWidth:200
+                            Layout.minimumHeight:200
+                            antialiasing:true
+                            legend.visible:false
+                            backgroundColor: "transparent"
+
+                            ValueAxis{
+                                id:shake_value_X
+                                gridVisible:false
+                                visible:false
+                                min:0
+                                max:10
+                            }
+
+                            ValueAxis{
+                                id:shake_value_Y
+                                labelsVisible:false
+                                gridVisible:false
+                                visible:true
+                                min:0
+                                max:200
+                            }
+
+                            SplineSeries{
+                                id:line
+                                axisX:shake_value_X
+                                axisY:shake_value_Y
+                            }
+                        }
+
+    //                    FastBlur {
+    //                              anchors.fill: bug
+    //                              source: bug
+    //                              radius: 32
+    //                          }
+
+
+                        ChartView{
+                            id:right_bar
+                            title: qsTr("音频波形柱状图")
+                            Layout.minimumWidth:200
+                            Layout.minimumHeight:200
+                            antialiasing:true
+                            legend.visible:false
+                            backgroundColor: "transparent"
+
+                            BarCategoryAxis{
+                                id:right_bar_value_X
+                                gridVisible:false
+                                labelsVisible:false
+                                categories: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+                            }
+
+                            ValueAxis{
+                                id:right_bar_value_Y
+                                min:0
+                                max:200
+                                visible:false
+                            }
+
+                            BarSeries{
+                                axisX:right_bar_value_X
+                                axisY:right_bar_value_Y
+
+                                BarSet {
+                                    id:bar
+                                    color:"green"
+                                    label: "Bob";
+                                    values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
+                //定时器
+                Timer{
+                    id:update_value
+                    repeat:true
+                    running:true
+                    interval:40
+                    onTriggered:{
+                        //检测窗口是否处于活跃状态
+                        if(audioWave.visible == true){
+                            line.clear()
+
+                            //获取数据点
+                            var available_num = videoShow.getPointNum()
+                            var shake_value = videoShow.getShakeList()
+                            var bar_value = videoShow.getBarList()
+
+                            for(var i = 0; i < available_num; i = i + 1){
+                                line.append(i, shake_value[i])
+                            }
+
+                            for(var j = 0; j < available_num; j++){
+                                bar.replace(j, bar_value[j])
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+//        Image {
+//            anchors.right: parent.right
+//            anchors.top: parent.top
+//            source: "images/more1.png"
+//            anchors.rightMargin: 65
+//            anchors.topMargin: 66
+//            MouseArea {
+//                anchors.fill: parent
+//                acceptedButtons: Qt.LeftButton | Qt.RightButton
+//                onClicked: {
+//                    if (mouse.button === Qt.LeftButton)
+//                        contextMenu2.popup()
+//                }
+//                onPressAndHold: {
+//                    if (mouse.source === Qt.MouseEventNotSynthesized)
+//                        contextMenu2.popup()
+//                }
+//            }
+//            Setting1 {
+//                id: setting_for_rup
+//            }
+
+//            SubWindow {
+//                id: subWindow2
+//            }
+
+//            Menu {
+//                id: contextMenu2
+//                MenuItem {
+//                    text: '置顶'
+//                }
+//                MenuItem {
+//                    text: '设置'
+//                    onTriggered: {
+//                        setting_for_rup.show()
+//                    }
+//                }
+//                MenuItem {
+//                    text: '详细信息'
+//                    onTriggered: {
+//                        if(nowIsPlayingAudio){
+//                            subWindow2.infoMap = yinpinplaylist.getMediaInfo(yinpinplaylist.getNowIndex(),"music")
+//                        }else{
+//                            subWindow2.infoMap = shipinplaylist.getMediaInfo(shipinplaylist.getNowIndex(),"video")
+//                        }
+//                        subWindow2.show()
+//                    }
+//                }
+//            }
+//        }
+
+//        RowLayout {
+//            anchors.left: parent.left
+//            anchors.right: parent.right
+//            anchors.bottom: parent.bottom
+//            anchors.rightMargin: 40
+//            anchors.leftMargin: 40
+//            anchors.bottomMargin: 56
+//            Image {
+//                source: "images/M_left.png"
+//                RoundButton {
             Item {
                 id: controls
                 anchors.left: parent.left
@@ -866,13 +1249,13 @@ Rectangle {
                                 width: 150;
                                 height: 100;
                             }
-
                         }
                         onValueChanged: {
                             if(control.pressed){
                                 //改变播放进度
                                 videoShow.setProcess(control.visualPosition)
                             }
+                            overALLRectangle.forceActiveFocus()
                         }
                     }
 
@@ -896,6 +1279,29 @@ Rectangle {
                         property: "text"
                         value: videoShow.rightTime
                     }
+
+                    //绑定专辑信息
+                    Binding{
+                        target: albumTitle
+                        property: "text"
+                        value: videoShow.title
+                    }
+                    Binding{
+                        target: albumName
+                        property: "text"
+                        value: videoShow.album
+                    }
+                    Binding{
+                        target: albumArtist
+                        property: "text"
+                        value: videoShow.title
+                    }
+                    Binding{
+                        target: albumImage
+                        property: "source"
+                        value: videoShow.imagePath
+                    }
+
                     Text {
                         id: rightTime
                         color: "#ffffff"
@@ -905,6 +1311,7 @@ Rectangle {
                         Layout.rightMargin: 30
                     }
                 }
+
                 RowLayout {
                     id:control_buttons
                     anchors.left: parent.left
@@ -954,6 +1361,7 @@ Rectangle {
                             ToolTip.text: qsTr("上一帧")
                             onClicked: {
                                 videoShow.seekSlow()
+                                overALLRectangle.forceActiveFocus()
                             }
                         }
                     }
@@ -1014,6 +1422,7 @@ Rectangle {
                             ToolTip.text: qsTr("下一帧")
                             onClicked: {
                                 videoShow.seekFast()
+                                overALLRectangle.forceActiveFocus()
                             }
                         }
                     }
@@ -1118,6 +1527,12 @@ Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
                             value: 0.5
                             rotation: 270
+                            onValueChanged: {
+                                //修改音量
+                                console.log("当前音量：",value * 100)
+                                videoShow.setVolume(value * 100)
+                                overALLRectangle.forceActiveFocus()
+                            }
                         }
 
                         MouseArea {
@@ -1166,6 +1581,7 @@ Rectangle {
                                             speedBox.visible = false
                                             videoShow.setSpeed(1.00)
                                             speedImage.source="images/speed100.png"
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                 }
@@ -1181,6 +1597,7 @@ Rectangle {
                                             speedBox.visible = false
                                             videoShow.setSpeed(1.25)
                                             speedImage.source="images/speed125.png"
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                 }
@@ -1196,6 +1613,7 @@ Rectangle {
                                             speedBox.visible = false
                                             videoShow.setSpeed(1.50)
                                             speedImage.source="images/speed150.png"
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                 }
@@ -1211,6 +1629,7 @@ Rectangle {
                                             speedBox.visible = false
                                             videoShow.setSpeed(1.75)
                                             speedImage.source="images/speed175.png"
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                 }
@@ -1225,6 +1644,7 @@ Rectangle {
                                             speedBox.visible = false
                                             videoShow.setSpeed(2.00)
                                             speedImage.source="images/speed200.png"
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                 }
@@ -1233,7 +1653,6 @@ Rectangle {
                     }
                 }
             }
-
         }
         Image {
             anchors.right: parent.right
@@ -1265,6 +1684,18 @@ Rectangle {
                 id: contextMenu2
                 MenuItem {
                     text: '置顶'
+                    onTriggered: {
+                        if(nowIsPlayingAudio)
+                        {
+                            //console.log("zzzzzzzz"+yinpinlistview.currentIndex)
+                            toppingYinpin(yinpinlistview.currentIndex)
+                        }
+                        else
+                        {
+                            //console.log("ssssssss"+shipinlistview.currentIndex)
+                            toppingShipin(shipinlistview.currentIndex)
+                        }
+                    }
                 }
                 MenuItem {
                     text: '设置'
@@ -1288,7 +1719,6 @@ Rectangle {
             }
         }
     }
-}
 
 /*##^##
 Designer {

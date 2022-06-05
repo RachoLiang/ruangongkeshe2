@@ -11,7 +11,7 @@ class Video:public Audio,QVideoSink
 public:
     Video(){}
     Video(QString vedioPath);
-    void setVideoOutput(QVideoWidget* output);
+//    void setVideoOutput(QVideoWidget* output);
     void play();
     void pause();
     void adjustProgress(int);

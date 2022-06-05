@@ -38,15 +38,6 @@ QString VideoShow::getSourPath(){
     return sourPath;
 }
 
-////获取资源的媒体信息
-//Audio* VideoShow::getMediaObject(QString path){
-//    Audio* audio = nullptr;
-//    qDebug()<<"解析的路径:"<<path;
-//    getMeidaInfo(path,audio);
-//    qDebug()<<"解析完毕！";
-//    return audio;
-//}
-
 //构造函数
 VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     sourPath = path;
@@ -54,13 +45,27 @@ VideoShow::VideoShow(QString path):nWidth(200),nHeight(400){
     m_playState = MainDecoder::STOP;
     m_leftTime = "00:00";
     m_rightTime = "00:00";
+    m_title = "";
+    m_album = "";
+    m_artist = "";
+    m_imagePath = "";
+
+    pointNum = 10;
+    shakeList = {0,0,0,0,0,0,0,0,0,0};
+    barList = {0,0,0,0,0,0,0,0,0,0};
     qDebug()<<"创建了VideoShow对象";
     maindecoder = new MainDecoder();
     maindecoder->setCurrentFile(path);
+    reversedecoder = nullptr;
+    isReverse = false;
+    updateProgressThread = nullptr;
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage*)),this,SLOT(slot_getOneFrame(QImage*)));
     //连接maindecoder -- videoShow: 播放状态改变
-    connect(maindecoder,SIGNAL(sign_playStateChanged(MainDecoder::PlayState)),this,SLOT(slot_setPlayState(MainDecoder::PlayState)));
+    connect(maindecoder,SIGNAL(sign_playStateChanged(MainDecoder::PlayState)),this,SLOT(slot_setPlayState(MainDecoder::PlayState))
+            );
+    //专辑信息
+    connect(maindecoder,SIGNAL(sign_sendAlbumImage(QString)),this,SLOT(slot_getAlbumImage(QString)));
     //发信号给解析器解析视频
     maindecoder->decoderFile(path,"video");
 }
@@ -69,12 +74,23 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     //参数初始化
     lastVolume = 0;
     m_process = 0.0;
+    pointNum = 10;
+    shakeList = {0,0,0,0,0,0,0,0,0,0};
+    barList = {0,0,0,0,0,0,0,0,0,0};
     m_playState = MainDecoder::STOP;
+    m_title = "";
+    m_album = "";
+    m_artist = "";
+    m_imagePath = "";
 
+    isReverse = false;
+    reversedecoder = nullptr;
+    updateProgressThread = nullptr;
     maindecoder = new MainDecoder();
     //开始解析视频
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
     connect(maindecoder,SIGNAL(sign_playStateChanged(MainDecoder::PlayState)),this,SLOT(slot_setPlayState(MainDecoder::PlayState)));
+    connect(maindecoder,SIGNAL(sign_sendAlbumImage(QString)),this,SLOT(slot_getAlbumImage(QString)));
 }
 
 //析构函数
@@ -143,29 +159,44 @@ void VideoShow::silence(){
 }
 
 //暂停控制
-bool VideoShow::isPaused(){
-    if(maindecoder){
+bool VideoShow::isPaused() {
+    if (!isReverse && maindecoder) {
         return maindecoder->pauseState();
-    }else {
-       return true;
+    }
+    else if (isReverse && reversedecoder)
+    {
+        return reversedecoder->getState() == ReverseDecoder::PAUSE;
+    }
+    else {
+        return true;
     }
 }
 
-void VideoShow::pause(){
-    if(maindecoder){
+void VideoShow::pause() {
+    if (!isReverse && maindecoder) {
         maindecoder->pauseVideo();
+    }
+    else if (isReverse && reversedecoder)
+    {
+        reversedecoder->pause();
     }
 }
 
 //Stop控制
-bool VideoShow::isStop(){
-    if(maindecoder){
-        if(maindecoder->getPlayState() == MainDecoder::STOP ||maindecoder->getPlayState() == MainDecoder::FINISH){
+bool VideoShow::isStop() {
+    if (!isReverse && maindecoder) {
+        if (maindecoder->getPlayState() == MainDecoder::STOP || maindecoder->getPlayState() == MainDecoder::FINISH) {
             return true;
-        }else{
+        }
+        else {
             return false;
         }
-    }else{
+    }
+    else if (isReverse && reversedecoder)
+    {
+        return reversedecoder->getState() == ReverseDecoder::STOP;
+    }
+    else {
         return true;
     }
 }
@@ -219,22 +250,34 @@ void VideoShow::seekSlow(){
 }
 
 //调节播放进度
-void VideoShow::setProcess(double process){
-    if(maindecoder){
+void VideoShow::setProcess(double process) {
+    if (!isReverse && maindecoder) {
         maindecoder->seekProgress(process);
+    }
+    else if (isReverse && reversedecoder)
+    {
+        reversedecoder->seekBySlider(process);
     }
 }
 
 //获取进度条信息
-qint64 VideoShow::getNowProcess(){
-    if(maindecoder){
+qint64 VideoShow::getNowProcess() {
+    if (!isReverse && maindecoder) {
         return maindecoder->getNowTime();
+    }
+    else if (isReverse && reversedecoder)
+    {
+        return reversedecoder->getCurrTime();
     }
 }
 
-qint64 VideoShow::getTotalProcess(){
-    if(maindecoder){
+qint64 VideoShow::getTotalProcess() {
+    if (!isReverse && maindecoder) {
         return maindecoder->getTotalTime();
+    }
+    else if (isReverse && reversedecoder)
+    {
+        return reversedecoder->getTotalTime();
     }
 }
 
@@ -277,7 +320,7 @@ int VideoShow::updateProcess(void *arg){
     //进入循环
     while (true){
         MainDecoder::PlayState state = videoShow->getPlayState();
-        if(state == MainDecoder::STOP){
+        if ((!videoShow->isReverse && state == MainDecoder::STOP) || (videoShow->isReverse && videoShow->reversedecoder->getState() == ReverseDecoder::STOP)) {
             qDebug()<<"当前状态是Stop";
             //重置参数
             videoShow->setLeftTime("00:00");
@@ -288,14 +331,14 @@ int VideoShow::updateProcess(void *arg){
         }
 
         //当Pause状态时，暂停更新
-        if(state == MainDecoder::PAUSE){
+        if ((!videoShow->isReverse && state == MainDecoder::PAUSE) || (videoShow->isReverse && videoShow->reversedecoder->getState() == ReverseDecoder::PAUSE)) {
 //            qDebug()<<"当前状态是暂停";
             SDL_Delay(100);
             continue;
         }
 
         //播放状态
-        if(state == MainDecoder::PLAYING){
+        if ((!videoShow->isReverse && state == MainDecoder::PLAYING) || (videoShow->isReverse && videoShow->reversedecoder->getState() == ReverseDecoder::PLAYING)) {
             double nowtime = videoShow->getNowProcess();
 //            if(nowtime - last_time >  * 1000 * 1000){
 //                SDL_Delay(50);
@@ -358,18 +401,47 @@ void VideoShow::slot_setPlayState(MainDecoder::PlayState playState){
     emit playStateChanged(playState);
 }
 
+//获取专辑图片路径
+void VideoShow::slot_getAlbumImage(QString imagePath){
+    setTitle(maindecoder->title);
+    setArtist(maindecoder->artist);
+    setAlbum(maindecoder->album);
+    imagePath = QString("file:///") + imagePath;
+    setImagePath(imagePath);
+    //发出信号
+    emit titleChanged(m_title);
+    emit albumChanged(m_album);
+    emit artistChanged(m_artist);
+    emit imagePathChanged(imagePath);
+}
+
 //播放
-void VideoShow::show(QString path, QString type){
+void VideoShow::show(QString path, QString type) {
+    //设置为正放模式
+    if (isReverse)
+        isReverse = false;
+
+    //释放倒放模块的资源
+    if (reversedecoder)
+    {
+        reversedecoder->stop();
+        while (!(reversedecoder->isRunFinished() && reversedecoder->isPlayThreadFinished()))    //所有线程退出再delete
+            ;
+        delete reversedecoder;
+        reversedecoder = nullptr;
+    }
+
     //清空上次播放的缓存
-    if(maindecoder->getPlayState() != MainDecoder::STOP && maindecoder->getPlayState() != MainDecoder::FINISH)
+    if (maindecoder->getPlayState() != MainDecoder::STOP && maindecoder->getPlayState() != MainDecoder::FINISH)
     {
         maindecoder->stopVideo();
-        qDebug()<<"videoShow的stop";
+        qDebug() << "videoShow的stop";
     }
     sourPath = path;
-    maindecoder->decoderFile(path,type);
+    maindecoder->decoderFile(path, type);
     //暂时：启动进度条监测
-    SDL_CreateThread(&VideoShow::updateProcess, "update_process", this);
+    if (!updateProgressThread)
+        updateProgressThread = SDL_CreateThread(&VideoShow::updateProcess, "update_process", this);
 }
 
 //截图功能
@@ -400,4 +472,98 @@ void VideoShow::setArgs(double contrast_per, double brightness_per, double satur
     maindecoder->setFilter(contrast,brightness,saturation);
 }
 
+//获取波形图数据
+QList<int> VideoShow::getBarList(){
+    if(maindecoder == nullptr){
+        return barList;
+    }
+    int nowPoint = maindecoder->getAudioDb();
+    //队头出列
+    barList.removeFirst();
+    //数据入列
+    barList.append(nowPoint);
+    return barList;
+}
 
+QList<int> VideoShow::getShakeList(){
+    if(maindecoder == nullptr){
+        return shakeList;
+    }
+    int nowPoint = maindecoder->getAudioDb();
+    //队头出列
+    shakeList.removeFirst();
+    //数据入列
+    shakeList.append(nowPoint);
+    return shakeList;
+}
+
+int VideoShow::getPointNum(){
+    return pointNum;
+}
+
+//专辑信息
+QString VideoShow::getTitle(){
+    return m_title;
+}
+
+QString VideoShow::getAlbum(){
+    return m_album;
+}
+
+QString VideoShow::getArtist(){
+    return m_artist;
+}
+
+QString VideoShow::getImagePath(){
+    return m_imagePath;
+}
+
+void VideoShow::setTitle(QString title){
+    m_title = title;
+}
+
+void VideoShow::setAlbum(QString album){
+    m_album = album;
+}
+
+void VideoShow::setArtist(QString artist){
+    m_artist = artist;
+}
+
+void VideoShow::setImagePath(QString imagePath){
+    m_imagePath = imagePath;
+}
+
+//清空专辑信息
+void VideoShow::clearAlbum(){
+    setTitle("");
+    setArtist("");
+    setAlbum("");
+    setImagePath("");
+    //发出信号
+    emit titleChanged(m_title);
+    emit albumChanged(m_album);
+    emit artistChanged(m_artist);
+    emit imagePathChanged("");
+}
+//启动倒放模块
+void VideoShow::reverse(QString filename)
+{
+    isReverse = false;      //先设置成false，否则控制进度条的线程会因为reversedecoder被设置成nullptr而报错
+
+    //清除上一次倒放的资源
+    if (reversedecoder)
+    {
+        reversedecoder->stop();
+        while (!(reversedecoder->isRunFinished() && reversedecoder->isPlayThreadFinished()))    //所有线程退出再delete
+            ;
+        delete reversedecoder;
+        reversedecoder = nullptr;
+    }
+    stopPlay();
+    reversedecoder = new ReverseDecoder(filename);
+    isReverse = true;       //当新的reversedecoder准备好后再设置成true
+    connect(reversedecoder, &ReverseDecoder::sendOneFrame, this, &VideoShow::slot_getOneFrame);
+    if (!updateProgressThread)
+        updateProgressThread = SDL_CreateThread(&VideoShow::updateProcess, "update_process", this);
+}
