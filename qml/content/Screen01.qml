@@ -26,7 +26,6 @@ Rectangle {
     anchors.fill: parent
 
     property bool nowIsPlayingAudio: true    //记录当前正在播放的是音频还是视频，从而知道该操作哪个列表
-
     Keys.onPressed: {//所有快捷键操作
         if ((event.key == Qt.Key_I) && (event.modifiers & Qt.ControlModifier)){
             //ctrl + i
@@ -58,9 +57,6 @@ Rectangle {
         }
     }
 
-
-
-
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
         onAddAudioFileInGUI:function(audioPath,audioDuration)
@@ -69,11 +65,10 @@ Rectangle {
         }
         onShowAudio: function(audioPath)
         {
-            console.log("播放了音频！！！！！！！！！！")
             if(!update_value.running){
                 update_value.start();
             }
-
+            videoShow.clearAlbum()
             videoShow.show(audioPath,"music");
             playbuttonimage.source="../content/images/pause.png"
         }
@@ -84,6 +79,10 @@ Rectangle {
         onChangeCurrentPlayingIndex: function(index) //改变列表中的高亮条目
         {
             yinpinlistview.currentIndex=index
+        }
+        onShowMessage: function(messageInfo)
+        {
+            console.log(messageInfo)
         }
     }
     PlayList{
@@ -104,7 +103,12 @@ Rectangle {
         {
             shipinlistview.currentIndex=index
         }
+        onShowMessage: function(messageInfo)
+        {
+            console.log(messageInfo)
+        }
     }
+
 
     Image {
         id:leftarrow
@@ -301,11 +305,19 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked:
                                 {
-                                    yinpinplaylist.setNowIndex(index)
-                                    yinpinlistview.currentIndex=index
-                                    playbuttonimage.source="../content/images/pause.png"
-                                    nowIsPlayingAudio=true
-                                    console.log("点击第"+yinpinlistview.currentIndex+"个音频")
+                                    if(yinpinplaylist.setNowIndex(index))
+                                    {
+                                        yinpinlistview.currentIndex=index
+                                        playbuttonimage.source="../content/images/pause.png"
+                                        nowIsPlayingAudio=true
+                                        console.log("点击第"+yinpinlistview.currentIndex+"个音频")
+                                    }
+                                    else
+                                    {
+                                        yinpinplaylist.playNextMedia(0)
+                                        playbuttonimage.source="../content/images/pause.png"
+                                        nowIsPlayingAudio=true
+                                    }
                                 }
                             }
                             Image {
@@ -373,7 +385,7 @@ Rectangle {
                                             yinpinplaylist.removeFile(idx)
                                             if(nowIsPlayingAudio&&yinpinlistview.currentIndex==idx&&videoShow.isPaused()==false)
                                             {
-                                                yinpinplaylist.playNextMedia()
+                                                yinpinplaylist.playNextMedia(0)
                                             }
                                             overALLRectangle.forceActiveFocus()
                                         }
@@ -522,11 +534,21 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked:
                                 {
-                                    shipinplaylist.setNowIndex(index)
-                                    shipinlistview.currentIndex=index
-                                    playbuttonimage.source="../content/images/pause.png"
-                                    nowIsPlayingAudio=false
-                                    console.log("点击第"+shipinlistview.currentIndex+"个视频")
+                                    if(shipinplaylist.setNowIndex(index))
+                                    {
+                                        shipinlistview.currentIndex=index
+                                        playbuttonimage.source="../content/images/pause.png"
+                                        nowIsPlayingAudio=false
+                                        console.log("点击第"+shipinlistview.currentIndex+"个视频")
+                                    }
+                                    else
+                                    {
+                                        shipinplaylist.playNextMedia(0)
+                                        playbuttonimage.source="../content/images/pause.png"
+                                        nowIsPlayingAudio=true
+                                    }
+
+
 
                                 }
                             }
@@ -604,7 +626,7 @@ Rectangle {
                                             //如果删除的正好是当前播放的，则视为删除后点击了下一首
                                             if(nowIsPlayingAudio==false&&shipinlistview.currentIndex==idx&&videoShow.isPaused()==false)
                                             {
-                                                shipinplaylist.playNextMedia()
+                                                shipinplaylist.playNextMedia(0)
                                             }
                                             overALLRectangle.forceActiveFocus()
                                         }
@@ -790,6 +812,23 @@ Rectangle {
                 radius: width/2
                 color: "#666666"
 
+                transform: Rotation{
+                    //设置图像原点
+                    origin.x: albumMain.width/2
+                    origin.y: albumMain.height/2
+                    axis{
+                        x: 0
+                        y: 0    //设置围绕y轴旋转
+                        z: 1
+                    }
+                    NumberAnimation on angle{   //定义角度上的动画
+                        from: 0
+                        to: 360
+                        duration: 20000
+                        loops: Animation.Infinite
+                    }
+                }
+
 
 //                DropShadow {
 //                           anchors.fill: albumMain
@@ -826,7 +865,7 @@ Rectangle {
                     id: album
                     anchors.centerIn: parent
 
-                    width: middle.width-10
+                    width: middle.width-30
                     height: width
                     source: albumImage
                     maskSource: audioImage
@@ -1004,7 +1043,7 @@ Rectangle {
 
                         ChartView{
                             id:right_bar
-                            title: qsTr("音频波形柱状图")
+                            title: qsTr("")
                             titleFont.pixelSize: 18
                             Layout.minimumWidth:200
                             Layout.minimumHeight:200
@@ -1301,10 +1340,10 @@ Rectangle {
                             function lastPlayBtnClicked()
                             {
                                 if(nowIsPlayingAudio){
-                                    yinpinplaylist.playLastMedia()
+                                    yinpinplaylist.playLastMedia(0)
                                 }
                                 else{
-                                    shipinplaylist.playLastMedia()
+                                    shipinplaylist.playLastMedia(0)
                                 }
                             }
 
@@ -1409,10 +1448,10 @@ Rectangle {
                             function nextPlayBtnClicked()
                             {
                                 if(nowIsPlayingAudio){
-                                    yinpinplaylist.playNextMedia()
+                                    yinpinplaylist.playNextMedia(0)
                                 }
                                 else{
-                                    shipinplaylist.playNextMedia()
+                                    shipinplaylist.playNextMedia(0)
                                 }
                             }
 
@@ -1480,6 +1519,26 @@ Rectangle {
                             }
                         }
                     }
+
+                    Image {
+                        id: cutOff
+                        source: "images/cut.png"
+                        anchors.left:playmodeimage.right
+                        anchors.leftMargin: 60
+                        Layout.preferredHeight: 35
+                        Layout.preferredWidth: 35
+                        RoundButton {
+                            id:cutBtn
+                            anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("截图")
+                            onClicked: {
+                                videoShow.cutOff()
+                            }
+                        }
+                    }
+
                     Image {
                         id:voice_button
                         Layout.preferredHeight: 35

@@ -57,6 +57,8 @@ public:
     qint64 nowTime; //记录当前播放时间
     int bitFormat;  //采样位数
 
+    AvPacketQueue packetQueue;
+
 
 private:
     int decodeAudio();
@@ -95,7 +97,7 @@ private:
 
     AVCodecContext *codecCtx;          // audio codec context
 
-    AvPacketQueue packetQueue;
+
 
     AVPacket packet;
 
