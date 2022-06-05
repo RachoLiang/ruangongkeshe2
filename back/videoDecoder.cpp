@@ -287,7 +287,7 @@ void VideoDecoder::run(){
                     }
 
                     if (av_buffersink_get_frame(filterSinkCxt, pFrame) < 0) {
-                        qDebug() << "av buffersrc get frame failed.";
+                        qDebug() << "av buffersrc get frame failed.";\
                         av_packet_unref(packet);
                         av_frame_unref(pFrame);
                         av_frame_free(&pFrame);
