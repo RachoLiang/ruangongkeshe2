@@ -572,6 +572,7 @@ Rectangle {
                                             shipinlistview.currentIndex=index
                                             playbuttonimage.source="../content/images/pause.png"
                                             videoShow.reverse(shipinplaylist.getFilename(index))
+                                            nowIsPlayingAudio=false
                                         }
                                     }
                                     MenuItem {
