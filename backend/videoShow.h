@@ -3,6 +3,7 @@
 #include <QQuickPaintedItem>
 #include <QImage>
 #include "backend/mainDecoder.h"
+#include "backend/ReverseDecoder.h"
 #include "backend/utils.h"
 //怎么把视频解析的decoder和video类结合起来
 
@@ -113,6 +114,10 @@ public:
 
     Q_INVOKABLE void clearAlbum();
     
+    //启动倒放模块
+    Q_INVOKABLE void reverse(QString);
+    bool isReverse;     //是否正在倒放
+
 protected:
     //绘制图片
    virtual void paint(QPainter *painter);
@@ -120,6 +125,7 @@ protected:
 private:
     QImage image;   //当前播放的图片
     MainDecoder* maindecoder;   //音视频解析器
+    ReverseDecoder* reversedecoder; //倒放模块
     int nHeight; //屏幕高
     int nWidth; //屏幕宽
     QString sourPath;   //文件路径
@@ -138,6 +144,7 @@ private:
     QString m_artist;
     QString m_imagePath;
 
+    SDL_Thread* updateProgressThread;   //进度条线程结构体
     
 public slots:
     //获取图片的信号槽
