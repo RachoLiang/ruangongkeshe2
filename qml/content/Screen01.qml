@@ -26,7 +26,6 @@ Rectangle {
     anchors.fill: parent
 
     property bool nowIsPlayingAudio: true    //记录当前正在播放的是音频还是视频，从而知道该操作哪个列表
-
     Keys.onPressed: {//所有快捷键操作
         if ((event.key == Qt.Key_I) && (event.modifiers & Qt.ControlModifier)){
             //ctrl + i
@@ -58,9 +57,6 @@ Rectangle {
         }
     }
 
-
-
-
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
         onAddAudioFileInGUI:function(audioPath,audioDuration)
@@ -84,6 +80,10 @@ Rectangle {
         {
             yinpinlistview.currentIndex=index
         }
+        onShowMessage: function(messageInfo)
+        {
+            console.log(messageInfo)
+        }
     }
     PlayList{
         id:shipinplaylist;
@@ -103,7 +103,12 @@ Rectangle {
         {
             shipinlistview.currentIndex=index
         }
+        onShowMessage: function(messageInfo)
+        {
+            console.log(messageInfo)
+        }
     }
+
 
     Image {
         id:leftarrow
@@ -300,11 +305,19 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked:
                                 {
-                                    yinpinplaylist.setNowIndex(index)
-                                    yinpinlistview.currentIndex=index
-                                    playbuttonimage.source="../content/images/pause.png"
-                                    nowIsPlayingAudio=true
-                                    console.log("点击第"+yinpinlistview.currentIndex+"个音频")
+                                    if(yinpinplaylist.setNowIndex(index))
+                                    {
+                                        yinpinlistview.currentIndex=index
+                                        playbuttonimage.source="../content/images/pause.png"
+                                        nowIsPlayingAudio=true
+                                        console.log("点击第"+yinpinlistview.currentIndex+"个音频")
+                                    }
+                                    else
+                                    {
+                                        yinpinplaylist.playNextMedia(0)
+                                        playbuttonimage.source="../content/images/pause.png"
+                                        nowIsPlayingAudio=true
+                                    }
                                 }
                             }
                             Image {
@@ -372,7 +385,7 @@ Rectangle {
                                             yinpinplaylist.removeFile(idx)
                                             if(nowIsPlayingAudio&&yinpinlistview.currentIndex==idx&&videoShow.isPaused()==false)
                                             {
-                                                yinpinplaylist.playNextMedia()
+                                                yinpinplaylist.playNextMedia(0)
                                             }
                                             overALLRectangle.forceActiveFocus()
                                         }
@@ -521,11 +534,21 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked:
                                 {
-                                    shipinplaylist.setNowIndex(index)
-                                    shipinlistview.currentIndex=index
-                                    playbuttonimage.source="../content/images/pause.png"
-                                    nowIsPlayingAudio=false
-                                    console.log("点击第"+shipinlistview.currentIndex+"个视频")
+                                    if(shipinplaylist.setNowIndex(index))
+                                    {
+                                        shipinlistview.currentIndex=index
+                                        playbuttonimage.source="../content/images/pause.png"
+                                        nowIsPlayingAudio=false
+                                        console.log("点击第"+shipinlistview.currentIndex+"个视频")
+                                    }
+                                    else
+                                    {
+                                        shipinplaylist.playNextMedia(0)
+                                        playbuttonimage.source="../content/images/pause.png"
+                                        nowIsPlayingAudio=true
+                                    }
+
+
 
                                 }
                             }
@@ -603,7 +626,7 @@ Rectangle {
                                             //如果删除的正好是当前播放的，则视为删除后点击了下一首
                                             if(nowIsPlayingAudio==false&&shipinlistview.currentIndex==idx&&videoShow.isPaused()==false)
                                             {
-                                                shipinplaylist.playNextMedia()
+                                                shipinplaylist.playNextMedia(0)
                                             }
                                             overALLRectangle.forceActiveFocus()
                                         }
@@ -1317,10 +1340,10 @@ Rectangle {
                             function lastPlayBtnClicked()
                             {
                                 if(nowIsPlayingAudio){
-                                    yinpinplaylist.playLastMedia()
+                                    yinpinplaylist.playLastMedia(0)
                                 }
                                 else{
-                                    shipinplaylist.playLastMedia()
+                                    shipinplaylist.playLastMedia(0)
                                 }
                             }
 
@@ -1425,10 +1448,10 @@ Rectangle {
                             function nextPlayBtnClicked()
                             {
                                 if(nowIsPlayingAudio){
-                                    yinpinplaylist.playNextMedia()
+                                    yinpinplaylist.playNextMedia(0)
                                 }
                                 else{
-                                    shipinplaylist.playNextMedia()
+                                    shipinplaylist.playNextMedia(0)
                                 }
                             }
 

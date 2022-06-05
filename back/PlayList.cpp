@@ -206,9 +206,29 @@ void PlayList::showFileList()
         qDebug()<<i+1<<", "<<u.filePath ;
     }
 }
+//bool fileExist(QString filePath)
+//{
+//    std::string str=filePath.toStdString();
+//    if(FILE *file=fopen(str.c_str(),"r"))
+//    {
+//        fclose(file);
+//        return true;
+//    }
 
-void PlayList::setNowIndex(int index)
+//    return false;
+//}
+bool isFileExist(QString& filePath)
 {
+    QFileInfo fileInfo(filePath);
+    if(fileInfo.isFile())
+    {
+        return true;
+    }
+    return false;
+}
+bool PlayList::setNowIndex(int index)
+{
+    QString mediaPath=fileList[index].filePath;
     nowIndex=index;
     if(playMode==Shuffle)
     {
@@ -217,7 +237,12 @@ void PlayList::setNowIndex(int index)
         dequeSize=1;
         dequePos=0;
     }
-    QString mediaPath=fileList[nowIndex].filePath;
+    if(isFileExist(mediaPath)==false) //文件不存在
+    {
+        qDebug()<<"点播的文件不存在:"<<mediaPath;
+        showMessage("播放失败，已自动切换下一首");
+        return false;
+    }
     /*
      * 播放mediaPath
      */
@@ -231,6 +256,7 @@ void PlayList::setNowIndex(int index)
     {
         emit showAudio(mediaPath);
     }
+    return true; //点播成功
 }
 //enum PlayBackMode
 //{
@@ -247,10 +273,11 @@ long long bigRandomInteger(long long mod,long long nowIndex)
     if(ret==nowIndex)ret=rand()%mod;  //手动减小返回的随机数与nowIndex相同的概率
     return ret;  //本来试图产生大随机数，但试了很多种方法，结果都不够随机
 }
-void PlayList::playNextMedia()  //用户点击下一首按钮
+bool PlayList::playNextMedia(int callTimes)  //用户点击下一首按钮
 {
     int listLength=fileList.size();
-    if(listLength==0)return ; //列表为空，则什么都不做
+    if(listLength==0)return true; //列表为空，则什么都不做
+    if(callTimes>listLength)return false;  //递归次数达到上限
     if(playMode==Shuffle)     //随机播放模式
     {
         if(dequeSize>dequePos+1)  //存在下一首的历史记录
@@ -274,6 +301,11 @@ void PlayList::playNextMedia()  //用户点击下一首按钮
     qDebug()<<"点击了下一首，播放："<<mediaPath;
     emit changeCurrentPlayingIndex(nowIndex);
 
+    if(isFileExist(mediaPath)==false)  //文件不存在
+    {
+        showMessage("播放失败，已自动切换下一首");
+        return playNextMedia(callTimes+1);
+    }
     /*
      * 调用播放mediaPath操作
      */
@@ -285,11 +317,13 @@ void PlayList::playNextMedia()  //用户点击下一首按钮
     {
         emit showVideo(mediaPath);
     }
+    return true;
 }
-void PlayList::playLastMedia()
+bool PlayList::playLastMedia(int callTimes)
 {
     int listLength=fileList.size();
-    if(listLength==0)return ; //列表为空，则什么都不做
+    if(listLength==0)return true; //列表为空，则什么都不做
+    if(callTimes>listLength)return false;  //递归次数达到上限
     if(playMode==Shuffle)
     {
         if(dequePos>0)  //存在上一首的历史记录
@@ -312,6 +346,11 @@ void PlayList::playLastMedia()
     qDebug()<<"点击了上一首，播放："<<mediaPath;
     emit changeCurrentPlayingIndex(nowIndex);
 
+    if(isFileExist(mediaPath)==false)  //文件不存在
+    {
+        showMessage("播放失败，已自动切换上一首");
+        return playLastMedia(callTimes+1);
+    }
     /*
      * 播放mediaPath
      */
@@ -323,6 +362,7 @@ void PlayList::playLastMedia()
     {
         emit showVideo(mediaPath);
     }
+    return true;
 }
 void PlayList::changePlayMode()
 {
@@ -410,6 +450,7 @@ Q_INVOKABLE QString PlayList::getFilename(int index)
 };*/
 void PlayList::autoPlayNextMedia()
 {
+    qDebug()<<"自动下一首";
     int listLength=fileList.size();
     if(listLength==0)return ; //列表为空，则什么都不做
     if(playMode==Shuffle)     //随机播放模式
@@ -447,7 +488,12 @@ void PlayList::autoPlayNextMedia()
     QString mediaPath=fileList[nowIndex].filePath;
     qDebug()<<"点击了下一首，播放："<<mediaPath;
     emit changeCurrentPlayingIndex(nowIndex);
-
+    if(isFileExist(mediaPath)==false)
+    {
+        qDebug()<<"auto next";
+        playNextMedia(0);
+        return;
+    }
     /*
      * 调用播放mediaPath操作
      */
