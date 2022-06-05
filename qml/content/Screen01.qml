@@ -40,6 +40,14 @@ Rectangle {
             //ctrl + <-
             lastPlayBtn.lastPlayBtnClicked()
         }
+        else if((event.key == Qt.Key_Down) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + 下
+            voice.decrease()
+        }
+        else if((event.key == Qt.Key_Up) && (event.modifiers & Qt.ControlModifier)){
+            //ctrl + 上
+            voice.increase()
+        }
         else if((event.key == Qt.Key_Return)){
             //本来应该是空格键，但尝试后发现，按下空格键，结果是触发了鼠标最近点击的按钮，暂时不知道怎么解决，所以用回车键代替
             playbutton.playButtonActivate()
@@ -327,6 +335,7 @@ Rectangle {
                                 Menu {
                                     id: contextMenu
                                     MenuItem {
+                                        id:yinpinMenuItem
                                         text: '置顶'
                                         function toppingYinpin(idx)
                                         {
@@ -337,6 +346,7 @@ Rectangle {
                                         }
                                         onTriggered: {
                                             toppingYinpin(index)
+
                                         }
                                     }
                                     MenuItem {
@@ -547,6 +557,7 @@ Rectangle {
                                 Menu {
                                     id: contextMenu3
                                     MenuItem {
+                                        id:shipinMenuItem
                                         text: '置顶'
                                         function toppingShipin(idx)
                                         {
@@ -1211,6 +1222,7 @@ Rectangle {
                                 //改变播放进度
                                 videoShow.setProcess(control.visualPosition)
                             }
+                            overALLRectangle.forceActiveFocus()
                         }
                     }
 
@@ -1316,6 +1328,7 @@ Rectangle {
                             ToolTip.text: qsTr("上一帧")
                             onClicked: {
                                 videoShow.seekSlow()
+                                overALLRectangle.forceActiveFocus()
                             }
                         }
                     }
@@ -1376,6 +1389,7 @@ Rectangle {
                             ToolTip.text: qsTr("下一帧")
                             onClicked: {
                                 videoShow.seekFast()
+                                overALLRectangle.forceActiveFocus()
                             }
                         }
                     }
@@ -1485,6 +1499,7 @@ Rectangle {
                                 //修改音量
                                 console.log("当前音量：",value * 100)
                                 videoShow.setVolume(value * 100)
+                                overALLRectangle.forceActiveFocus()
                             }
                             MouseArea{
                                 anchors.fill:parent
@@ -1625,6 +1640,7 @@ Rectangle {
                                             speedBox.visible = false
                                             videoShow.setSpeed(1.50)
                                             speedImage.source="images/speed150.png"
+                                            overALLRectangle.forceActiveFocus()
                                         }
                                     }
                                 }
@@ -1706,6 +1722,30 @@ Rectangle {
                 id: contextMenu2
                 MenuItem {
                     text: '置顶'
+                    function toppingyinpin(idx)
+                    {
+                        console.log("置顶音频,index="+idx)
+                        yinpinmodel.move(idx,0,1)
+                        yinpinplaylist.toppingFile(idx)
+                        overALLRectangle.forceActiveFocus()
+                    }
+                    function toppingshipin(idx)
+                    {
+                        console.log("置顶视频,index="+idx)
+                        shipinmodel.move(idx,0,1)
+                        shipinplaylist.toppingFile(idx)
+                        overALLRectangle.forceActiveFocus()
+                    }
+                    onTriggered: {
+                        if(nowIsPlayingAudio)
+                        {
+                            toppingyinpin(yinpinlistview.currentIndex)
+                        }
+                        else
+                        {
+                            toppingshipin(shipinlistview.currentIndex)
+                        }
+                    }
                 }
                 MenuItem {
                     text: '设置'
