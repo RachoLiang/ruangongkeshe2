@@ -14,6 +14,9 @@
 #include "PlayListNode.h"
 #include "utils.h"
 #include <string>
+#include <fstream>
+#include <iostream>
+#include <QFileInfo>
 enum PlayBackMode
 {
     SinglePlay=0,    //只播放当前
@@ -53,9 +56,9 @@ public:
     //int findNextNodeID();
     //int findLastNodeID();
 
-    Q_INVOKABLE void setNowIndex(int index);  //用户点击某个媒体时，更新当前播放序号，并播放该媒体
-    Q_INVOKABLE void playNextMedia();    //点击下一首，根据播放模式获取下一首的文件路径，并播放
-    Q_INVOKABLE void playLastMedia();    //点击上一首
+    Q_INVOKABLE bool setNowIndex(int);  //用户点击某个媒体时，更新当前播放序号，并播放该媒体
+    Q_INVOKABLE bool playNextMedia(int callTimes=0);    //点击下一首，根据播放模式获取下一首的文件路径，并播放
+    Q_INVOKABLE bool playLastMedia(int callTimes=0);    //点击上一首
     Q_INVOKABLE void autoPlayNextMedia();    //在当前曲目播放完成后调用，自动播放下一首，根据播放模式获取下一首的文件路径，并播放
     Q_INVOKABLE void changePlayMode();   //点击播放模式按钮
 
@@ -78,5 +81,6 @@ signals: //信号只需要定义，不需要实现
     void changePlayModeButtonIcon(QString iconName);
     void showVideo(QString videoPath);
     void showAudio(QString audioPath);
+    void showMessage(QString messageInfo);
 };
 #endif // PLAYLIST_H
