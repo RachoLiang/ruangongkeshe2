@@ -11,6 +11,7 @@ import QtQuick.Controls
 import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
+import QtCharts 2.14
 import LLM
 import VideoShow 1.0
 import ThumnailShow 1.0
@@ -49,6 +50,9 @@ Rectangle {
         }
     }
 
+
+
+
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象
         onAddAudioFileInGUI:function(audioPath,audioDuration)
@@ -57,6 +61,11 @@ Rectangle {
         }
         onShowAudio: function(audioPath)
         {
+            console.log("播放了音频！！！！！！！！！！")
+            if(!update_value.running){
+                update_value.start();
+            }
+
             videoShow.show(audioPath,"music");
             playbuttonimage.source="../content/images/pause.png"
         }
@@ -77,6 +86,8 @@ Rectangle {
         }
         onShowVideo:function(videoPath)
         {
+            update_value.stop()
+            videoShow.clearAlbum()
             videoShow.show(videoPath,"video")
             thumbnailShow.setPathAndStart(videoPath)
             playbuttonimage.source="../content/images/pause.png"
@@ -618,6 +629,8 @@ Rectangle {
                 }
 
             }
+
+
         }
     }
     Item {
@@ -685,6 +698,7 @@ Rectangle {
         Rectangle{
             id:show
             anchors.fill: parent
+            visible: !nowIsPlayingAudio
 //            anchors.top:parent.top
 //            anchors.left: parent.left
 //            anchors.right: parent.right
@@ -699,7 +713,9 @@ Rectangle {
                 id:basePic
                 anchors.fill: parent
                 source: "images/basepic.png"
+//                fillMode: Image.PreserveAspectFit
             }
+
             VideoShow{
                 id: videoShow;
                 anchors.centerIn: parent
@@ -728,6 +744,323 @@ Rectangle {
                     }
                 }
             }
+        }
+
+
+        Rectangle{
+            id:albumShow
+            visible: nowIsPlayingAudio
+            anchors.fill:parent
+
+//            y: main.y + 50
+//            spacing: 50
+
+//            Rectangle{
+//                width: 150
+//                height: 50
+//                color: "transparent"
+//            }
+            Image {
+                id:basePic2
+                anchors.fill: parent
+                source: "images/basepic.png"
+//                fillMode: Image.PreserveAspectFit
+            }
+
+            Rectangle{
+                id: albumMain
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.topMargin: 70
+                anchors.leftMargin: 70
+                width: main.width/3
+                height: width
+                radius: width/2
+                color: "#666666"
+
+
+//                DropShadow {
+//                           anchors.fill: albumMain
+//                           horizontalOffset: 2
+//                           verticalOffset: 2
+//                           radius: 2.0
+//                           color: "#444444"
+//                           spread: 0.0
+//                           source: albumMain
+//                    }
+
+                Rectangle{
+                    id:middle
+                    width: albumMain.width-40
+                    height: albumMain.height-40
+                    radius: width/2
+                    color: "#444444"
+                    anchors.centerIn: parent
+                }
+
+                Rectangle{
+                    id:small
+                    width: main.width/18
+                    height: main.width/18
+                    radius: width/2
+                    color: "#F5F5F5"
+                    anchors.centerIn: parent
+                    visible: true
+                }
+
+
+                //专辑封面
+                OpacityMask {
+                    id: album
+                    anchors.centerIn: parent
+
+                    width: middle.width-10
+                    height: width
+                    source: albumImage
+                    maskSource: audioImage
+                }
+
+                Image {
+                    id: albumImage
+                    width: middle.width-10
+                    height: width
+                    visible: false
+                    fillMode:Image.PreserveAspectFit
+
+                    smooth: true
+                    source: "file:///C:\\Users\\xgy\\Desktop\\mp3_test\\frame\\1.png"
+
+                }
+
+                Rectangle{
+                    id: audioImage
+                    visible: false
+                    width: middle.width-10
+                    height: width
+                    radius: width/2
+
+                }
+
+            }
+
+            //音频波形图
+            Rectangle {
+                id: audioWave
+                anchors.left:albumMain.right
+                anchors.leftMargin: main.width/10
+                anchors.right: parent.right
+//                anchors.topMargin: 70
+//                anchors.top:parent.top
+                anchors.verticalCenter: albumMain.verticalCenter
+
+                width: main.width/3
+                height: main.width/3.2
+                radius: 20
+//                border.color: "whitesmoke"
+//                border.width: 1
+
+                color: "transparent"
+
+                DropShadow {
+                           anchors.fill: audioWave
+                           horizontalOffset: -5
+                           verticalOffset: -5
+                           radius: 12.0
+                           color: "#20000000"
+                           spread: 0.0
+                           source: audioWave
+                    }
+
+                ColumnLayout{
+                    spacing: 20
+                    anchors.fill:parent
+
+                    GridLayout{
+                        rows: 2
+                        columns: 4
+                        columnSpacing: 20
+                        rowSpacing: 20
+
+                        Text {
+                            text: qsTr("专辑标题:")
+                            font.pixelSize: 30
+                            fontSizeMode: Text.Fit
+                            minimumPixelSize: 25
+
+                        }
+                        Text {
+                            id: albumTitle
+                            text: qsTr("线")
+                            color: "#0066FF"
+                            font.pixelSize: 30
+                            fontSizeMode: Text.Fit
+                            minimumPixelSize: 25
+                        }
+
+                        Text {
+                            text: qsTr("")
+                        }
+
+                        Text {
+                            text: qsTr("")
+                        }
+
+                        Text {
+                            text: qsTr("专辑名字：")
+                            font.pixelSize: 15
+
+                        }
+
+                        Text{
+                            id: albumName
+                            text: qsTr("线的专辑")
+                            color: "#0066FF"
+                            font.pixelSize: 15
+                        }
+
+                        Text {
+                            text: qsTr("专辑作者：")
+                            font.pixelSize: 15
+                        }
+
+                        Text {
+                            id: albumArtist
+                            text: qsTr("Amber")
+                            color: "#0066FF"
+                            font.pixelSize: 15
+                        }
+                    }
+
+                    GridLayout{
+
+//                        anchors.centerIn: parent
+                        columns: 2
+                        rows: 1
+                        visible: true
+
+                        FastBlur {
+                                  anchors.fill: main
+                                  source: main
+                                  radius: 32
+                              }
+
+
+                        ChartView{
+                            id:right_shake
+                            title: qsTr("音频波形图")
+                            titleFont.pixelSize: 18
+                            Layout.minimumWidth:200
+                            Layout.minimumHeight:200
+                            Layout.preferredWidth: main.width/4
+                            Layout.preferredHeight: width
+//                            width: main.width/4
+//                            height: width
+                            antialiasing:true
+                            legend.visible:false
+                            backgroundColor: "transparent"
+
+                            ValueAxis{
+                                id:shake_value_X
+                                gridVisible:false
+                                visible:false
+                                min:0
+                                max:10
+                            }
+
+                            ValueAxis{
+                                id:shake_value_Y
+                                labelsVisible:false
+                                gridVisible:false
+                                visible:true
+                                min:0
+                                max:200
+                            }
+
+                            SplineSeries{
+                                id:line
+                                axisX:shake_value_X
+                                axisY:shake_value_Y
+                            }
+                        }
+
+    //                    FastBlur {
+    //                              anchors.fill: bug
+    //                              source: bug
+    //                              radius: 32
+    //                          }
+
+
+                        ChartView{
+                            id:right_bar
+                            title: qsTr("音频波形柱状图")
+                            titleFont.pixelSize: 18
+                            Layout.minimumWidth:200
+                            Layout.minimumHeight:200
+                            Layout.preferredWidth: main.width/4
+                            Layout.preferredHeight: width
+                            antialiasing:true
+                            legend.visible:false
+                            backgroundColor: "transparent"
+
+                            BarCategoryAxis{
+                                id:right_bar_value_X
+                                gridVisible:false
+                                labelsVisible:false
+                                categories: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+                            }
+
+                            ValueAxis{
+                                id:right_bar_value_Y
+                                min:0
+                                max:200
+                                visible:false
+                            }
+
+                            BarSeries{
+                                axisX:right_bar_value_X
+                                axisY:right_bar_value_Y
+
+                                BarSet {
+                                    id:bar
+                                    color:"green"
+                                    label: "Bob";
+                                    values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
+                //定时器
+                Timer{
+                    id:update_value
+                    repeat:true
+                    running:true
+                    interval:40
+                    onTriggered:{
+                        //检测窗口是否处于活跃状态
+                        if(audioWave.visible == true){
+                            line.clear()
+
+                            //获取数据点
+                            var available_num = videoShow.getPointNum()
+                            var shake_value = videoShow.getShakeList()
+                            var bar_value = videoShow.getBarList()
+
+                            for(var i = 0; i < available_num; i = i + 1){
+                                line.append(i, shake_value[i])
+                            }
+
+                            for(var j = 0; j < available_num; j++){
+                                bar.replace(j, bar_value[j])
+                            }
+                        }
+                    }
+                }
+            }
+        }
             Item {
                 id: controls
                 anchors.left: parent.left
@@ -871,7 +1204,6 @@ Rectangle {
                                 width: 150;
                                 height: 100;
                             }
-
                         }
                         onValueChanged: {
                             if(control.pressed){
@@ -901,6 +1233,29 @@ Rectangle {
                         property: "text"
                         value: videoShow.rightTime
                     }
+
+                    //绑定专辑信息
+                    Binding{
+                        target: albumTitle
+                        property: "text"
+                        value: videoShow.title
+                    }
+                    Binding{
+                        target: albumName
+                        property: "text"
+                        value: videoShow.album
+                    }
+                    Binding{
+                        target: albumArtist
+                        property: "text"
+                        value: videoShow.title
+                    }
+                    Binding{
+                        target: albumImage
+                        property: "source"
+                        value: videoShow.imagePath
+                    }
+
                     Text {
                         id: rightTime
                         color: "#ffffff"
@@ -910,6 +1265,7 @@ Rectangle {
                         Layout.rightMargin: 30
                     }
                 }
+
                 RowLayout {
                     id:control_buttons
                     anchors.left: parent.left
@@ -1238,7 +1594,6 @@ Rectangle {
                     }
                 }
             }
-
         }
         Image {
             anchors.right: parent.right
@@ -1293,7 +1648,6 @@ Rectangle {
             }
         }
     }
-}
 
 /*##^##
 Designer {

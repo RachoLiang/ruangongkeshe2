@@ -9,14 +9,27 @@ QString getNameFromPath(QString path){
     }
 }
 
+QString getPathByName(QString name){
+    if (!name.isEmpty()){
+        return name.left(name.lastIndexOf("\\"));
+    } else {
+       return "D:\\picture\\";
+    }
+}
+
 //获取带有时间戳的文件名字
 QString getNameByTime(QString filename){
     QString format = "-";
-    QString und = "未知";
+    QString und = "未知.png";
+    QString type = ".png";
+
+    //去除后缀
+    filename = filename.left(filename.lastIndexOf("."));
+
     if (!filename.isEmpty()) {
-        return filename + format + getNowTimeStr();
+        return  getNowTimeStr() + format + filename + type;
     } else{
-        return und + format + getNowTimeStr();
+        return getNowTimeStr() + format + und;
     }
 }
 

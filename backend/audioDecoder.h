@@ -42,6 +42,10 @@ public:
     void setSpeed(double speed);    //调整音频播放倍速
     double getSpeed();  //获取当前倍速
 
+    int getPcmDb();   //获取pcm数据的db值
+
+
+
     //获取时间基
     AVRational getTimeBase();
 
@@ -51,6 +55,8 @@ public:
 
     qint64 totalTime;   //总时长
     qint64 nowTime; //记录当前播放时间
+    int bitFormat;  //采样位数
+
 
 private:
     int decodeAudio();

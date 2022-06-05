@@ -22,7 +22,10 @@ MainDecoder::MainDecoder() :
     gotStop(false),
     brightness(0),
     saturation(1),
-    cutPath("C:\\Users\\YYg\\Desktop\\picture")
+    cutPath("C:\\Users\\YYg\\Desktop\\picture"),
+    album(""),
+    title(""),
+    artist("")
 {
     av_init_packet(&seekPacket);
     seekPacket.data = (uint8_t *)"FLUSH";
@@ -190,6 +193,9 @@ void MainDecoder::decoderFile(QString file, QString type)
 {
 //    qDebug() << "Current state:" << playState;
     qDebug() << "File name:" << file << ", type:" << type;
+
+    filePath = file;
+
     if (playState != STOP && playState != FINISH) {
         isStop = true;
         while (playState != STOP && playState != FINISH) {
@@ -313,6 +319,10 @@ void MainDecoder::seekSlow(){
 
 void MainDecoder::cutOff(){
     isCut = true;
+}
+
+int MainDecoder::getAudioDb(){
+    return audioDecoder->getPcmDb();
 }
 
 qint64 MainDecoder::getTotalTime(){
@@ -539,10 +549,20 @@ int MainDecoder::videoThread(void *arg)
             //判断是否截图
             if(decoder->isCut){
                 qDebug()<<"进行截图";
+                //提取文件名字
+                QString fileName = getNameFromPath(decoder->filePath);
+                //生成文件名字
+                fileName = getNameByTime(fileName);
                 if (!decoder->cutPath.isEmpty()){
-                    image.save(decoder->cutPath);
+                    //生成保存路径
+                    QString savePath = decoder->cutPath + QString("\\") + fileName;
+                    qDebug()<<"图片保存路径："<<savePath;
+                    image.save(savePath);
                 } else {
-                    image.save(decoder->filePath);
+                    //生成保存路径
+                    QString savePath = getPathByName(decoder->filePath) + fileName;
+                    qDebug()<<"图片保存路径："<<savePath;
+                    image.save(savePath);
                 }
                 decoder->isCut = false;
             }
@@ -678,7 +698,41 @@ void MainDecoder::run()
 
         SDL_CreateThread(&MainDecoder::videoThread, "video_thread", this);
 
+    }else{
+        //提取音频封面
+        AVDictionaryEntry* tag = NULL;
+
+        while((tag = av_dict_get(pFormatCtx->metadata,"",tag,AV_DICT_IGNORE_SUFFIX))){
+            qDebug()<<tag->key<<":"<<tag->value;
+            //保存信息
+            if(strcmp("album",tag->key) == 0){
+                album = tag->value;
+            }else if(strcmp("title",tag->key) == 0){
+                title = tag->value;
+            }else if(strcmp("artist",tag->key) == 0){
+                artist = tag->value;
+            }
+        }
+        //读取专辑封面信息
+        if (pFormatCtx->iformat->read_header(pFormatCtx) < 0){
+            qDebug()<<"没有header format";
+        }
+
+        for(int i = 0;i < pFormatCtx->nb_streams; i++){
+            if (pFormatCtx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC) {
+                AVPacket pkt = pFormatCtx->streams[i]->attached_pic;
+                //使用QImage读取图片
+                QImage img = QImage::fromData((uchar*)pkt.data,pkt.size);
+                //获取专辑封面缓存路径
+                QString savePath = cutPath + QString("\\") + getNameByTime(getNameFromPath(filePath));
+                albumImagePath = savePath;
+                qDebug()<<"封面专辑路径："<<savePath;
+                img.save(savePath);
+                emit sign_sendAlbumImage(albumImagePath);
+            }
+        }
     }
+
 
     setPlayState(MainDecoder::PLAYING);
 
