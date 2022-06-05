@@ -50,6 +50,13 @@ Window {
                     videoShow.setArgs(-1,slider_liangdu.visualPosition,-1);
                 }
             }
+
+//            Text {
+//                id: liangduzhi
+//                text: qsTr(0.5)
+//            }
+
+
         }
         RowLayout {
             Text {
