@@ -13,6 +13,11 @@ PlayList::PlayList(QObject *parent):QObject(parent)
         }else{
             qDebug()<<"videos表已存在";
         }
+        if(!sql->isTableExist("flags")){
+            sql->createTableFlags();
+        }else{
+            qDebug()<<"Flags表已存在";
+        }
     }else{
         qDebug()<<"数据库打开失败";
     }

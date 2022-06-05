@@ -484,6 +484,58 @@ void mySql::deleteTable(QString tableName){
     }
 }
 
+void mySql::createTableFlags(){
+    QSqlQuery sqlQuery(this->qdb);
+    QString sql = QString("Create table flags(\
+                          isAudio TINYINT(1),\
+                          idx int,\
+                          percent double)");
+    sqlQuery.prepare(sql);
+    if(!sqlQuery.exec()){
+        qDebug()<<"fail to create table."<<sqlQuery.lastError();
+    }else{
+        qDebug()<<"creta table flags successfully.";
+    }
+}
+
+void mySql::saveFlags(bool isAudio, int index, double percent){
+    //删除flags
+    QSqlQuery sqlQuery(this->qdb);
+    if(!sqlQuery.exec("delete from flags")){
+        qDebug()<<"delete error"<<sqlQuery.lastError();
+    }else{
+        if(sqlQuery.numRowsAffected()){
+            qDebug()<<"delete all audios successful.rows:"<<sqlQuery.numRowsAffected();
+        }else{
+            qDebug()<<"affect rows: 0";
+        }
+    }
+
+    sqlQuery.prepare("insert into flags(isAudio,idx,percent) values(:isAudio,:index,:percent)");
+    sqlQuery.bindValue(":isAudio",isAudio);
+    sqlQuery.bindValue(":index",index);
+    sqlQuery.bindValue(":percent",percent);
+
+    if(!sqlQuery.exec()){
+        qDebug()<<"fail to insert data."<<sqlQuery.lastError();
+    }else{
+        qDebug()<<"插入flags成功";
+    }
+}
+
+void mySql::selectFlags(bool &isAudio, int &index, double &percent){
+    QSqlQuery sqlQuery(this->qdb);
+    sqlQuery.prepare("select * from flags limit 0,1");
+    if(!sqlQuery.exec()){
+        qDebug()<<"fail to select data."<<sqlQuery.lastError();
+    }else{
+        sqlQuery.first();
+        isAudio = sqlQuery.value("isAudio").toBool();
+        index = sqlQuery.value("idx").toInt();
+        percent = sqlQuery.value("percent").toDouble();
+    }
+}
+
 void mySql::closeDb(){
     qdb.close();
 }
