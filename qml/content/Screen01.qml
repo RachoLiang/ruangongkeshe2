@@ -61,7 +61,6 @@ Rectangle {
         }
         onShowAudio: function(audioPath)
         {
-            console.log("播放了音频！！！！！！！！！！")
             if(!update_value.running){
                 update_value.start();
             }
