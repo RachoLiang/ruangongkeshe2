@@ -136,6 +136,7 @@ void VideoDecoder::run(){
 
     if (avformat_open_input(&pFormatCtx, currentFile.toLocal8Bit().data(), NULL, NULL) != 0) {
         qDebug() << "thumbnail::Open file failed.";
+        avformat_free_context(pFormatCtx);
         return ;
     }
 

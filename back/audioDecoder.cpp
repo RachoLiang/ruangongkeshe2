@@ -489,6 +489,7 @@ void AudioDecoder::closeAudio()
 
 void AudioDecoder::readFileFinished()
 {
+    qDebug()<<"设置为true";
     isreadFinished = true;
 }
 
@@ -655,6 +656,17 @@ int AudioDecoder::decodeAudio()
             emit playFinished();
         }
         return -1;
+    }else{
+        if (isreadFinished) {
+            isStop = true;
+            SDL_Delay(100);
+            qDebug()<<"队列不为空时，播放结束了";
+            qDebug()<<"此时队列长度："<<packetQueue.queueSize();
+            packetQueue.empty();
+            qDebug()<<"清空后队列长度："<<packetQueue.queueSize();
+            emit playFinished();
+            return -1;
+        }
     }
 
     /* get new packet whiel last packet all has been resolved */

@@ -221,8 +221,11 @@ void MainDecoder::audioFinished()
 {
     isStop = true;
     qDebug()<<"音频播放结束！";
+    qDebug()<<"当前类型:"<<currentType;
     if (currentType == "music") {
+        qDebug()<<"调用了结束接口";
         SDL_Delay(100);  
+        setPlayState(MainDecoder::FINISH);
         emit sign_playStateChanged(MainDecoder::FINISH);
     }
 }
@@ -874,8 +877,6 @@ seek:
 
             /* judge haven't reall all frame */
             if (av_read_frame(pFormatCtx, packet) < 0){
-                qDebug()<<"nowTime:"<<audioDecoder->nowTime;
-                qDebug()<<"totalTime:"<<audioDecoder->totalTime;
                 if(audioDecoder->nowTime + 0.5 * AV_TIME_BASE >= audioDecoder->totalTime){
                     qDebug() << "Read file completed.";
                     isReadFinished = true;
@@ -886,7 +887,6 @@ seek:
             }
 
             if (packet->stream_index == videoIndex && currentType == "video") {
-//                qDebug()<<"视频塞包！";
                 videoQueue.enqueue(packet); // video stream
             } else if (packet->stream_index == audioIndex) {
                 audioDecoder->packetEnqueue(packet); // audio stream

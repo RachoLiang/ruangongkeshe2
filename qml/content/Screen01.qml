@@ -11,7 +11,7 @@ import QtQuick.Controls
 import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
-import QtCharts 2.13
+import QtCharts 2.14
 import LLM
 import VideoShow 1.0
 import ThumnailShow 1.0
@@ -699,6 +699,7 @@ Rectangle {
         Rectangle{
             id:show
             anchors.fill: parent
+            visible: !nowIsPlayingAudio
 //            anchors.top:parent.top
 //            anchors.left: parent.left
 //            anchors.right: parent.right
@@ -717,7 +718,6 @@ Rectangle {
             }
 
             VideoShow{
-                visible: !nowIsPlayingAudio
                 id: videoShow;
                 anchors.centerIn: parent
                 //anchors.bottom: slider.top
@@ -748,22 +748,34 @@ Rectangle {
         }
 
 
-        RowLayout{
+        Rectangle{
+            id:albumShow
             visible: nowIsPlayingAudio
+            anchors.fill:parent
 
-            y: main.y + 50
-            spacing: 50
+//            y: main.y + 50
+//            spacing: 50
 
 //            Rectangle{
 //                width: 150
 //                height: 50
 //                color: "transparent"
 //            }
+            Image {
+                id:basePic2
+                anchors.fill: parent
+                source: "images/basepic.png"
+//                fillMode: Image.PreserveAspectFit
+            }
 
             Rectangle{
                 id: albumMain
-                width: 400
-                height: 400
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.topMargin: 70
+                anchors.leftMargin: 70
+                width: main.width/3
+                height: width
                 radius: width/2
                 color: "#666666"
 
@@ -779,16 +791,18 @@ Rectangle {
 //                    }
 
                 Rectangle{
-                    width: 335
-                    height: 335
+                    id:middle
+                    width: albumMain.width-40
+                    height: albumMain.height-40
                     radius: width/2
                     color: "#444444"
                     anchors.centerIn: parent
                 }
 
                 Rectangle{
-                    width: 70
-                    height: 70
+                    id:small
+                    width: main.width/18
+                    height: main.width/18
                     radius: width/2
                     color: "#F5F5F5"
                     anchors.centerIn: parent
@@ -801,29 +815,29 @@ Rectangle {
                     id: album
                     anchors.centerIn: parent
 
-                    width: 300
-                    height: 300
+                    width: middle.width-10
+                    height: width
                     source: albumImage
                     maskSource: audioImage
-                    }
+                }
 
                 Image {
                     id: albumImage
-                    width: 300
-                    height: 300
+                    width: middle.width-10
+                    height: width
                     visible: false
                     fillMode:Image.PreserveAspectFit
 
                     smooth: true
-                    source: "file:\\C:\\Users\\YYg\\Desktop\\picture\\yy.png"
+                    source: "file:///C:\\Users\\xgy\\Desktop\\mp3_test\\frame\\1.png"
 
                 }
 
                 Rectangle{
                     id: audioImage
                     visible: false
-                    width: 300
-                    height: 300
+                    width: middle.width-10
+                    height: width
                     radius: width/2
 
                 }
@@ -833,8 +847,15 @@ Rectangle {
             //音频波形图
             Rectangle {
                 id: audioWave
-                width: 500
-                height: 400
+                anchors.left:albumMain.right
+                anchors.leftMargin: main.width/10
+                anchors.right: parent.right
+//                anchors.topMargin: 70
+//                anchors.top:parent.top
+                anchors.verticalCenter: albumMain.verticalCenter
+
+                width: main.width/3
+                height: main.width/3.2
                 radius: 20
 //                border.color: "whitesmoke"
 //                border.width: 1
@@ -853,12 +874,7 @@ Rectangle {
 
                 ColumnLayout{
                     spacing: 20
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.rightMargin: 40
-                    anchors.leftMargin: 40
-                    anchors.bottomMargin: 56
+                    anchors.fill:parent
 
                     GridLayout{
                         rows: 2
@@ -892,22 +908,27 @@ Rectangle {
 
                         Text {
                             text: qsTr("专辑名字：")
+                            font.pixelSize: 15
+
                         }
 
                         Text{
                             id: albumName
                             text: qsTr("线的专辑")
                             color: "#0066FF"
+                            font.pixelSize: 15
                         }
 
                         Text {
                             text: qsTr("专辑作者：")
+                            font.pixelSize: 15
                         }
 
                         Text {
                             id: albumArtist
                             text: qsTr("Amber")
                             color: "#0066FF"
+                            font.pixelSize: 15
                         }
                     }
 
@@ -928,8 +949,13 @@ Rectangle {
                         ChartView{
                             id:right_shake
                             title: qsTr("音频波形图")
+                            titleFont.pixelSize: 18
                             Layout.minimumWidth:200
                             Layout.minimumHeight:200
+                            Layout.preferredWidth: main.width/4
+                            Layout.preferredHeight: width
+//                            width: main.width/4
+//                            height: width
                             antialiasing:true
                             legend.visible:false
                             backgroundColor: "transparent"
@@ -968,8 +994,11 @@ Rectangle {
                         ChartView{
                             id:right_bar
                             title: qsTr("音频波形柱状图")
+                            titleFont.pixelSize: 18
                             Layout.minimumWidth:200
                             Layout.minimumHeight:200
+                            Layout.preferredWidth: main.width/4
+                            Layout.preferredHeight: width
                             antialiasing:true
                             legend.visible:false
                             backgroundColor: "transparent"
@@ -1033,68 +1062,6 @@ Rectangle {
                 }
             }
         }
-
-//        Image {
-//            anchors.right: parent.right
-//            anchors.top: parent.top
-//            source: "images/more1.png"
-//            anchors.rightMargin: 65
-//            anchors.topMargin: 66
-//            MouseArea {
-//                anchors.fill: parent
-//                acceptedButtons: Qt.LeftButton | Qt.RightButton
-//                onClicked: {
-//                    if (mouse.button === Qt.LeftButton)
-//                        contextMenu2.popup()
-//                }
-//                onPressAndHold: {
-//                    if (mouse.source === Qt.MouseEventNotSynthesized)
-//                        contextMenu2.popup()
-//                }
-//            }
-//            Setting1 {
-//                id: setting_for_rup
-//            }
-
-//            SubWindow {
-//                id: subWindow2
-//            }
-
-//            Menu {
-//                id: contextMenu2
-//                MenuItem {
-//                    text: '置顶'
-//                }
-//                MenuItem {
-//                    text: '设置'
-//                    onTriggered: {
-//                        setting_for_rup.show()
-//                    }
-//                }
-//                MenuItem {
-//                    text: '详细信息'
-//                    onTriggered: {
-//                        if(nowIsPlayingAudio){
-//                            subWindow2.infoMap = yinpinplaylist.getMediaInfo(yinpinplaylist.getNowIndex(),"music")
-//                        }else{
-//                            subWindow2.infoMap = shipinplaylist.getMediaInfo(shipinplaylist.getNowIndex(),"video")
-//                        }
-//                        subWindow2.show()
-//                    }
-//                }
-//            }
-//        }
-
-//        RowLayout {
-//            anchors.left: parent.left
-//            anchors.right: parent.right
-//            anchors.bottom: parent.bottom
-//            anchors.rightMargin: 40
-//            anchors.leftMargin: 40
-//            anchors.bottomMargin: 56
-//            Image {
-//                source: "images/M_left.png"
-//                RoundButton {
             Item {
                 id: controls
                 anchors.left: parent.left
