@@ -86,24 +86,25 @@ Window {
 
             Slider {
                 id: slider_duibidu
-                value: 0.5
+                value: 0.75
                 onValueChanged: {
+                    console.log("对比度的值：",slider_duibidu.visualPosition)
                     videoShow.setArgs(slider_duibidu.visualPosition,-1,-1);
                     duibiduzhi.text = Math.ceil(value * 100)
                 }
             }
 
             Text {
-                anchors.left: slider_liangdu.right
+                anchors.left: slider_duibidu.right
                 anchors.leftMargin: 5
                 id: duibiduzhi
-                text: qsTr("50")
+                text: qsTr("75")
             }
 
             Image {
                 Layout.preferredHeight: 15
                 Layout.preferredWidth: 15
-                anchors.left: liangduzhi.right
+                anchors.left: duibiduzhi.right
                 anchors.leftMargin: 10
                 fillMode:Image.PreserveAspectFit
                 source: "../content/images/reset.png"
@@ -113,7 +114,7 @@ Window {
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("重置")
                     onClicked: {
-                        slider_duibidu.value = 0.5
+                        slider_duibidu.value = 0.75
                     }
                 }
             }
@@ -134,7 +135,7 @@ Window {
             }
 
             Text {
-                anchors.left: slider_liangdu.right
+                anchors.left: slider_baohedu.right
                 anchors.leftMargin: 5
                 id: baoheduzhi
                 text: qsTr("33")
@@ -143,7 +144,7 @@ Window {
             Image {
                 Layout.preferredHeight: 15
                 Layout.preferredWidth: 15
-                anchors.left: liangduzhi.right
+                anchors.left: baoheduzhi.right
                 anchors.leftMargin: 10
                 fillMode:Image.PreserveAspectFit
                 source: "../content/images/reset.png"
@@ -173,7 +174,7 @@ Window {
             }
 
             Text {
-                anchors.left: slider_liangdu.right
+                anchors.left: slider_sexiang.right
                 anchors.leftMargin: 5
                 id: sexiangzhi
                 text: qsTr("50")
@@ -182,7 +183,7 @@ Window {
             Image {
                 Layout.preferredHeight: 15
                 Layout.preferredWidth: 15
-                anchors.left: liangduzhi.right
+                anchors.left: sexiangzhi.right
                 anchors.leftMargin: 10
                 fillMode:Image.PreserveAspectFit
                 source: "../content/images/reset.png"

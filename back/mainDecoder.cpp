@@ -874,8 +874,8 @@ seek:
 
             /* judge haven't reall all frame */
             if (av_read_frame(pFormatCtx, packet) < 0){
-//                qDebug()<<"nowTime:"<<audioDecoder->nowTime;
-//                qDebug()<<"totalTime:"<<audioDecoder->totalTime;
+                qDebug()<<"nowTime:"<<audioDecoder->nowTime;
+                qDebug()<<"totalTime:"<<audioDecoder->totalTime;
                 if(audioDecoder->nowTime + 0.5 * AV_TIME_BASE >= audioDecoder->totalTime){
                     qDebug() << "Read file completed.";
                     isReadFinished = true;
