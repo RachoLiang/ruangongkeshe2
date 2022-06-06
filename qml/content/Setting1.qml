@@ -223,7 +223,7 @@ Window {
                     Layout.fillWidth: true
                     TextInput {
                         id: textInput
-                        text: videoShow.getCutPath()
+                        text: qsTr("")
                         anchors.fill: parent
                         font.pixelSize: 12
 

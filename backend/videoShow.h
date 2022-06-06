@@ -5,6 +5,7 @@
 #include "backend/mainDecoder.h"
 #include "backend/ReverseDecoder.h"
 #include "backend/utils.h"
+#include "backend/mySql.h"
 //怎么把视频解析的decoder和video类结合起来
 
 

@@ -91,6 +91,15 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     connect(maindecoder,SIGNAL(sign_sendOneFrame(QImage)),this,SLOT(slot_getOneFrame(QImage)));
     connect(maindecoder,SIGNAL(sign_playStateChanged(MainDecoder::PlayState)),this,SLOT(slot_setPlayState(MainDecoder::PlayState)));
     connect(maindecoder,SIGNAL(sign_sendAlbumImage(QString)),this,SLOT(slot_getAlbumImage(QString)));
+    QString cutPath,cutType;
+    mySql sql;
+    sql.selectFlags2(cutPath,cutType);
+    if(!cutPath.isEmpty()){
+        maindecoder->setCutPath(cutPath);
+    }
+    if(!cutType.isEmpty()){
+        maindecoder->setImgFmt(cutType);
+    }
 }
 
 //析构函数
