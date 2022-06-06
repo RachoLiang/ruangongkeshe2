@@ -1,9 +1,9 @@
-﻿/****************************************************************************
+/****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of Qt Quick Studio Components.
+** This file is part of Qt Quick Designer Components.
 **
 ** $QT_BEGIN_LICENSE:GPL$
 ** Commercial License Usage
@@ -28,22 +28,14 @@
 ****************************************************************************/
 
 import QtQuick
-import QtQuick.Window
-import LLM
 
-Window {
-    id:mainWin
-    property bool isFullScreen: false
-    width: 1200
-    height: 618
+ListModel {
+    id: eventListModel
 
-
-    visible: true
-    title: "LLM"
-
-    Screen01 {
-        id: mainScreen
+    ListElement {
+        eventId: "enterPressed"
+        eventDescription: "Emitted when pressing the enter button"
+        shortcut: "Return"
+        parameters: "Enter"
     }
-
 }
-

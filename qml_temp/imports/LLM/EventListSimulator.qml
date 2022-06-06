@@ -1,9 +1,9 @@
-﻿/****************************************************************************
+/****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of Qt Quick Studio Components.
+** This file is part of Qt Quick Designer Components.
 **
 ** $QT_BEGIN_LICENSE:GPL$
 ** Commercial License Usage
@@ -28,22 +28,24 @@
 ****************************************************************************/
 
 import QtQuick
-import QtQuick.Window
-import LLM
+import QtQuick.Studio.EventSimulator 1.0
+import QtQuick.Studio.EventSystem 1.0
 
-Window {
-    id:mainWin
-    property bool isFullScreen: false
-    width: 1200
-    height: 618
+QtObject {
+    id: simulator
+    property bool active: true
 
-
-    visible: true
-    title: "LLM"
-
-    Screen01 {
-        id: mainScreen
+    property Timer __timer: Timer {
+        id: timer
+        interval: 100
+        onTriggered: {
+            EventSimulator.show()
+        }
     }
 
+    Component.onCompleted: {
+        EventSystem.init(Qt.resolvedUrl("EventListModel.qml"))
+        if (simulator.active)
+            timer.start()
+    }
 }
-

@@ -23,7 +23,6 @@ MainDecoder::MainDecoder() :
     gotStop(false),
     brightness(0),
     saturation(1),
-    cutPath("C:\\Users\\YYg\\Desktop\\picture"),
     album(""),
     title(""),
     artist("")
