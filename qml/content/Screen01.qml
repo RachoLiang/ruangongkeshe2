@@ -1311,12 +1311,12 @@ Rectangle {
 
                             if(nowIsPlayingAudio)
                             {
-                                yinpinplaylist.saveFlags(true,yinpinplaylist.getNowIndex(),control.value,videoShow.getCutPath(),"test")
+                                yinpinplaylist.saveFlags(true,yinpinplaylist.getNowIndex(),control.value,videoShow.getCutPath(),videoShow.getImgFmt())
                                 console.log("最后播放的是音频,index="+yinpinplaylist.getNowIndex())
                             }
                             else
                             {
-                                yinpinplaylist.saveFlags(false,shipinplaylist.getNowIndex(),control.value,videoShow.getCutPath(),"test")
+                                yinpinplaylist.saveFlags(false,shipinplaylist.getNowIndex(),control.value,videoShow.getCutPath(),videoShow.getImgFmt())
                                 console.log("最后播放的是视频,index="+shipinplaylist.getNowIndex())
                             }
                             console.log("程序关闭，进度条销毁，记录进度："+control.value)

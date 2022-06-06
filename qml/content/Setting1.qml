@@ -249,7 +249,9 @@ Window {
             id: baocun
             text: qsTr("保存")
             onClicked: {
-                videoShow.setCutPath(textInput.text)
+                if(textInput.length != 0){
+                    videoShow.setCutPath(textInput.text)
+                }
                 textInput.text = qsTr(videoShow.getCutPath())
                 videoShow.setImgFmt(imgFmt.currentValue)
                 imgFmt.currentValue = videoShow.getImgFmt()

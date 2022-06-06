@@ -578,8 +578,10 @@ int MainDecoder::videoThread(void *arg)
                 QString fileName = getNameFromPath(decoder->filePath,decoder->getImgFmt());
                 //生成文件名字
                 fileName = getNameByTime(fileName,decoder->getImgFmt());
+                qDebug()<<decoder->getImgFmt();
                 if (!decoder->cutPath.isEmpty()){
                     //生成保存路径
+                    qDebug()<<fileName;
                     QString savePath = decoder->cutPath + QString("\\") + fileName;
                     qDebug()<<"图片保存路径："<<savePath;
                     image.save(savePath);

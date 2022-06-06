@@ -99,6 +99,7 @@ VideoShow::VideoShow():nWidth(200),nHeight(400){
     }
     if(!cutType.isEmpty()){
         maindecoder->setImgFmt(cutType);
+        qDebug()<<"imag:"<<cutType;
     }
 }
 
