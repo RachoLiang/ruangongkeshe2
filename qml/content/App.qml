@@ -44,7 +44,7 @@ Window {
     }
 
     visible: true
-    title: "LLM"
+    title: "播播乐"
 
     Screen01 {
         id: mainScreen
