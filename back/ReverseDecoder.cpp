@@ -26,6 +26,8 @@ ReverseDecoder::ReverseDecoder(QString file)
     interval = 1 / 30;
     decodeFinished = false;
     runFinished = playThreadFinished = true;
+    frameListMutex = SDL_CreateMutex();
+    playListMutex = SDL_CreateMutex();
     init();
 }
 
@@ -128,11 +130,11 @@ void ReverseDecoder::seekBySlider(double pos)
     seekEvent = true;
     pause();                    //设置为PAUSE，避免继续解析和播放
     SDL_LockMutex(frameListMutex);
-    SDL_LockMutex(playListMutex);
     frameList.clear();
+    SDL_UnlockMutex(frameListMutex);
+    SDL_LockMutex(playListMutex);
     playList.clear();
     SDL_UnlockMutex(playListMutex);
-    SDL_UnlockMutex(frameListMutex);
     pause();                    //设置为PLAYING
 }
 
@@ -152,9 +154,6 @@ bool ReverseDecoder::isPlayThreadFinished()
 */
 int ReverseDecoder::init()
 {
-    frameListMutex = SDL_CreateMutex();
-    playListMutex = SDL_CreateMutex();
-
     freeRAM();
     formatCtx = avformat_alloc_context();	//分配AVFormatContext
 
@@ -246,10 +245,10 @@ int ReverseDecoder::init()
 void ReverseDecoder::freeRAM()
 {
     SDL_LockMutex(frameListMutex);
-    SDL_LockMutex(playListMutex);
     frameList.clear();
-    playList.clear();
     SDL_UnlockMutex(frameListMutex);
+    SDL_LockMutex(playListMutex);
+    playList.clear();
     SDL_UnlockMutex(playListMutex);
     if (srcFrame) { av_frame_free(&srcFrame); srcFrame = nullptr; }
     if (RGBFrame) { av_frame_free(&RGBFrame); RGBFrame = nullptr; }
@@ -373,14 +372,20 @@ int ReverseDecoder::playThread(void* arg)
 
         SDL_LockMutex(decoder->playListMutex);
         //获取两帧之间的时间间隔
-        if (decoder->playList.size() > 2)
+        if (decoder->playList.size() >= 2)
         {
-            if (decoder->playList[0].timestamp - decoder->playList[1].timestamp > 0)
+            if (decoder->playList[0].timestamp - decoder->playList[1].timestamp >= 0)
                 decoder->interval = decoder->playList[0].timestamp - decoder->playList[1].timestamp;
+            else    //如果两帧的时间差<=0，说明该帧有问题，直接跳过
+            {
+                decoder->playList.removeAt(1);						    //丢弃该帧
+                SDL_UnlockMutex(decoder->playListMutex);
+                continue;
+            }
         }
         SDL_UnlockMutex(decoder->playListMutex);
 
-        //播放状态
+        //播放一帧
         SDL_LockMutex(decoder->playListMutex);
         if (decoder->playList.size() > 0)
         {
