@@ -1542,8 +1542,8 @@ Rectangle {
                     Image {
                         id:playmodeimage
                         source: "images/singlePlay.png"
-                        anchors.left:nextPlay.right
-                        anchors.leftMargin: 25
+                        anchors.right:cutOff.left
+                        anchors.rightMargin: 20
                         Layout.preferredHeight: 35
                         Layout.preferredWidth: 35
                         RoundButton {
@@ -1563,8 +1563,8 @@ Rectangle {
                     Image {
                         id: cutOff
                         source: "images/cut.png"
-                        anchors.left:playmodeimage.right
-                        anchors.leftMargin: 60
+                        anchors.right:full_screen.left
+                        anchors.rightMargin: 20
                         Layout.preferredHeight: 35
                         Layout.preferredWidth: 35
                         RoundButton {
