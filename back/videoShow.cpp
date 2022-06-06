@@ -236,16 +236,16 @@ double VideoShow::getSpeed(){
 }
 
 //快进
-void VideoShow::seekFast(){
+void VideoShow::seekFast(int num){
     if(maindecoder){
-        maindecoder->seekFast();
+        maindecoder->seekFast(num);
     }
 }
 
 //快退
-void VideoShow::seekSlow(){
+void VideoShow::seekSlow(int num){
     if(maindecoder){
-        maindecoder->seekSlow();
+        maindecoder->seekSlow(num);
     }
 }
 
@@ -476,6 +476,18 @@ QString VideoShow::getCutPath(){
 void VideoShow::setCutPath(QString path){
     if (maindecoder) {
         maindecoder->setCutPath(path);
+    }
+}
+
+QString VideoShow::getImgFmt(){
+    if(maindecoder){
+        return maindecoder->getImgFmt();
+    }
+}
+
+void VideoShow::setImgFmt(QString imgFmt){
+    if(maindecoder){
+        maindecoder->setImgFmt(imgFmt);
     }
 }
 

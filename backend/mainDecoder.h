@@ -51,8 +51,8 @@ public:
     void setSpeed(double);
     void setSeekTime(qint8 time);   //设置快进时间段
     qint8 getSeekTime();    //获取快进时间段
-    void seekFast();    //快进
-    void seekSlow();    //快退
+    void seekFast(int num);    //快进
+    void seekSlow(int num);    //快退
     void cutOff();  //截图
     qint64 getTotalTime();  //获取总时长
     qint64 getNowTime();    //获取当前播放时长

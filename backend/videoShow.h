@@ -74,8 +74,8 @@ public:
     void setRightTime(QString);
 
     //调整进度
-    Q_INVOKABLE void seekFast();
-    Q_INVOKABLE void seekSlow();
+    Q_INVOKABLE void seekFast(int num);
+    Q_INVOKABLE void seekSlow(int num);
 
     //播放（暂时封装）
     Q_INVOKABLE void show(QString path,QString type);
@@ -84,6 +84,8 @@ public:
     Q_INVOKABLE void cutOff();
     Q_INVOKABLE QString getCutPath();
     Q_INVOKABLE void setCutPath(QString path);
+    Q_INVOKABLE QString getImgFmt();
+    Q_INVOKABLE void setImgFmt(QString imgFmt);
 
     //获取媒体信息
     //Q_INVOKABLE Audio* getMediaObject(QString path);
@@ -113,6 +115,7 @@ public:
     Q_INVOKABLE void setImagePath(QString);
 
     Q_INVOKABLE void clearAlbum();
+
     
     //启动倒放模块
     Q_INVOKABLE void reverse(QString);

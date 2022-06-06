@@ -322,19 +322,23 @@ qint8 MainDecoder::getSeekTime(){
     return seekTime;
 }
 
-void MainDecoder::seekFast(){
+void MainDecoder::seekFast(int num){
     qDebug()<<"快进";
     //简单防止冲突
     if(!isSlow){
         isFast = true;
+        seekFrames = num;
+        qDebug()<<"帧数："<<num;
     }
     qDebug()<<"isFast:"<<isFast;
 }
 
-void MainDecoder::seekSlow(){
+void MainDecoder::seekSlow(int num){
     //简单防止冲突
     if(!isFast){
         isSlow = true;
+        seekFrames = num;
+        qDebug()<<"帧数："<<num;
     }
 }
 

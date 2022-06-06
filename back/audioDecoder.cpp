@@ -621,13 +621,26 @@ int AudioDecoder::getPcmDb(){
         return 0;
     }
 
-    int sumDb = 0;
-    //累加分贝值
-    for (int i = 0;i < size; i++){
-        sumDb += pcmData[i];
+//    int sumDb = 0;
+//    //累加分贝值
+//    for (int i = 0;i < size; i++){
+//        sumDb += pcmData[i];
+//    }
+//    return sumDb/size;
+    int db = 0;
+    short int value = 0;
+    double sum = 0;
+    for(int i = 0; i < size; i += 2)
+    {
+        memcpy(&value, pcmData+i, 2); //获取2个字节的大小（值）
+        sum += abs(value); //绝对值求和
     }
-    return sumDb/size;
-//    return (int)(20.0*log10(sumDb/size));
+    sum = sum / (size / 2); //求平均值（2个字节表示一个振幅，所以振幅个数为：size/2个）
+    if(sum > 0)
+    {
+        db = (int)(50.0*log10(sum/size));
+    }
+    return db;
 }
 
 int AudioDecoder::decodeAudio()

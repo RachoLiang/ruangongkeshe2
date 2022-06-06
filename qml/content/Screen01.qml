@@ -82,7 +82,7 @@ Rectangle {
         }
         onShowMessage: function(messageInfo)
         {
-            console.log(messageInfo)
+            pop_window.showWindow()
         }
     }
     PlayList{
@@ -1111,7 +1111,103 @@ Rectangle {
                     }
                 }
             }
-        }
+
+
+            //弹窗
+            Component {
+                id:window_draw
+
+                Rectangle{
+                    id:bk_rectangle
+                    width:230
+                    height:90
+                    radius:10
+                    color: Qt.rgba(0.8,0.8,0.8,0.8)
+
+                    Image {
+                        id: img
+                        width: 70
+                        height: 70
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin:6
+                        source: "images/background.jpg"
+                        sourceSize.width:1024
+                        sourceSize.height:1024
+                        smooth: true
+                        mipmap:true
+                        visible: false
+                        cache:false
+                    }
+
+                    Rectangle {
+                        id: img_mask
+                        width: img.width
+                        height: img.height
+                        radius: 10
+                        color: "red"
+                        visible: false
+                    }
+
+                    OpacityMask {
+                        id: noticeImg
+                        anchors.fill: img
+                        source: img
+                        maskSource: img_mask
+                    }
+
+                    ColumnLayout{
+                        anchors.left: noticeImg.right
+                        anchors.leftMargin: 20
+                        anchors.topMargin: 20
+                        spacing: 10
+
+                        //显示错误信息
+                        Text {
+                            Layout.topMargin: 10
+                            color: "#00008B"
+                            font.pixelSize: 15
+                            text: qsTr("新消息！")
+                        }
+
+                        Rectangle{
+                            height: 2
+                            width: 120
+                            color: "#696969"
+                        }
+
+                        Text{
+                            id: notice
+                            color: "black"
+                            font.pixelSize: 10
+                            text: qsTr("播放失败，自动切换下一首~")
+                        }
+                    }
+                }
+
+
+            }
+
+
+                PopWindow{
+                    id:pop_window
+
+                    // 设置初始位置,对PopWindow里面的x,y进行了覆盖
+                    x: get_screen_pixel(1.5, 900)
+                    y: get_screen_pixel(0.8, main.height)
+                    x_offset: get_screen_pixel(0.005, 900)
+                    true_x: get_screen_pixel(1.5, 900 + 0.4 * (main.width - 900))
+//                      true_x: main.x +  900 + 0.4 * (main.width - 900)
+
+                    source_component:window_draw
+
+                    // 为了适应不同的屏幕，需要使用百分比表示
+                    function get_screen_pixel(percent, sum_pixel){
+
+                        return percent * sum_pixel
+                    }
+                }
+            }
             Item {
                 id: controls
                 anchors.left: parent.left
@@ -1366,7 +1462,7 @@ Rectangle {
                             ToolTip.visible: hovered
                             ToolTip.text: qsTr("上一帧")
                             onClicked: {
-                                videoShow.seekSlow()
+                                videoShow.seekSlow(5)
                                 overALLRectangle.forceActiveFocus()
                             }
                         }
@@ -1387,6 +1483,7 @@ Rectangle {
                             ToolTip.text: qsTr("播放")
                             function playButtonActivate()
                             {
+//                                pop_window.showWindow()
                                 //如果当前处于暂停状态，则播放一个视频
                                 if(videoShow.isStop())
                                 {
@@ -1427,7 +1524,7 @@ Rectangle {
                             ToolTip.visible: hovered
                             ToolTip.text: qsTr("下一帧")
                             onClicked: {
-                                videoShow.seekFast()
+                                videoShow.seekFast(5)
                                 overALLRectangle.forceActiveFocus()
                             }
                         }
@@ -1539,6 +1636,8 @@ Rectangle {
                             }
                         }
                     }
+
+
 
                     Image {
                         id:voice_button
