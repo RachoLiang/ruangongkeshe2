@@ -795,6 +795,7 @@ fast:
             //参数设置
             isFast = false;
             isSeek = true;
+            qDebug()<<"快进了:"<<seekFrames;
             seekType = AVSEEK_FLAG_BACKWARD;
         }
 

@@ -343,7 +343,7 @@ int VideoShow::updateProcess(void *arg){
     while (true){
         MainDecoder::PlayState state = videoShow->getPlayState();
         if ((!videoShow->isReverse && state == MainDecoder::STOP) || (videoShow->isReverse && videoShow->reversedecoder->getState() == ReverseDecoder::STOP)) {
-            qDebug()<<"当前状态是Stop";
+//            qDebug()<<"当前状态是Stop";
             //重置参数
             videoShow->setLeftTime("00:00");
             videoShow->setRightTime("00:00");
@@ -401,7 +401,7 @@ int VideoShow::updateProcess(void *arg){
 
         //播放完成状态
         if(state == MainDecoder::FINISH){
-            qDebug()<<"当前状态是finish";
+//            qDebug()<<"当前状态是finish";
             //重置参数
             videoShow->setLeftTime("00:00");
             videoShow->setRightTime("00:00");

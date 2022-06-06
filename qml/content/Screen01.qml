@@ -1506,7 +1506,7 @@ Rectangle {
                             ToolTip.visible: hovered
                             ToolTip.text: qsTr("快退5帧")
                             onClicked: {
-                                videoShow.seekSlow()
+                                videoShow.seekSlow(5)
                                 overALLRectangle.forceActiveFocus()
                             }
                         }
@@ -1525,7 +1525,7 @@ Rectangle {
                             ToolTip.visible: hovered
                             ToolTip.text: qsTr("快退1帧")
                             onClicked: {
-                                videoShow.seekSlow(5)
+                                videoShow.seekSlow(1)
                                 overALLRectangle.forceActiveFocus()
                             }
                         }
@@ -1587,7 +1587,7 @@ Rectangle {
                             ToolTip.visible: hovered
                             ToolTip.text: qsTr("快进1帧")
                             onClicked: {
-                                videoShow.seekFast()
+                                videoShow.seekFast(1)
                                 overALLRectangle.forceActiveFocus()
                             }
                         }
