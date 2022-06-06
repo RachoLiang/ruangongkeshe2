@@ -317,6 +317,15 @@ int VideoShow::updateProcess(void *arg){
     VideoShow* videoShow = (VideoShow*)arg;
     double last_time = 0.0;
 
+    int second_left = 0;
+    int minute_left = 0;
+    int hour_left = 0;
+    int second_right = 0;
+    int minute_right = 0;
+    int hour_right = 0;
+
+    QString zero = "0";
+
     //进入循环
     while (true){
         MainDecoder::PlayState state = videoShow->getPlayState();
@@ -332,7 +341,6 @@ int VideoShow::updateProcess(void *arg){
 
         //当Pause状态时，暂停更新
         if ((!videoShow->isReverse && state == MainDecoder::PAUSE) || (videoShow->isReverse && videoShow->reversedecoder->getState() == ReverseDecoder::PAUSE)) {
-//            qDebug()<<"当前状态是暂停";
             SDL_Delay(100);
             continue;
         }
@@ -340,14 +348,6 @@ int VideoShow::updateProcess(void *arg){
         //播放状态
         if ((!videoShow->isReverse && state == MainDecoder::PLAYING) || (videoShow->isReverse && videoShow->reversedecoder->getState() == ReverseDecoder::PLAYING)) {
             double nowtime = videoShow->getNowProcess();
-//            if(nowtime - last_time >  * 1000 * 1000){
-//                SDL_Delay(50);
-//                continue;
-//            }else{
-//                if(nowtime>0){
-//                    last_time = nowtime;
-//                }
-//            }
             if(nowtime <= 0){
                 SDL_Delay(100);
                 continue;
@@ -358,13 +358,31 @@ int VideoShow::updateProcess(void *arg){
             double x = nowtime / totaltime;
             //设置进度条未知
             videoShow->setmProcess(x);
+
             //设置进度条时间
             int nowTime_int = nowtime / 1000000;
             int totalTime_int = totaltime / 1000000;
-            QString leftTime = QVariant(ceil(nowTime_int / 60)).toString() + QVariant(":").toString()+QVariant(nowTime_int % 60).toString();
-            QString rightTime = QVariant(ceil(totalTime_int / 60)).toString() + QVariant(":").toString()+QVariant(totalTime_int % 60).toString();
-            videoShow->setLeftTime(leftTime);
-            videoShow->setRightTime(rightTime);
+
+            //计算时间的秒、分、时
+            second_left = nowTime_int % 60;
+            minute_left = int(nowTime_int / 60) % 60;
+            hour_left = int(nowTime_int / (60 * 60));
+            second_right = totalTime_int % 60;
+            minute_right = int(totalTime_int / 60) % 60;
+            hour_right = int(totalTime_int / (60 * 60));
+
+
+            QPoint point(5,1);
+            QString str_left;
+            QString str_right;
+            QTextStream(&str_left) << (hour_left < 10 ? "0" : "") << hour_left << ":" << (minute_left < 10 ? "0" : "") << minute_left << ":" << (second_left < 10 ? "0" : "") << second_left;
+            QTextStream(&str_right) << (hour_right < 10 ? "0" : "") << hour_right << ":" << (minute_right < 10 ? "0" : "") << minute_right << ":" << (second_right < 10 ? "0" : "") << second_right;
+
+
+//            QString leftTime = QVariant(ceil(nowTime_int / 60)).toString() + QVariant(":").toString()+QVariant(nowTime_int % 60).toString();
+//            QString rightTime = QVariant(ceil(totalTime_int / 60)).toString() + QVariant(":").toString()+QVariant(totalTime_int % 60).toString();
+            videoShow->setLeftTime(str_left);
+            videoShow->setRightTime(str_right);
             SDL_Delay(300);
         }
 

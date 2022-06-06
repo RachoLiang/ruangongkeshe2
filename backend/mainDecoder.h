@@ -58,6 +58,8 @@ public:
     qint64 getNowTime();    //获取当前播放时长
     QString getCutPath();   //获取当前截图路径
     void setCutPath(QString cutPath);   //设置当前截图路径
+    QString getImgFmt();   //获取当前截图格式
+    void setImgFmt(QString imgFmt);   //设置当前截图格式
     PlayState getPlayState();   //获取当前播放状态
     int getAudioDb();   //获取当前音频的分贝值
 
@@ -134,6 +136,8 @@ private:
     double videoClk;    // video frame timestamp
     QString filePath;   //文件路径
     QString cutPath;    //截图保存路径，暂时写死
+    QString cachePath;  //缓存文件路径，例如专辑封面缓存
+    QString imgFormat; //图片保存格式 .jpg | .png
 
     AudioDecoder *audioDecoder;
 

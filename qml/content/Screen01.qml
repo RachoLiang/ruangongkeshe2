@@ -900,15 +900,11 @@ Rectangle {
                 anchors.left:albumMain.right
                 anchors.leftMargin: main.width/10
                 anchors.right: parent.right
-//                anchors.topMargin: 70
-//                anchors.top:parent.top
                 anchors.verticalCenter: albumMain.verticalCenter
 
                 width: main.width/3
                 height: main.width/3.2
                 radius: 20
-//                border.color: "whitesmoke"
-//                border.width: 1
 
                 color: "transparent"
 

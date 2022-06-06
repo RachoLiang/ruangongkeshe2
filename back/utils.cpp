@@ -1,11 +1,12 @@
 ﻿#include "backend/utils.h"
 
 //从文件路径中获取文件名字
-QString getNameFromPath(QString path){
+QString getNameFromPath(QString path,QString format){
     if (!path.isEmpty()){
-        return path.right(path.size() - path.lastIndexOf("\\") - 1);
+        QString temPath =  path.right(path.size() - path.lastIndexOf("\\") - 1);
+        return temPath.left(temPath.lastIndexOf(".")) + format;
     } else {
-       return "未知";
+       return "未知" + format;
     }
 }
 
@@ -18,18 +19,17 @@ QString getPathByName(QString name){
 }
 
 //获取带有时间戳的文件名字
-QString getNameByTime(QString filename){
+QString getNameByTime(QString filename,QString imgFormat){
     QString format = "-";
-    QString und = "未知.png";
-    QString type = ".png";
+    QString und = "未知";
 
     //去除后缀
     filename = filename.left(filename.lastIndexOf("."));
 
     if (!filename.isEmpty()) {
-        return  getNowTimeStr() + format + filename + type;
+        return  getNowTimeStr() + format + filename + imgFormat;
     } else{
-        return getNowTimeStr() + format + und;
+        return getNowTimeStr() + format + und + imgFormat;
     }
 }
 

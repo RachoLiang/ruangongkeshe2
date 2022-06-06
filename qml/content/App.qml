@@ -29,7 +29,6 @@
 
 import QtQuick
 import QtQuick.Window
-import LLM
 
 Window {
     id:mainWin
@@ -39,7 +38,7 @@ Window {
 
 
     visible: true
-    title: "LLM"
+    title: "播播乐"
 
     Screen01 {
         id: mainScreen
