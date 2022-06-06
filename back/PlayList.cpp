@@ -622,3 +622,16 @@ double PlayList::selectControlValue()
     sql->selectFlags1(isAudio,idx,percent);
     return percent;
 }
+QString PlayList::selectCutPath()
+{
+    QString cutPath="";QString cutType="";
+    sql->selectFlags2(cutPath,cutType);
+    return cutPath;
+}
+QString PlayList::selectCutType()
+{
+    QString cutPath="";QString cutType="";
+    sql->selectFlags2(cutPath,cutType);
+    return cutType;
+}
+
