@@ -590,35 +590,35 @@ void PlayList::toppingFile(int index)
         pos++;
     }
 }
-void PlayList::saveFlags(bool nowIsPlayingAudio,int idx,double percent)
+void PlayList::saveFlags(bool nowIsPlayingAudio,int idx,double percent,QString cutPath,QString cutType)
 {
     if(playListType==1)
     {
-        sql->saveFlags(nowIsPlayingAudio,idx,percent);
+        sql->saveFlags(nowIsPlayingAudio,idx,percent,cutPath,cutType);
     }
 }
 void PlayList::selectFlags(bool &nowIsPlayingAudio, int &idx, double &percent)
 {
     if(playListType==1)
     {
-        sql->selectFlags(nowIsPlayingAudio,idx,percent);
+        sql->selectFlags1(nowIsPlayingAudio,idx,percent);
     }
 }
 bool PlayList::selectISAudio()
 {
     bool isAudio;int idx;double percent;
-    sql->selectFlags(isAudio,idx,percent);
+    sql->selectFlags1(isAudio,idx,percent);
     return isAudio;
 }
 int PlayList::selectNowIndex()
 {
     bool isAudio;int idx;double percent;
-    sql->selectFlags(isAudio,idx,percent);
+    sql->selectFlags1(isAudio,idx,percent);
     return idx;
 }
 double PlayList::selectControlValue()
 {
     bool isAudio;int idx;double percent;
-    sql->selectFlags(isAudio,idx,percent);
+    sql->selectFlags1(isAudio,idx,percent);
     return percent;
 }

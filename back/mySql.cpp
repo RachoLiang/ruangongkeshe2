@@ -489,7 +489,9 @@ void mySql::createTableFlags(){
     QString sql = QString("Create table flags(\
                           isAudio TINYINT(1),\
                           idx int,\
-                          percent double)");
+                          percent double,\
+                          cutPath varchar(100),\
+                          cutType varchar(16))");
     sqlQuery.prepare(sql);
     if(!sqlQuery.exec()){
         qDebug()<<"fail to create table."<<sqlQuery.lastError();
@@ -498,7 +500,7 @@ void mySql::createTableFlags(){
     }
 }
 
-void mySql::saveFlags(bool isAudio, int index, double percent){
+void mySql::saveFlags(bool isAudio, int index, double percent,QString cutPath,QString cutType){
     //删除flags
     QSqlQuery sqlQuery(this->qdb);
     if(!sqlQuery.exec("delete from flags")){
@@ -511,10 +513,12 @@ void mySql::saveFlags(bool isAudio, int index, double percent){
         }
     }
 
-    sqlQuery.prepare("insert into flags(isAudio,idx,percent) values(:isAudio,:index,:percent)");
+    sqlQuery.prepare("insert into flags(isAudio,idx,percent,cutPath,cutType) values(:isAudio,:index,:percent,:cutPath,:cutType)");
     sqlQuery.bindValue(":isAudio",isAudio);
     sqlQuery.bindValue(":index",index);
     sqlQuery.bindValue(":percent",percent);
+    sqlQuery.bindValue(":cutPath",cutPath);
+    sqlQuery.bindValue(":cutType",cutType);
 
     if(!sqlQuery.exec()){
         qDebug()<<"fail to insert data."<<sqlQuery.lastError();
@@ -523,9 +527,9 @@ void mySql::saveFlags(bool isAudio, int index, double percent){
     }
 }
 
-void mySql::selectFlags(bool &isAudio, int &index, double &percent){
+void mySql::selectFlags1(bool &isAudio, int &index, double &percent){
     QSqlQuery sqlQuery(this->qdb);
-    sqlQuery.prepare("select * from flags limit 0,1");
+    sqlQuery.prepare("select isAudio,idx,percent from flags limit 0,1");
     if(!sqlQuery.exec()){
         qDebug()<<"fail to select data."<<sqlQuery.lastError();
     }else{
@@ -535,6 +539,19 @@ void mySql::selectFlags(bool &isAudio, int &index, double &percent){
         percent = sqlQuery.value("percent").toDouble();
     }
 }
+
+void mySql::selectFlags2(QString &cutPath, QString &cutType){
+    QSqlQuery sqlQuery(this->qdb);
+    sqlQuery.prepare("select cutPath,cutType from flags limit 0,1");
+    if(!sqlQuery.exec()){
+        qDebug()<<"fail to select data."<<sqlQuery.lastError();
+    }else{
+        sqlQuery.first();
+        cutPath = sqlQuery.value("cutPath").toString();
+        cutType = sqlQuery.value("cutType").toString();
+    }
+}
+
 
 void mySql::closeDb(){
     qdb.close();

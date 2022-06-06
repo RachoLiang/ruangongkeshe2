@@ -654,8 +654,9 @@ int AudioDecoder::decodeAudio()
             SDL_Delay(100);
             qDebug()<<"播放结束了";
             emit playFinished();
+            return -1;
         }
-        return -1;
+
     }else{
         if (isreadFinished) {
             isStop = true;

@@ -70,7 +70,7 @@ public:
     Q_INVOKABLE void showFileList();
     Q_INVOKABLE QVariantMap getMediaInfo(int index,QString type); //获取文件详细信息
     Q_INVOKABLE int getNowIndex();
-    Q_INVOKABLE void saveFlags(bool,int,double);
+    Q_INVOKABLE void saveFlags(bool,int,double,QString,QString);
     Q_INVOKABLE void selectFlags(bool&,int&,double&);
     Q_INVOKABLE bool selectISAudio();
     Q_INVOKABLE int selectNowIndex();

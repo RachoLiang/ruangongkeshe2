@@ -1,4 +1,5 @@
 ﻿#include "backend/mainDecoder.h"
+#include <QCoreApplication>
 
 MainDecoder::MainDecoder() :
     timeTotal(0),
@@ -22,13 +23,19 @@ MainDecoder::MainDecoder() :
     gotStop(false),
     brightness(0),
     saturation(1),
-    cutPath("C:\\FFOutput\\cjqpic"),
     album(""),
     title(""),
     artist("")
 {
     av_init_packet(&seekPacket);
     seekPacket.data = (uint8_t *)"FLUSH";
+
+    QString rootPath = QCoreApplication::applicationDirPath();
+
+    //设置截图路径和缓存路径，默认值
+    cutPath = rootPath + "\\cutPicture";
+    cachePath = rootPath + "\\cache";
+    imgFormat = ".png";
 
     connect(audioDecoder, SIGNAL(playFinished()), this, SLOT(audioFinished()));
     connect(this, SIGNAL(readFinished()), audioDecoder, SLOT(readFileFinished()));
@@ -44,6 +51,14 @@ QString MainDecoder::getCutPath(){
 }
 void MainDecoder::setCutPath(QString cutPath){
     this->cutPath = cutPath;
+}
+
+QString MainDecoder::getImgFmt(){
+    return imgFormat;
+}
+
+void MainDecoder::setImgFmt(QString imgFmt){
+    this->imgFormat = imgFmt;
 }
 
 //设置文件路径-->后续改为设置Audio对象
@@ -225,12 +240,12 @@ void MainDecoder::audioFinished()
     isStop = true;
     qDebug()<<"音频播放结束！";
     qDebug()<<"当前类型:"<<currentType;
-    if (currentType == "music") {
-        qDebug()<<"调用了结束接口";
-        SDL_Delay(100);  
-        setPlayState(MainDecoder::FINISH);
-        emit sign_playStateChanged(MainDecoder::FINISH);
-    }
+//    if (currentType == "music") {
+//        qDebug()<<"调用了结束接口";
+//        SDL_Delay(100);
+//        setPlayState(MainDecoder::FINISH);
+//        emit sign_playStateChanged(MainDecoder::FINISH);
+//    }
 }
 
 void MainDecoder::stopVideo()
@@ -556,9 +571,9 @@ int MainDecoder::videoThread(void *arg)
             if(decoder->isCut){
                 qDebug()<<"进行截图";
                 //提取文件名字
-                QString fileName = getNameFromPath(decoder->filePath);
+                QString fileName = getNameFromPath(decoder->filePath,decoder->getImgFmt());
                 //生成文件名字
-                fileName = getNameByTime(fileName);
+                fileName = getNameByTime(fileName,decoder->getImgFmt());
                 if (!decoder->cutPath.isEmpty()){
                     //生成保存路径
                     QString savePath = decoder->cutPath + QString("\\") + fileName;
@@ -596,6 +611,7 @@ int MainDecoder::videoThread(void *arg)
         qDebug()<<"gotStop:true";
         decoder->setPlayState(MainDecoder::STOP);
     } else {
+        qDebug()<<"gotStop里完成！";
         decoder->setPlayState(MainDecoder::FINISH);
     }
 
@@ -731,7 +747,7 @@ void MainDecoder::run()
                 //使用QImage读取图片
                 QImage img = QImage::fromData((uchar*)pkt.data,pkt.size);
                 //获取专辑封面缓存路径
-                QString savePath = cutPath + QString("\\") + getNameByTime(getNameFromPath(filePath));
+                QString savePath = cachePath + QString("\\") + getNameFromPath(filePath,imgFormat);
                 albumImagePath = savePath;
                 qDebug()<<"封面专辑路径："<<savePath;
                 img.save(savePath);
@@ -781,7 +797,11 @@ slow:
         if (isSlow) {
             qDebug()<<"快退";
             //计算当前应该跳转的位置,并执行后面的seek代码
-            seekPos = nowTime -  seekFrames * av_q2d(pCodecCtx->time_base) * AV_TIME_BASE;
+            if(currentType == "video"){
+                seekPos = audioDecoder->nowTime - seekFrames * av_q2d(pCodecCtx->time_base) * AV_TIME_BASE;
+            }else {
+                seekPos = audioDecoder->nowTime - seekFrames * av_q2d(audioDecoder->getTimeBase()) * AV_TIME_BASE;
+            }
             if (seekPos < 0){
                 seekPos = 0;
             }
@@ -821,7 +841,7 @@ seek:
 
             }
 
-            isSeek = false;
+            //isSeek = false;
             seekType = AVSEEK_FLAG_BACKWARD;
 
             int skip = 0;
@@ -830,6 +850,7 @@ seek:
                     qDebug()<<"进入while循环";
 
                     /* judge haven't reall all frame */
+
                     if (av_read_frame(pFormatCtx, packet) < 0){
                         if(nowTime + 0.5 * AV_TIME_BASE >= audioDecoder->totalTime){
                             qDebug() << "Read file completed.";
@@ -847,13 +868,17 @@ seek:
                         qDebug()<<"当前帧："<<frameTime;
                         qDebug()<<"解码帧："<<seekPos_mil;
                         //如果当前帧时间小于seekTime，则不解码
-                        if(abs(seekPos_mil-frameTime)> 500000 && skip < 5){
+                        if(seekPos_mil > frameTime){
                             qDebug()<<"当前帧："<<frameTime;
                             qDebug()<<"解码帧："<<seekPos_mil;
-                            skip++;
+                            av_packet_unref(packet);
+//                            skip++;
                             continue;
                         }
                         qDebug()<<"成功啦！";
+                        qDebug()<<audioDecoder->packetQueue.queueSize();
+                        SDL_Delay(100);
+                        isSeek = false;
 
                         if (packet->stream_index == videoIndex && currentType == "video") {
                             videoQueue.enqueue(packet); // video stream
@@ -867,6 +892,7 @@ seek:
                         break;
                     }
                 }
+            isSeek = false;
 
         }else{
             if (currentType == "video") {
@@ -936,7 +962,7 @@ fail:
     isReadFinished = true;
 
     if (currentType == "music") {
-        setPlayState(MainDecoder::STOP);
+        setPlayState(MainDecoder::FINISH);
     }
 
 
