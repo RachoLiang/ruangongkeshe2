@@ -70,7 +70,12 @@ public:
     Q_INVOKABLE void showFileList();
     Q_INVOKABLE QVariantMap getMediaInfo(int index,QString type); //获取文件详细信息
     Q_INVOKABLE int getNowIndex();
-
+    Q_INVOKABLE void saveFlags(bool,int,double);
+    Q_INVOKABLE void selectFlags(bool&,int&,double&);
+    Q_INVOKABLE bool selectISAudio();
+    Q_INVOKABLE int selectNowIndex();
+    Q_INVOKABLE double selectControlValue();
+    Q_INVOKABLE bool setNowIndexWhenInit(int); //程序刚启动时，恢复上一次播放的条目，但保持暂停状态
     Q_INVOKABLE QString getFilename(int);   //通过index获取filename，用于倒放模块
 
 signals: //信号只需要定义，不需要实现

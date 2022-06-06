@@ -37,13 +37,20 @@ Window {
     width: 1200
     height: 618
 
+    onClosing:{
+
+        console.log("nowIsPlayingAudio="+mainScreen.nowIsPlayingAudio)
+        //console.log("index="+yinpinlistview.currentIndex)
+    }
 
     visible: true
     title: "LLM"
 
     Screen01 {
         id: mainScreen
+
     }
+
 
 }
 

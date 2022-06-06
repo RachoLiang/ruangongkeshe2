@@ -24,6 +24,8 @@ PlayList::PlayList(QObject *parent):QObject(parent)
     //qDebug()<<"构造playlist对象";
 }
 PlayList::~PlayList(){
+    qDebug()<<"数据库关闭";
+
     //关闭数据库
     sql->closeDb();
     delete sql;
@@ -245,7 +247,7 @@ bool PlayList::setNowIndex(int index)
     if(isFileExist(mediaPath)==false) //文件不存在
     {
         qDebug()<<"点播的文件不存在:"<<mediaPath;
-        showMessage("播放失败，已自动切换下一首");
+        showMessage(extractFileName(mediaPath));
         return false;
     }
     /*
@@ -262,6 +264,27 @@ bool PlayList::setNowIndex(int index)
         emit showAudio(mediaPath);
     }
     return true; //点播成功
+}
+bool PlayList::setNowIndexWhenInit(int index)
+{
+    if(index>=fileList.size())return false;
+    QString mediaPath=fileList[index].filePath;
+    if(isFileExist(mediaPath)==false)
+    {
+        showMessage(extractFileName(mediaPath));
+        return false;
+    }
+    nowIndex=index;
+    emit changeCurrentPlayingIndex(index);
+    if(playListType==2)
+    {
+        emit showVideo(mediaPath);
+    }
+    else
+    {
+        emit showAudio(mediaPath);
+    }
+    return true;
 }
 //enum PlayBackMode
 //{
@@ -308,7 +331,7 @@ bool PlayList::playNextMedia(int callTimes)  //用户点击下一首按钮
 
     if(isFileExist(mediaPath)==false)  //文件不存在
     {
-        showMessage("播放失败，已自动切换下一首");
+        showMessage(extractFileName(mediaPath));
         return playNextMedia(callTimes+1);
     }
     /*
@@ -353,7 +376,7 @@ bool PlayList::playLastMedia(int callTimes)
 
     if(isFileExist(mediaPath)==false)  //文件不存在
     {
-        showMessage("播放失败，已自动切换上一首");
+        showMessage(extractFileName(mediaPath));
         return playLastMedia(callTimes+1);
     }
     /*
@@ -566,4 +589,36 @@ void PlayList::toppingFile(int index)
         else if(historyList[pos]<index)historyList[pos]++;
         pos++;
     }
+}
+void PlayList::saveFlags(bool nowIsPlayingAudio,int idx,double percent)
+{
+    if(playListType==1)
+    {
+        sql->saveFlags(nowIsPlayingAudio,idx,percent);
+    }
+}
+void PlayList::selectFlags(bool &nowIsPlayingAudio, int &idx, double &percent)
+{
+    if(playListType==1)
+    {
+        sql->selectFlags(nowIsPlayingAudio,idx,percent);
+    }
+}
+bool PlayList::selectISAudio()
+{
+    bool isAudio;int idx;double percent;
+    sql->selectFlags(isAudio,idx,percent);
+    return isAudio;
+}
+int PlayList::selectNowIndex()
+{
+    bool isAudio;int idx;double percent;
+    sql->selectFlags(isAudio,idx,percent);
+    return idx;
+}
+double PlayList::selectControlValue()
+{
+    bool isAudio;int idx;double percent;
+    sql->selectFlags(isAudio,idx,percent);
+    return percent;
 }
