@@ -26,6 +26,7 @@ Rectangle {
     anchors.fill: parent
 
     property bool nowIsPlayingAudio: true    //记录当前正在播放的是音频还是视频，从而知道该操作哪个列表
+    //property int nowIsPlayingIndex: 0
     Keys.onPressed: {//所有快捷键操作
         if ((event.key == Qt.Key_I) && (event.modifiers & Qt.ControlModifier)){
             //ctrl + i
@@ -405,8 +406,36 @@ Rectangle {
                         model: yinpinmodel
                         delegate: yinpindelegate
                         Component.onCompleted: {
-                            yinpinplaylist.init(1)  //视频列表初始化
+                            yinpinplaylist.init(1)  //音频列表初始化
+                            nowIsPlayingAudio=yinpinplaylist.selectISAudio()
+                            console.log("恢复 isAudio="+nowIsPlayingAudio)
+                            if(nowIsPlayingAudio)
+                            {
+                                console.log("恢复音频index="+yinpinplaylist.selectNowIndex())
+                                if(yinpinplaylist.setNowIndexWhenInit(yinpinplaylist.selectNowIndex()))
+                                {
+                                    console.log("音频恢复begin")
+                                    control.value=yinpinplaylist.selectControlValue()
+                                    videoShow.setProcess(control.visualPosition)
+                                    playbutton.playButtonActivate()
+                                    console.log("音频恢复ok")
+                                }
+                            }
+                            else
+                            {
+                                console.log("恢复视频index="+yinpinplaylist.selectNowIndex())
+                                if(shipinplaylist.setNowIndexWhenInit(yinpinplaylist.selectNowIndex()))
+                                {
+                                    console.log("视频恢复begin")
+                                    control.value =yinpinplaylist.selectControlValue()
+                                    videoShow.setProcess(control.visualPosition)
+                                    playbutton.playButtonActivate()
+                                    console.log("视频恢复ok")
+                                }
+                            }
+
                         }
+
                         ScrollBar.vertical: ScrollBar {
                             parent: yinpinframe
                             policy: ScrollBar.AlwaysOn
@@ -545,7 +574,7 @@ Rectangle {
                                     {
                                         shipinplaylist.playNextMedia(0)
                                         playbuttonimage.source="../content/images/pause.png"
-                                        nowIsPlayingAudio=true
+                                        nowIsPlayingAudio=false
                                     }
 
 
@@ -605,6 +634,7 @@ Rectangle {
                                             shipinlistview.currentIndex=index
                                             playbuttonimage.source="../content/images/pause.png"
                                             videoShow.reverse(shipinplaylist.getFilename(index))
+                                            thumbnailShow.setPathAndStart(shipinplaylist.getFilename(index))
                                             nowIsPlayingAudio=false
                                         }
                                     }
@@ -1227,7 +1257,7 @@ Rectangle {
                         controls.open = true
                     }
                     onExited: {
-                        if(!playbutton.hovered&&!lastPlayBtn.hovered&&!lastFrameButton.hovered&&!nextPlayBtn.hovered&&!nextFrameButton.hovered&&!playModeBtn.hovered){
+                        if(!playbutton.hovered&&!lastPlayBtn.hovered&&!lastFrameButton.hovered&&!nextPlayBtn.hovered&&!nextFrameButton.hovered&&!playModeBtn.hovered&&!lastOneFrameButton.hovered&&!nextOneFrameButton.hovered){
                              timer.start()
                             //controls.open=false
                         }
@@ -1276,7 +1306,44 @@ Rectangle {
                         Layout.leftMargin: 10
                         anchors.verticalCenter: parent.verticalCenter
                         Layout.fillWidth: true
+                        Component.onDestruction: {
 
+                            if(nowIsPlayingAudio)
+                            {
+                                yinpinplaylist.saveFlags(true,yinpinplaylist.getNowIndex(),control.value,videoShow.getCutPath(),"test")
+                                console.log("最后播放的是音频,index="+yinpinplaylist.getNowIndex())
+                            }
+                            else
+                            {
+                                yinpinplaylist.saveFlags(false,shipinplaylist.getNowIndex(),control.value,videoShow.getCutPath(),"test")
+                                console.log("最后播放的是视频,index="+shipinplaylist.getNowIndex())
+                            }
+                            console.log("程序关闭，进度条销毁，记录进度："+control.value)
+                        }
+//                        Component.onCompleted: {
+//                            nowIsPlayingAudio=yinpinplaylist.selectISAudio()
+//                            //console.log("恢复 isAudio="+nowIsPlayingAudio)
+//                            if(nowIsPlayingAudio)
+//                            {
+//                                if(yinpinplaylist.setNowIndexWhenInit(yinpinplaylist.selectNowIndex()))
+//                                {
+//                                    control.visualPosition=yinpinplaylist.selectControlValue()
+//                                    videoShow.setProcess(control.visualPosition)
+//                                    videoShow.pause()
+//                                }
+//                            }
+//                            else
+//                            {
+//                                //console.log("恢复index="+yinpinplaylist.selectNowIndex())
+//                                shipinplaylist.setNowIndex(yinpinplaylist.selectNowIndex())
+//                                if(shipinplaylist.setNowIndexWhenInit(yinpinplaylist.selectNowIndex()))
+//                                {
+//                                    control.visualPosition=yinpinplaylist.selectControlValue()
+//                                    videoShow.setProcess(control.visualPosition)
+//                                    videoShow.pause()
+//                                }
+//                            }
+//                        }
 
                         MouseArea{
                             id:control_area
@@ -1452,7 +1519,7 @@ Rectangle {
                         id:lastFrame
                         Layout.preferredHeight: 40
                         Layout.preferredWidth: 40
-                        anchors.right: playbuttonimage.left
+                        anchors.right: lastOneFrame.left
                         anchors.rightMargin: 10
                         source: "../content/images/13.png"
                         RoundButton {
@@ -1460,7 +1527,26 @@ Rectangle {
                             anchors.fill: parent
                             flat: true
                             ToolTip.visible: hovered
-                            ToolTip.text: qsTr("上一帧")
+                            ToolTip.text: qsTr("快退5帧")
+                            onClicked: {
+                                videoShow.seekSlow()
+                                overALLRectangle.forceActiveFocus()
+                            }
+                        }
+                    }
+                    Image {
+                        id:lastOneFrame
+                        Layout.preferredHeight: 40
+                        Layout.preferredWidth: 40
+                        anchors.right: playbuttonimage.left
+                        anchors.rightMargin: 10
+                        source: "../content/images/kuaitui.png"
+                        RoundButton {
+                            id:lastOneFrameButton
+                            anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("快退1帧")
                             onClicked: {
                                 videoShow.seekSlow(5)
                                 overALLRectangle.forceActiveFocus()
@@ -1511,10 +1597,29 @@ Rectangle {
                         }
                     }
                     Image {
-                        id:nextFrame
+                        id:nextOneFrame
                         Layout.preferredHeight: 40
                         Layout.preferredWidth: 40
                         anchors.left: playbuttonimage.right
+                        anchors.leftMargin: 10
+                        source: "../content/images/kuaijin.png"
+                        RoundButton {
+                            id:nextOneFrameButton
+                            anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("快进1帧")
+                            onClicked: {
+                                videoShow.seekFast()
+                                overALLRectangle.forceActiveFocus()
+                            }
+                        }
+                    }
+                    Image {
+                        id:nextFrame
+                        Layout.preferredHeight: 40
+                        Layout.preferredWidth: 40
+                        anchors.left: nextOneFrame.right
                         anchors.leftMargin: 10
                         source: "../content/images/12.png"
                         RoundButton {
@@ -1522,7 +1627,7 @@ Rectangle {
                             anchors.fill: parent
                             flat: true
                             ToolTip.visible: hovered
-                            ToolTip.text: qsTr("下一帧")
+                            ToolTip.text: qsTr("快进5帧")
                             onClicked: {
                                 videoShow.seekFast(5)
                                 overALLRectangle.forceActiveFocus()
@@ -1600,8 +1705,8 @@ Rectangle {
                     Image {
                         id:playmodeimage
                         source: "images/singlePlay.png"
-                        anchors.left:nextPlay.right
-                        anchors.leftMargin: 25
+                        anchors.right:cutOff.left
+                        anchors.rightMargin: 20
                         Layout.preferredHeight: 35
                         Layout.preferredWidth: 35
                         RoundButton {
@@ -1621,8 +1726,8 @@ Rectangle {
                     Image {
                         id: cutOff
                         source: "images/cut.png"
-                        anchors.left:playmodeimage.right
-                        anchors.leftMargin: 60
+                        anchors.right:full_screen.left
+                        anchors.rightMargin: 20
                         Layout.preferredHeight: 35
                         Layout.preferredWidth: 35
                         RoundButton {
@@ -1926,7 +2031,9 @@ Rectangle {
                     }
                 }
             }
+
         }
+
     }
 
 /*##^##

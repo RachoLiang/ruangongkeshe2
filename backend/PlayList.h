@@ -31,14 +31,13 @@ class PlayList : public QObject
 {
     Q_OBJECT
 private:
-    int playListType; //为1表示音频列表，2表示视频列表
+    int playListType;         //为1表示音频列表，2表示视频列表
     /* 基于vector的fileList
      * 保存整个音视频列表（歌单）
      * 在程序启动时，从数据库中读取数据恢复此vector
-     * 其余时候，仅在用户导入/剔除一个媒体时，这个vector才会修改
+     * 其余时候，仅在用户导入，删除，置顶一个媒体时，这个vector才会修改
     */
     std::vector<PlayListNode>fileList;
-
     /* 基于deque的historyList，其中的元素是随机播放时选取的fileList中的下标
      * 仅用于随机播放模式下，“上一首/下一首”就是在此deque中左右移动的过程
      * 变更播放模式，将清空此deque
@@ -71,7 +70,12 @@ public:
     Q_INVOKABLE void showFileList();
     Q_INVOKABLE QVariantMap getMediaInfo(int index,QString type); //获取文件详细信息
     Q_INVOKABLE int getNowIndex();
-
+    Q_INVOKABLE void saveFlags(bool,int,double,QString,QString);
+    Q_INVOKABLE void selectFlags(bool&,int&,double&);
+    Q_INVOKABLE bool selectISAudio();
+    Q_INVOKABLE int selectNowIndex();
+    Q_INVOKABLE double selectControlValue();
+    Q_INVOKABLE bool setNowIndexWhenInit(int); //程序刚启动时，恢复上一次播放的条目，但保持暂停状态
     Q_INVOKABLE QString getFilename(int);   //通过index获取filename，用于倒放模块
 
 signals: //信号只需要定义，不需要实现

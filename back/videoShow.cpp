@@ -265,7 +265,10 @@ void VideoShow::setProcess(double process) {
     }
     else if (isReverse && reversedecoder)
     {
-        reversedecoder->seekBySlider(process);
+        if (process == 1)   //如果是视频的结尾，则重新启动倒放模块
+            reverse(reversedecoder->getFilename());
+        else
+            reversedecoder->seekBySlider(process);
     }
 }
 
