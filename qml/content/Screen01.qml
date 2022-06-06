@@ -1211,6 +1211,7 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         Layout.fillWidth: true
                         Component.onDestruction: {
+                            console.log("保存cutPath"+videoShow.getCutPath())
 
                             if(nowIsPlayingAudio)
                             {
@@ -1224,30 +1225,6 @@ Rectangle {
                             }
                             console.log("程序关闭，进度条销毁，记录进度："+control.value)
                         }
-//                        Component.onCompleted: {
-//                            nowIsPlayingAudio=yinpinplaylist.selectISAudio()
-//                            //console.log("恢复 isAudio="+nowIsPlayingAudio)
-//                            if(nowIsPlayingAudio)
-//                            {
-//                                if(yinpinplaylist.setNowIndexWhenInit(yinpinplaylist.selectNowIndex()))
-//                                {
-//                                    control.visualPosition=yinpinplaylist.selectControlValue()
-//                                    videoShow.setProcess(control.visualPosition)
-//                                    videoShow.pause()
-//                                }
-//                            }
-//                            else
-//                            {
-//                                //console.log("恢复index="+yinpinplaylist.selectNowIndex())
-//                                shipinplaylist.setNowIndex(yinpinplaylist.selectNowIndex())
-//                                if(shipinplaylist.setNowIndexWhenInit(yinpinplaylist.selectNowIndex()))
-//                                {
-//                                    control.visualPosition=yinpinplaylist.selectControlValue()
-//                                    videoShow.setProcess(control.visualPosition)
-//                                    videoShow.pause()
-//                                }
-//                            }
-//                        }
 
                         MouseArea{
                             id:control_area

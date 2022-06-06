@@ -75,6 +75,8 @@ public:
     Q_INVOKABLE bool selectISAudio();
     Q_INVOKABLE int selectNowIndex();
     Q_INVOKABLE double selectControlValue();
+    Q_INVOKABLE QString selectCutPath();
+    Q_INVOKABLE QString selectCutType();
     Q_INVOKABLE bool setNowIndexWhenInit(int); //程序刚启动时，恢复上一次播放的条目，但保持暂停状态
     Q_INVOKABLE QString getFilename(int);   //通过index获取filename，用于倒放模块
 
