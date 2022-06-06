@@ -1,9 +1,9 @@
-﻿/****************************************************************************
+/****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of Qt Quick Studio Components.
+** This file is part of Qt Quick Designer Components.
 **
 ** $QT_BEGIN_LICENSE:GPL$
 ** Commercial License Usage
@@ -28,22 +28,33 @@
 ****************************************************************************/
 
 import QtQuick
-import QtQuick.Window
-import LLM
+import Qt.labs.folderlistmodel
 
-Window {
-    id:mainWin
-    property bool isFullScreen: false
-    width: 1200
-    height: 618
+QtObject {
+    id: loader
 
+    property url fontDirectory: Qt.resolvedUrl("../../content/" + relativeFontDirectory)
+    property string relativeFontDirectory: "fonts"
 
-    visible: true
-    title: "LLM"
-
-    Screen01 {
-        id: mainScreen
+    function loadFont(url) {
+        var fontLoader = Qt.createQmlObject('import QtQuick 2.15; FontLoader { source: "' + url + '"; }',
+                                            loader,
+                                            "dynamicFontLoader");
     }
 
-}
+    property FolderListModel folderModel: FolderListModel {
+        id: folderModel
+        folder: loader.fontDirectory
+        nameFilters: [ "*.ttf", "*.otf" ]
+        showDirs: false
 
+        onStatusChanged: {
+            if (folderModel.status == FolderListModel.Ready) {
+                var i
+                for (i = 0; i < count; i++) {
+                    loadFont(folderModel.get(i, "fileURL"))
+                }
+            }
+        }
+    }
+}
