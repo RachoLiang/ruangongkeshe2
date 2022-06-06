@@ -1132,7 +1132,7 @@ Rectangle {
                         controls.open = true
                     }
                     onExited: {
-                        if(!playbutton.hovered&&!lastPlayBtn.hovered&&!lastFrameButton.hovered&&!nextPlayBtn.hovered&&!nextFrameButton.hovered&&!playModeBtn.hovered){
+                        if(!playbutton.hovered&&!lastPlayBtn.hovered&&!lastFrameButton.hovered&&!nextPlayBtn.hovered&&!nextFrameButton.hovered&&!playModeBtn.hovered&&!lastOneFrameButton.hovered&&!nextOneFrameButton.hovered){
                              timer.start()
                             //controls.open=false
                         }
@@ -1357,7 +1357,7 @@ Rectangle {
                         id:lastFrame
                         Layout.preferredHeight: 40
                         Layout.preferredWidth: 40
-                        anchors.right: playbuttonimage.left
+                        anchors.right: lastOneFrame.left
                         anchors.rightMargin: 10
                         source: "../content/images/13.png"
                         RoundButton {
@@ -1365,7 +1365,26 @@ Rectangle {
                             anchors.fill: parent
                             flat: true
                             ToolTip.visible: hovered
-                            ToolTip.text: qsTr("上一帧")
+                            ToolTip.text: qsTr("快退5帧")
+                            onClicked: {
+                                videoShow.seekSlow()
+                                overALLRectangle.forceActiveFocus()
+                            }
+                        }
+                    }
+                    Image {
+                        id:lastOneFrame
+                        Layout.preferredHeight: 40
+                        Layout.preferredWidth: 40
+                        anchors.right: playbuttonimage.left
+                        anchors.rightMargin: 10
+                        source: "../content/images/kuaitui.png"
+                        RoundButton {
+                            id:lastOneFrameButton
+                            anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("快退1帧")
                             onClicked: {
                                 videoShow.seekSlow()
                                 overALLRectangle.forceActiveFocus()
@@ -1415,10 +1434,29 @@ Rectangle {
                         }
                     }
                     Image {
-                        id:nextFrame
+                        id:nextOneFrame
                         Layout.preferredHeight: 40
                         Layout.preferredWidth: 40
                         anchors.left: playbuttonimage.right
+                        anchors.leftMargin: 10
+                        source: "../content/images/kuaijin.png"
+                        RoundButton {
+                            id:nextOneFrameButton
+                            anchors.fill: parent
+                            flat: true
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("快进1帧")
+                            onClicked: {
+                                videoShow.seekFast()
+                                overALLRectangle.forceActiveFocus()
+                            }
+                        }
+                    }
+                    Image {
+                        id:nextFrame
+                        Layout.preferredHeight: 40
+                        Layout.preferredWidth: 40
+                        anchors.left: nextOneFrame.right
                         anchors.leftMargin: 10
                         source: "../content/images/12.png"
                         RoundButton {
@@ -1426,7 +1464,7 @@ Rectangle {
                             anchors.fill: parent
                             flat: true
                             ToolTip.visible: hovered
-                            ToolTip.text: qsTr("下一帧")
+                            ToolTip.text: qsTr("快进5帧")
                             onClicked: {
                                 videoShow.seekFast()
                                 overALLRectangle.forceActiveFocus()
