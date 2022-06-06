@@ -12,11 +12,11 @@ import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
 import QtCharts 2.14
-import LLM
 import VideoShow 1.0
 import ThumnailShow 1.0
 import playlistclass 1.0
 import Qt5Compat.GraphicalEffects
+import LLM
 
 Rectangle {
     id: overALLRectangle
@@ -56,6 +56,7 @@ Rectangle {
             full_screen_MouseArea.full_screenClicked()
         }
     }
+
 
     PlayList{
         id:yinpinplaylist;  //在全局构造一个音频播放列表对象

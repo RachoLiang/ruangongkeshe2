@@ -29,20 +29,20 @@
 
 import QtQuick
 import QtQuick.Window
+import LLM
 
 Window {
     id:mainWin
     property bool isFullScreen: false
-    width: 1000
+    width: 1200
     height: 618
 
 
     visible: true
-    title: "播播乐"
+    title: "LLM"
 
     Screen01 {
         id: mainScreen
     }
 
 }
-
