@@ -20,12 +20,16 @@ public:
     //创建表 两个表 一个videos一个audios
     void createTableAudios(void);
     void createTableVideos(void);
+    void createTableFlags(void);
+
     //判断表是否存在
     bool isTableExist(QString tableName);
 
     //插入,插入时不需要设置对象的id
     bool insertAudio(Audio* data);
     bool insertVideo(Video* video);
+    void saveFlags(bool isAudio,int index,double percent,QString cutPath,QString cutType);
+
     //修改
     void modifyAudio(int id,Audio* audio);
     void modifyVideo(int id,Video* video);
@@ -34,6 +38,8 @@ public:
     Video* selectVideo(int id);
     Audio* selectAudioByPath(QString path);
     Video* selectVideoByPath(QString path);
+    void selectFlags1(bool& isAudio,int& index,double& percent);
+    void selectFlags2(QString& cutPath,QString& cutType);
     //查询所有数据
     QList<Audio*> selectAllAudio();
     QList<Video*> selectAllVideo();

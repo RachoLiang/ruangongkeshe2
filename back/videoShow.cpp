@@ -444,7 +444,7 @@ void VideoShow::show(QString path, QString type) {
     {
         reversedecoder->stop();
         while (!(reversedecoder->isRunFinished() && reversedecoder->isPlayThreadFinished()))    //所有线程退出再delete
-            ;
+            av_usleep(100000);  //sleep 100ms
         delete reversedecoder;
         reversedecoder = nullptr;
     }
@@ -564,17 +564,22 @@ void VideoShow::clearAlbum(){
     emit artistChanged(m_artist);
     emit imagePathChanged("");
 }
-//启动倒放模块
+/*
+功能：启动倒放模块
+参数：视频文件名
+*/
 void VideoShow::reverse(QString filename)
 {
     isReverse = false;      //先设置成false，否则控制进度条的线程会因为reversedecoder被设置成nullptr而报错
 
-    //清除上一次倒放的资源
+    //释放上一次倒放的资源
     if (reversedecoder)
     {
         reversedecoder->stop();
-        while (!(reversedecoder->isRunFinished() && reversedecoder->isPlayThreadFinished()))    //所有线程退出再delete
-            ;
+
+        //所有线程退出再delete
+        while (!(reversedecoder->isRunFinished() && reversedecoder->isPlayThreadFinished()))    
+            av_usleep(100000);  //sleep 100ms
         delete reversedecoder;
         reversedecoder = nullptr;
     }

@@ -178,7 +178,7 @@ int ReverseDecoder::init()
         videoStream = formatCtx->streams[i];
         if (videoStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         {
-            //获取解码器
+            //获取codec
             if (!(codecCtx = avcodec_alloc_context3(NULL)))
             {
                 qDebug() << "AVCodecContext内存分配失败";
@@ -197,7 +197,7 @@ int ReverseDecoder::init()
                 return -1;
             }
 
-            //打开解码器
+            //打开codec
             if (avcodec_open2(codecCtx, codec, nullptr) != 0)
             {
                 qDebug() << "解码器打开失败";
@@ -226,10 +226,10 @@ int ReverseDecoder::init()
     //计算一帧RGB图像需要的字节数
     int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, video_width, video_height, 1);
 
-    //申请存放RGB frame的buffer
+    //申请存放RGB frame数据的buffer
     RGB_buffer = (uint8_t*)av_malloc(numBytes * sizeof(uint8_t));
 
-    //填充RGB frame
+    //将RGBFrame的data指针指向buffer
     av_image_fill_arrays(RGBFrame->data, RGBFrame->linesize, RGB_buffer, AV_PIX_FMT_RGB24, video_width, video_height, 1);
 
     seekEnd = duration = (double)formatCtx->duration / AV_TIME_BASE;
@@ -259,6 +259,9 @@ void ReverseDecoder::freeRAM()
     if (formatCtx) { avformat_close_input(&formatCtx); formatCtx = nullptr; }
 }
 
+/*
+功能：解码线程
+*/
 void ReverseDecoder::run()
 {
     runFinished = false;
@@ -349,9 +352,12 @@ void ReverseDecoder::run()
             }
         }
     }
-    runFinished = true;
+    runFinished = true; //解码线程已结束
 }
 
+/*
+功能：渲染线程
+*/
 int ReverseDecoder::playThread(void* arg)
 {
     ReverseDecoder* decoder = (ReverseDecoder*)arg;
@@ -394,7 +400,7 @@ int ReverseDecoder::playThread(void* arg)
             SDL_UnlockMutex(decoder->playListMutex);
         }
     }
-    decoder->playThreadFinished = true;
+    decoder->playThreadFinished = true; //渲染线程已结束
     return 0;
 }
 
