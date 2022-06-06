@@ -291,6 +291,7 @@ void ReverseDecoder::run()
                 break;
             }
             av_seek_frame(formatCtx, video_stream_index, seek_val, AVSEEK_FLAG_BACKWARD);	//找到seekEnd前的第一个关键帧
+            avcodec_flush_buffers(codecCtx);
             afterSeek = true;
         }
 
