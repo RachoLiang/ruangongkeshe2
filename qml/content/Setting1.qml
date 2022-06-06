@@ -223,9 +223,10 @@ Window {
                     Layout.fillWidth: true
                     TextInput {
                         id: textInput
-                        text: qsTr("")
+                        text: videoShow.getCutPath()
                         anchors.fill: parent
                         font.pixelSize: 12
+
                     }
                 }
             }
@@ -235,7 +236,7 @@ Window {
                     text: qsTr("输出格式:")
                 }
                 ComboBox {
-
+                    id: imgFmt
                     width: parent.width
                     transformOrigin: Item.Center
                     model: [".png", ".jpg"]
@@ -247,6 +248,12 @@ Window {
             anchors.leftMargin: 100
             id: baocun
             text: qsTr("保存")
+            onClicked: {
+                videoShow.setCutPath(textInput.text)
+                textInput.text = qsTr(videoShow.getCutPath())
+                videoShow.setImgFmt(imgFmt.currentValue)
+                imgFmt.currentValue = videoShow.getImgFmt()
+            }
         }
     }
 }
