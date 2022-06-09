@@ -11,15 +11,11 @@ SOURCES += \
     back/audio.cpp \
     back/audioDecoder.cpp \
     back/avPacketQueue.cpp \
-    back/captions.cpp \
     back/mainDecoder.cpp \
     back/mySql.cpp \
-    back/playerThread.cpp \
-    back/records.cpp \
     back/utils.cpp \
     back/thumbnailShow.cpp \
     back/vedio.cpp \
-    back/myStack.cpp \
     back/videoDecoder.cpp \
     back/videoShow.cpp \
     main.cpp
@@ -31,12 +27,8 @@ HEADERS += \
     backend/audio.h \
     backend/audioDecoder.h \
     backend/avPacketQueue.h \
-    backend/caption.h \
     backend/mainDecoder.h \
     backend/mySql.h \
-    backend/myStack.h \
-    backend/playerThread.h \
-    backend/records.h \
     backend/utils.h \
     backend/thumbnailShow.h \
     backend/vedio.h \

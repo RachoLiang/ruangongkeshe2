@@ -1257,7 +1257,7 @@ Rectangle {
                         controls.open = true
                     }
                     onExited: {
-                        if(!playbutton.hovered&&!lastPlayBtn.hovered&&!lastFrameButton.hovered&&!nextPlayBtn.hovered&&!nextFrameButton.hovered&&!playModeBtn.hovered&&!lastOneFrameButton.hovered&&!nextOneFrameButton.hovered){
+                        if(!playbutton.hovered&&!lastPlayBtn.hovered&&!lastFrameButton.hovered&&!nextPlayBtn.hovered&&!nextFrameButton.hovered&&!playModeBtn.hovered&&!lastOneFrameButton.hovered&&!nextOneFrameButton.hovered&&!cutBtn.hovered){
                              timer.start()
                             //controls.open=false
                         }
